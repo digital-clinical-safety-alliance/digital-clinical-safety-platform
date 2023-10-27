@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  docs-builder:
+    build: ./dockerfiles/app
+    container_name: docs-builder
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+      - ./archive:/archive
+      - ./logs:/logs
+      - ./requests:/requests
+    working_dir: /app
+    env_file: .env
+    entrypoint: bash PID_1.sh
+    #TODO: need to run as non-root at some point
+

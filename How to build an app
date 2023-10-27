@@ -1,0 +1,43 @@
+# CWC teaching module steps
+
+## Intro to the app
+* Install VS code
+* Create github account
+* Fork the the clinical-saffety-hazard-documentation repo from github
+* Show final app running on own computer
+
+## Now build the app from scratch whilst learning about coding along the way
+* Build a Docker-compose.yaml file to start up environment
+* May need separate Dockerfiles to build container environments
+* Log into container with
+>> docker exec -it docs-builder bash
+* Good reading resource - https://realpython.com/django-setup/
+* Create a new django project
+>> django-admin startproject cshd
+* Jump into the newly created project
+>> cd ./cshd
+* Create a new django app
+>> python3 manage.py startapp app
+* Start up the basic Django app and then go to http://0.0.0.0:8000
+>> python3 manage.py runserver 0.0.0.0:8000
+* Close down the server with ctrl-c
+* Follow https://realpython.com/get-started-with-django-1/
+* or perhaps https://docs.djangoproject.com/en/4.2/intro/tutorial01/
+* in cshd/cshd/settings.py add 'app' to the INSTALLED_APPS list.
+>> pip install tzdata
+
+
+--------
+* pip freeze to get requirements and copy into requirements.txt file
+>> pip freeze
+* mypy to check for typing
+* Learn python
+* Write python with PEP8 styling (to improve readability) - https://realpython.com/python-pep8/
+* Linter for better styling
+* mypi for hint type checking 
+* Add a devcontainer.json - here you can add what python version you want for linters and so on
+* https://en.wikipedia.org/wiki/Single-responsibility_principle
+
+Notes:
+If Docker cannot build the container (eg "network [network long name] not found), try this:
+>> docker-compose up --force-recreate -d
