@@ -9,9 +9,9 @@ services:
       - "8000:8000"
     volumes:
       - ./app:/app
-      - ./archive:/archive
       - ./logs:/logs
-      - ./requests:/requests
+      - ./docs_builder:/docs_builder
+      - ./mkdocs:/mkdocs
     working_dir: /app
     env_file: .env
     entrypoint: bash PID_1.sh
