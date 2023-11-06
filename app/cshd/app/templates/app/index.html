@@ -2,6 +2,13 @@
 
 {% block main %}
 
-Main block
+<form action="/clinicalRequesting" method="post">
+    <div class='formWrapper'>
+      {{ placeholders_html|safe }}
+    </div>
+    <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
+      Submit
+    </button>
+  </form>
     
 {% endblock %}

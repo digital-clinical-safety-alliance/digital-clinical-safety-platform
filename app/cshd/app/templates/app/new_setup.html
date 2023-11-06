@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<form action="/" method="post">
+    {% csrf_token %}
+    <div class='formWrapper'>
+        {{ templates_html|safe }}
+    </div>
+    <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
+      Submit
+    </button>
+  </form>
+    
+{% endblock %}

@@ -25,6 +25,12 @@
 * or perhaps https://docs.djangoproject.com/en/4.2/intro/tutorial01/
 * in cshd/cshd/settings.py add 'app' to the INSTALLED_APPS list.
 >> pip install tzdata
+* Some Django writing up
+* Add NHS styling and javascript for reacting
+* Install Materials for mkdocs (in mkdocs dir)
+>> mkdocs new .
+* Test out
+>> mkdocs serve
 
 
 --------

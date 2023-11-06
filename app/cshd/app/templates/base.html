@@ -18,7 +18,7 @@
   <script src="https://unpkg.com/htmx.org@1.8.4" integrity="sha384-wg5Y/JwF7VxGk4zLsJEcAojRtlVp1FKKdGy1qN+OMtdq72WRvX/EdRdqg/LOhYeV" crossorigin="anonymous"></script>
   
   <!-- Styles -->
-  <link rel="stylesheet" href="static/css/quickSpiritum.css">
+  <link rel="stylesheet" href="static/css/cshd.css">
 
   <!-- Scripts -->
   <script src="static/js/nhsuk-6.1.2.min.js" defer></script>
@@ -214,23 +214,7 @@
         <div class="nhsuk-grid-row">
           <div class="nhsuk-grid-column-full app-component-reading-width">
             <div id="mainBody">
-              <form action="/" method="post">
-                <div>
-                  <div class='row subtitleBar'>
-                      <div class='barColumnR'>
-                        <div class="locationSelect-div-padding">
-                          <select class="locationSelect" name="locations" id="locations" onchange="this.form.submit()">
-                            {{ locationOptionsHTML|safe }}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </form>
-            
-                {% block main %}{% endblock %}
-                </div>
-              <div class="app-index-navigation app-u-hide-desktop">
+              {% block main %}{% endblock %}
             </div>
           </div>
         </div>

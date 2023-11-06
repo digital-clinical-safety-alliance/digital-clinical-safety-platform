@@ -78,7 +78,7 @@ label {
   padding: 10px;
 }
 
-.locationSelect-div-padding {
+.templateSelect-div-padding {
   text-align: right;
   padding: 10px;
 }
@@ -87,7 +87,7 @@ label {
 
 }
 
-.locationSelect {
+.templateSelect {
   zoom: 1.5;
   min-width: 100px;
   max-width: 300px;
@@ -97,7 +97,7 @@ label {
 @media only screen and (min-width: 600px) {
   /* Tablet - Desktop */
   /* It will overwrite the other less specific classes padding */
-  .locationSelect-div-padding {
+  .templateSelect-div-padding {
     padding: 20px;
   }
   .title-div {
