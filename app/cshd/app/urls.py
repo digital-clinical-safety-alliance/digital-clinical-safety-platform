@@ -9,5 +9,10 @@ urlpatterns = [
     ),
     path("", views.index, name="index"),
     path("new_setup", views.index, name="new_setup"),
-    path("variables_saved", views.variables_saved, name="variables_saved"),
+    path(
+        "placeholders_saved",
+        views.placeholders_saved,
+        name="placeholders_saved",
+    ),
+    path("edit_md", views.edit_md, name="edit_md"),
 ]

@@ -44,7 +44,7 @@ class Builder:
         self.output_dir: str = str(output_dir)
         return None
 
-    def read_variables(self) -> dict:
+    def read_placeholders(self) -> dict:
         placeholders_extra: dict = {}
 
         # TODO need to check if file exists
@@ -53,7 +53,7 @@ class Builder:
 
         return placeholders_extra["extra"]
 
-    def save_variables(self, placeholders: dict) -> None:
+    def save_placeholders(self, placeholders: dict) -> None:
         placeholders_extra: dict = {"extra": placeholders}
 
         with open(f"{ MKDOCS_DOCS }/placeholders.yml", "w") as file:
@@ -120,7 +120,7 @@ class Builder:
             f.close()
 
         if os.path.exists(f"{ MKDOCS_DOCS }/placeholders.yml"):
-            stored_placeholders = self.read_variables()
+            stored_placeholders = self.read_placeholders()
 
         for p in placeholders_raw:
             p = p.replace("{{", "")
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     doc_build = Builder()
     # print(doc_build.get_templates())
     # doc_build.get_placeholders("DCB0129")
-    returned_variables = doc_build.read_variables()
+    returned_variables = doc_build.read_placeholders()
     print(returned_variables)
     returned_variables["extra"]["author_name"] = "James Doe"
     doc_build.save_variables(returned_variables)

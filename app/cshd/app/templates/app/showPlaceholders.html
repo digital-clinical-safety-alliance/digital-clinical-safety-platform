@@ -2,7 +2,7 @@
 
 {% block main %}
 
-<form action="/variables_saved" method="post">
+<form action="/placeholders_saved" method="post">
     {% csrf_token %}
     {% if form.errors %}
       <ul class="errors">

@@ -62,7 +62,7 @@ def index(request):
         return render(request, "app/500.html", context)
 
 
-def variables_saved(request):
+def placeholders_saved(request):
     context: dict = {}
     placeholders: dir = {}
 
@@ -73,10 +73,17 @@ def variables_saved(request):
         placeholders[p] = request.POST.get(p, "")
         print(f"*{p} - {placeholders[p]}*")
 
-    doc_build.save_variables(placeholders)
+    doc_build.save_placeholders(placeholders)
     context["ALLOW_DOCS_DELETE"] = ALLOW_DOCS_DELETE
 
-    return render(request, "app/variables_saved.html", context)
+    return render(request, "app/placeholders_saved.html", context)
+
+
+def edit_md(request):
+    context: dict = {}
+
+    context["ALLOW_DOCS_DELETE"] = ALLOW_DOCS_DELETE
+    return render(request, "app/edit_md.html", context)
 
 
 def delete_mkdocs_content(request):
