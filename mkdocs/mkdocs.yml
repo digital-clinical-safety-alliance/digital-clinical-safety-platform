@@ -1,11 +1,17 @@
-site_name: My Docs
+site_name: Clinical Safety Hazard Documentation 
 
 plugins:
   - macros
 
 theme:
   name: material
+  logo: assets/favicon.ico
+  favicon: assets/favicon.ico
 
+#nav:
+#    - Update placeholders: "http://0.0.0.0:8000"
+
+      
 dev_addr: 0.0.0.0:9000
 
 INHERIT: ./docs/placeholders.yml

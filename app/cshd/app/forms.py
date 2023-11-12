@@ -15,3 +15,5 @@ class PlaceholdersForm(forms.Form):
                     attrs={"class": "nhsuk-input nhsuk-input--width-30"}
                 ),
             )
+
+    # TODO need to check no invalid values entered eg '{}'
