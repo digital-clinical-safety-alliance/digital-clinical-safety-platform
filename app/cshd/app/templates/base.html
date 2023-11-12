@@ -214,7 +214,12 @@
         <div class="nhsuk-grid-row">
           <div class="nhsuk-grid-column-full app-component-reading-width">
             <div id="mainBody">
+              
               {% block main %}{% endblock %}
+
+              {% if ALLOW_DOCS_DELETE %}
+              <a href="delete_mkdocs_content">DELETE MKDOCS CONTENT!</a>
+              {% endif %}
             </div>
           </div>
         </div>

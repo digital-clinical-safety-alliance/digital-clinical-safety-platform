@@ -2,13 +2,11 @@
 
 {% block main %}
 
-<form action="/clinicalRequesting" method="post">
-    <div class='formWrapper'>
-      {{ placeholders_html|safe }}
-    </div>
+Variables saved
+<form action="http://localhost:9000/" method="post">
+    {% csrf_token %}
     <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
-      Submit
+        OPEN MKDOCS
     </button>
-  </form>
-    
+</form>
 {% endblock %}

@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 import sys
 
 sys.path.append("/app/cshd/app")
@@ -10,56 +10,82 @@ from docs_builder import Builder
 
 import shutil
 
-trans = {
-    "yes": "qui",
-    "no": "noi",
-    "portal": "portal",
-    "Search": "Search",
-}
-
-test_placeholders = {
-    "author_name": "Mark Bailey",
-    "project_name": "Clinical Safety Hazard Documentation App",
-    "hazard_log_url": "TBC",
-    "organisation_name": "Clinicians-Who-Code",
-    "clinical_safety_team_name": "Clinicians-Who-Code",
-    "clinical_safety_officer_name": "Mark Bailey",
-    "clinical_safety_officer_contact": "mark.bailey5@nhs.net",
-    "security_responsible_disclosure_email": "mark.bailey5@nhs.net",
-    "__project_slug": "TBC",
-}
-
 MKDOCS_DOCS = "/mkdocs/docs"
+
+# TODO need to make sure this is not in the production environment
+ALLOW_DOCS_DELETE = True
+
+from .forms import PlaceholdersForm
 
 
 def index(request):
-    context = {}
-    context["trans"] = trans
+    context: dict = {}
+    chosen_template: str = ""
+    placeholders: dict = {}
 
     form_ptr = formElements()
 
-    if request.method == "GET":
-        if os.listdir(MKDOCS_DOCS):
-            context["placeholders_html"] = form_ptr.create_elements(
-                test_placeholders
-            )
-            return render(request, "app/index.html", context)
-        else:
-            form_ptr.templates_HTML()
-            # print(form_ptr.templates_HTML())
-            context["templates_html"] = form_ptr.templates_HTML()
-            return render(request, "app/new_setup.html", context)
-    elif request.method == "POST":
+    if request.method == "POST":
         # TODO: need to say where to read placeholders from (location wise)
-        
+
+        # TODO: need to clean this 'get' code
+        # print(request.POST.get("templates", ""))
+        chosen_template = request.POST.get("templates", "")
+
         shutil.copytree(
-            "/mkdocs/templates/DCB0129", "/mkdocs/docs", dirs_exist_ok=True
+            f"/mkdocs/templates/{ chosen_template }",
+            MKDOCS_DOCS,
+            dirs_exist_ok=True,
         )
-        context["placeholders_html"] = form_ptr.create_elements(
-            test_placeholders
-        )
-        return render(request, "app/index.html", context)
+
+    if request.method == "POST" or (
+        request.method == "GET" and os.listdir(MKDOCS_DOCS)
+    ):
+        doc_build = Builder()
+        placeholders = doc_build.get_placeholders()
+
+        context = {
+            "ALLOW_DOCS_DELETE": ALLOW_DOCS_DELETE,
+            "form": PlaceholdersForm(placeholders),
+        }
+        return render(request, "app/showPlaceholders.html", context)
+
+    elif request.method == "GET" and not os.listdir(MKDOCS_DOCS):
+        form_ptr.templates_HTML()
+
+        context = {
+            "templates_html": form_ptr.templates_HTML(),
+            "ALLOW_DOCS_DELETE": ALLOW_DOCS_DELETE,
+        }
+        return render(request, "app/new_setup.html", context)
     else:
         return render(request, "app/500.html", context)
 
-    return
+
+def variables_saved(request):
+    context: dict = {}
+    placeholders: dir = {}
+
+    doc_build = Builder()
+    placeholders = doc_build.get_placeholders()
+
+    for p, v in placeholders.items():
+        placeholders[p] = request.POST.get(p, "")
+        print(f"*{p} - {placeholders[p]}*")
+
+    doc_build.save_variables(placeholders)
+    context["ALLOW_DOCS_DELETE"] = ALLOW_DOCS_DELETE
+
+    return render(request, "app/variables_saved.html", context)
+
+
+def delete_mkdocs_content(request):
+    if ALLOW_DOCS_DELETE:
+        for root, dirs, files in os.walk(MKDOCS_DOCS):
+            for f in files:
+                os.unlink(os.path.join(root, f))
+            for d in dirs:
+                shutil.rmtree(os.path.join(root, d))
+
+    response = redirect("/")
+    return response

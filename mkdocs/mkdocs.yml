@@ -8,4 +8,4 @@ theme:
 
 dev_addr: 0.0.0.0:9000
 
-INHERIT: ./variables.yml
+INHERIT: ./docs/placeholders.yml

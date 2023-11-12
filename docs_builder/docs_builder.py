@@ -10,6 +10,9 @@ import re
 import yaml
 
 
+MKDOCS_DOCS = "/mkdocs/docs"
+
+
 class Builder:
     """ """
 
@@ -42,19 +45,19 @@ class Builder:
         return None
 
     def read_variables(self) -> dict:
-        variables: dict = {}
+        placeholders_extra: dict = {}
 
-        with open("/mkdocs/variables.yml", "r") as file:
-            variables = yaml.safe_load(file)
-            # print(variables)
+        # TODO need to check if file exists
+        with open(f"{ MKDOCS_DOCS }/placeholders.yml", "r") as file:
+            placeholders_extra = yaml.safe_load(file)
 
-        # for placeholder, value in variables["extra"].items():
-        #   print(f"{ placeholder} : { value }")
-        return variables
+        return placeholders_extra["extra"]
 
-    def save_variables(self, variables: dict) -> None:
-        with open("/mkdocs/variables.yml", "w") as file:
-            yaml.dump(variables, file)
+    def save_variables(self, placeholders: dict) -> None:
+        placeholders_extra: dict = {"extra": placeholders}
+
+        with open(f"{ MKDOCS_DOCS }/placeholders.yml", "w") as file:
+            yaml.dump(placeholders_extra, file)
         return
 
     def get_template_types(self):
@@ -79,17 +82,18 @@ class Builder:
                 template directory'
             )
 
-        return templates
+        return sorted(templates, key=str.lower)
 
-    def get_placeholders(self, template):
+    def get_placeholders(self) -> dir:
         """ """
         placeholders: list = []
-        search_location: str = f"/templates/{ template }/"
+        search_location: str = f"{ MKDOCS_DOCS }/"
         files_to_check: list = []
 
         placeholders_sub: list = []
         placeholders_raw: list = []
-        placeholders_clean: list = []
+        placeholders_clean: dict = {}
+        stored_placeholders: dict = {}
 
         if os.path.isdir(search_location):
             for path, subdirs, files in os.walk(search_location):
@@ -115,14 +119,20 @@ class Builder:
             print(meta.find_undeclared_variables(ast))"""
             f.close()
 
+        if os.path.exists(f"{ MKDOCS_DOCS }/placeholders.yml"):
+            stored_placeholders = self.read_variables()
+
         for p in placeholders_raw:
             p = p.replace("{{", "")
             p = p.replace("}}", "")
             p = p.strip()
-            placeholders_clean.append(p)
-            print(p)
+            if len(stored_placeholders):
+                # TODO check what happens if 'p' does not exist in stored_placeholders
+                placeholders_clean[p] = stored_placeholders[p]
+            else:
+                placeholders_clean[p] = ""
 
-        return
+        return placeholders_clean
 
 
 if __name__ == "__main__":
