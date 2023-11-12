@@ -7,11 +7,11 @@ theme:
   name: material
   logo: assets/favicon.ico
   favicon: assets/favicon.ico
+  custom_dir: overrides
 
-#nav:
-#    - Update placeholders: "http://0.0.0.0:8000"
+extra:
+  generator: false
 
-      
 dev_addr: 0.0.0.0:9000
 
 INHERIT: ./docs/placeholders.yml
