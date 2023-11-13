@@ -18,8 +18,8 @@ jobs:
         if: success()
         uses: crazy-max/ghaction-github-labeler@v4
         with:
-          github-token: ${{"{{"}} secrets.TOKEN_ACCESS {{"}}"}}
+          github-token: ${{ secrets.TOKEN_ACCESS }}
           yaml-file: .github/labels.yml
           skip-delete: true # won't delete your existing labels
           dry-run: false
-          exclude: 
+          exclude:  
