@@ -1,27 +1,54 @@
 {% extends "base.html" %}
 
 {% block main %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+  function update_web_view() {
+    var text_md = document.getElementById("id_text_md");
+    var web_view = document.getElementById("id_web_view");
+    event = new Event('change');
+    web_view.innerHTML = marked.parse(text_md.value);
+    web_view.dispatchEvent(event);
+  };
+
+  window.onload = function() { update_web_view()}
+</script>
+
+<style>
+  div.editable {
+    width: 300px;
+    height: 200px;
+    border: 1px solid #ccc;
+    padding: 5px;
+  }
+
+  strong {  
+    font-weight: bold;
+  }
+</style>
+
+
 <label class="nhsuk-label" for="example">
-  (**document name**)
+  Markdown file: {{ document_name }}
 </label>
 <div class='formWrapper'>
   <div class='row'>
     <div class='columnL'>
       <div class="nhsuk-form-group">
-        <label class="nhsuk-label" for="example">
+        <label class="nhsuk-label" for="id_text_md">
           Markdown 
         </label>
-        <textarea class="nhsuk-textarea" id="example" name="example" rows="5" aria-describedby="example-hint">
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        </textarea>
+        {{ text_md }}
       </div>
     </div>
     <div class='columnR'>
-      <div class="nhsuk-form-group">
-        <label class="nhsuk-label" for="example">
-          Web view
-        </label>
-        <textarea class="nhsuk-textarea" id="example" name="example" rows="5" aria-describedby="example-hint"></textarea>
+      
+        <div class="nhsuk-form-group">
+          <label class="nhsuk-label" for="id_web_view">
+            Web view
+          </label>
+        <div id="id_web_view" class="nhsuk-textarea"></div>
+        <!---<textarea class="nhsuk-textarea" id="id_web_view" name="example" rows="5" aria-describedby="example-hint"></textarea>-->
       </div>
     </div>
   </div>

@@ -15,7 +15,7 @@ MKDOCS_DOCS = "/mkdocs/docs"
 # TODO need to make sure this is not in the production environment
 ALLOW_DOCS_DELETE = True
 
-from .forms import PlaceholdersForm
+from .forms import PlaceholdersForm, MDEditForm
 
 
 def index(request):
@@ -81,8 +81,17 @@ def placeholders_saved(request):
 
 def edit_md(request):
     context: dict = {}
+    text_md: dict = {}
+    file_md: str = "index.md"
 
-    context["ALLOW_DOCS_DELETE"] = ALLOW_DOCS_DELETE
+    with open(f"{ MKDOCS_DOCS }/{ file_md }", "r") as file:
+        text_md["text_md"] = file.read()
+
+    context = {
+        "ALLOW_DOCS_DELETE": ALLOW_DOCS_DELETE,
+        "text_md": MDEditForm(initial=text_md),
+        "document_name": file_md,
+    }
     return render(request, "app/edit_md.html", context)
 
 

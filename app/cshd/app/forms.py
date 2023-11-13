@@ -17,3 +17,17 @@ class PlaceholdersForm(forms.Form):
             )
 
     # TODO need to check no invalid values entered eg '{}'
+
+
+class MDEditForm(forms.Form):
+    text_md = forms.CharField(
+        label="",
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                "style": "width:100%; height:1500px;",
+                "class": "nhsuk-textarea",
+                "onkeyup": "update_web_view( )",
+            }
+        ),
+    )
