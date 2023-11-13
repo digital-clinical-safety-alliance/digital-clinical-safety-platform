@@ -1,6 +1,5 @@
 ---
 title: Downloads
-author: {{ author_name }}
 ---
 
 ## PDF export

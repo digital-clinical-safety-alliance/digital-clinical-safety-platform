@@ -1,6 +1,5 @@
 ---
 title: Clinical Risk Management Plan
-author: {{ author_name }}
 ---
 
 # Clinical Risk Management Plan

@@ -1,6 +1,5 @@
 ---
 title: "Clinical Safety: Overview"
-author: {{ author_name }}
 ---
 
 # Clinical Safety of the {{ project_name }} Project

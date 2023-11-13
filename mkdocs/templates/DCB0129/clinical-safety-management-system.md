@@ -1,7 +1,5 @@
 ---
 title: Clinical Risk Management System
-author: {{ author_name }}
-sdf
 ---
 
 # Clinical Risk Management System

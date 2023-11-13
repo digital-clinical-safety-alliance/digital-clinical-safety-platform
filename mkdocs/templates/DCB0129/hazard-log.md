@@ -1,6 +1,5 @@
 ---
 title: Hazard Log
-author: {{ author_name }}
 ---
 
 # {{ project_name }} Hazard Log

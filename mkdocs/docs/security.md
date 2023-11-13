@@ -1,6 +1,5 @@
 ---
 title: Security
-author: {{ author_name }}
 ---
 
 # Security

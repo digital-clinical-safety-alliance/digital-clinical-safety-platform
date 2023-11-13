@@ -1,6 +1,5 @@
 ---
 title: Clinical Safety Management File Content License
-author: {{ author_name }}
 ---
 
 # License file for the {{ organisation_name }} Clinical Safety Management File

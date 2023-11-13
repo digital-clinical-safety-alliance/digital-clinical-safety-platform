@@ -1,6 +1,5 @@
 ---
 title: Medical Device Registration
-author: {{ author_name }}
 ---
 
 # MHRA Medical Device Registration
