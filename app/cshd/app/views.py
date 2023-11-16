@@ -159,13 +159,24 @@ def saved_md(request):
 
 
 def log_hazard(request):
+    msg: str = ""
+
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "app/500.html")
 
     if request.method == "GET":
-        return render(request, "app/log_hazard.html")
+        msg = "GET"
+
     elif request.method == "POST":
-        return render(request, "app/log_hazard.html")
+        msg = "POST"
+
+    context = {
+        "ALLOW_DOCS_DELETE": ALLOW_DOCS_DELETE,
+        "form": MDFileSelect(),
+        "msg": msg,
+    }
+
+    return render(request, "app/log_hazard.html", context)
 
 
 # -----
