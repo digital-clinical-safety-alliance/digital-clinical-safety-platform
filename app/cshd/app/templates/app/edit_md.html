@@ -2,6 +2,7 @@
 
 {% block main %}
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
 <script>
   function update_web_view() {
     var text_md = document.getElementById("id_text_md");
@@ -9,62 +10,72 @@
     event = new Event('change');
     web_view.innerHTML = marked.parse(text_md.value);
     web_view.dispatchEvent(event);
-  };
 
-  window.onload = function() { update_web_view()}
+    web_view.style.height = 'auto';
+    text_md.style.height = 'auto';
+
+    var web_viewHeight = web_view.scrollHeight;
+    var text_mdHeight = text_md.scrollHeight;
+
+    var maxHeight = Math.max(web_viewHeight, text_mdHeight);
+    web_view.style.height = maxHeight + 'px';
+    text_md.style.height = maxHeight + 'px'; 
+  };
 </script>
 
-<style>
-  div.editable {
-    width: 300px;
-    height: 200px;
-    border: 1px solid #ccc;
-    padding: 5px;
-  }
 
-  strong {  
-    font-weight: bold;
-  }
-</style>
+<legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l">
+  <h1 class="nhsuk-fieldset__heading">
+    Markdown edit
+  </h1>
+</legend>
+<div class="nhsuk-hint" id="contact-hint">
+  Please note: you cannot add placeholders in the meta field (eg between the '---' markers)
+</div>
 
+<form action="/edit_md" method="post">
+  {% csrf_token %}
+  <div class="nhsuk-form-group">
+    {{ MDFileSelect }}
+  </div>
+</form>
 
-<label class="nhsuk-label" for="example">
-  Markdown file: {{ document_name }}
-</label>
-<div class='formWrapper'>
-  <div class='row'>
-    <div class='columnL'>
-      <div class="nhsuk-form-group">
-        <label class="nhsuk-label" for="id_text_md">
-          Markdown 
-        </label>
-        {{ text_md }}
+<form action="/saved_md" method="post">
+  {% csrf_token %}
+
+  <input type="hidden" id="id_document_name" value="{{ document_name }}">
+
+  <div class='formWrapper'>
+    <div class='row'>
+      <div class='columnL'>
+        <div class="nhsuk-form-group">
+          <label class="nhsuk-label" for="id_text_md">
+            <b>Markdown</b>
+          </label>
+          {{ text_md }}
+        </div>
       </div>
-    </div>
-    <div class='columnR'>
-      
+      <div class='columnR'>
         <div class="nhsuk-form-group">
           <label class="nhsuk-label" for="id_web_view">
-            Web view
+            <b>Web view</b>
           </label>
-        <div id="id_web_view" class="nhsuk-textarea"></div>
-        <!---<textarea class="nhsuk-textarea" id="id_web_view" name="example" rows="5" aria-describedby="example-hint"></textarea>-->
+          <div class="nhsuk-textarea" style="background-color:white;" id="id_web_view">
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<form action="/variables_saved" method="post">
-    {% csrf_token %}
-
-
-
-    <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
-      Submit
-    </button>
+  <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
+    Save
+  </button>
     
   </form>
 
-  
+  <script>
+    // Need this function call here to stop page jittering
+    update_web_view();
+  </script>
     
 {% endblock %}

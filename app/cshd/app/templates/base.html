@@ -9,19 +9,16 @@
 
     <title>CSHD</title>
 
-  <!-- used compiled NHS components from: https://github.com/nhsuk/nhsuk-frontend/blob/main/docs/installation/installing-compiled.md-->
+    <!-- used compiled NHS components from: https://github.com/nhsuk/nhsuk-frontend/blob/main/docs/installation/installing-compiled.md-->
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="static/css/nhsuk-6.1.2.min.css">
-  
-  <!-- htmx -->
-  <script src="https://unpkg.com/htmx.org@1.8.4" integrity="sha384-wg5Y/JwF7VxGk4zLsJEcAojRtlVp1FKKdGy1qN+OMtdq72WRvX/EdRdqg/LOhYeV" crossorigin="anonymous"></script>
-  
-  <!-- Styles -->
-  <link rel="stylesheet" href="static/css/cshd.css">
+    <!-- Styles -->
+    <link rel="stylesheet" href="static/css/nhsuk-6.1.2.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="static/css/cshd.css">
 
-  <!-- Scripts -->
-  <script src="static/js/nhsuk-6.1.2.min.js" defer></script>
+    <!-- Scripts -->
+    <script src="static/js/nhsuk-6.1.2.min.js" defer></script>
 
     <link rel="stylesheet" href="https://service-manual.nhs.uk/css/main.css">
 
@@ -32,13 +29,61 @@
 
     <!-- Adobe Analytics -->
     
-      <!-- Data Layer -->
-      <script>
-  window.digitalData = {"page":{"pageInfo":{"pageName":"nhs:manual:design-system"},"category":{"primaryCategory":"design-system"}}};
-  </script>
+    <!-- Data Layer -->
+    <script>
+    window.digitalData = {"page":{"pageInfo":{"pageName":"nhs:manual:design-system"},"category":{"primaryCategory":"design-system"}}};
+    </script>
 
-      <script src="https://assets.adobedtm.com/launch-ENe7f6cdd7cc05409b86547d9153429788.min.js" type="text/plain" data-cookieconsent="statistics" async></script>
+    <script src="https://assets.adobedtm.com/launch-ENe7f6cdd7cc05409b86547d9153429788.min.js" type="text/plain" data-cookieconsent="statistics" async></script>
     
+    
+    <!--<script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Your function or code here
+        update_web_view();
+      });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+      function update_web_view() {
+        var text_md = document.getElementById("id_text_md");
+        var web_view = document.getElementById("id_web_view");
+        event = new Event('change');
+        web_view.innerHTML = marked.parse(text_md.value);
+        web_view.dispatchEvent(event);
+
+        matchHeight();
+      };
+  
+    // Function to match the height of a textarea and a div
+    function matchHeight() {
+        var div = document.getElementById('id_web_view');
+        var textarea = document.getElementById('id_text_md');
+
+        // Set the height of the div and textarea to auto to reset their heights
+        div.style.height = 'auto';
+        textarea.style.height = 'auto';
+
+        // Get the updated heights after resetting
+        var divHeight = div.scrollHeight;
+        var textareaHeight = textarea.scrollHeight;
+
+        // Set the height of both elements to the maximum of their heights
+        var maxHeight = Math.max(divHeight, textareaHeight);
+        div.style.height = maxHeight + 'px';
+        textarea.style.height = maxHeight + 'px'; 
+      }
+
+      //window.onload = function() {
+      //  update_web_view();
+        //var div = document.getElementById('id_web_view');
+        //div.style.hidden = false;
+        //var textarea = document.getElementById('id_text_md');
+        //textarea.style.hidden = false;
+      //}
+    </script>-->
+
 
     <!-- Verify domain with Google -->
     <meta name="google-site-verification" content="Prj4LS7KX0amTkqVrOlnEyldVIjzJqbnXgPL1zbHocM" />
@@ -162,7 +207,7 @@
             </li>
             
             <li class="nhsuk-header__navigation-item">
-              <a class="nhsuk-header__navigation-link" href="/">
+              <a class="nhsuk-header__navigation-link" href="/log_hazard">
                 Log hazard
                 <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"  width="34" height="34">
                   <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
@@ -214,6 +259,18 @@
         <div class="nhsuk-grid-row">
           <div class="nhsuk-grid-column-full app-component-reading-width">
             <div id="mainBody">
+
+              {% if messages %}
+                <div style="background-color: #78BE20; min-height: 30px;">
+                  <ul>
+                    {% for message in messages %}
+                      <div class="nhsuk-fieldset__heading">
+                        <strong><li>{{ message }}</li></strong>
+                      </div>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endif %}
               
               {% block main %}{% endblock %}
 

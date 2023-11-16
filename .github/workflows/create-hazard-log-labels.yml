@@ -4,6 +4,8 @@
 
 name: create-hazard-log-labels
 
+# As "workflow_dispatched" is used, you need to manually run this flow. It is only needed to run once anyway
+# it looks like as labels will then be set.
 on:
   workflow_dispatch
 permissions:
