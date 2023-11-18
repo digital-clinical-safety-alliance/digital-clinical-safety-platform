@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 
 {% block main %}
+<legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l" style="width:100%">
+    <h1 class="nhsuk-fieldset__heading" style="width:100%">
+      mkDocs is now ready to use
+    </h1>
+</legend>
 
-Variables saved
+<p>You have now completed the set up for your clinical safety documentation. 
+  Please clinic on the button below to view these pages</p>
 <form action="http://localhost:9000/" method="post">
     {% csrf_token %}
     <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">

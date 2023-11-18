@@ -6,11 +6,11 @@ exitFunction() {
     exit
 }
 
-cd /app/cshd
+cd /cshd/app/cshd
 python3 manage.py runserver 0.0.0.0:8000 &
 
-cd /mkdocs
-mkdocs serve &
+#cd /cshd/mkdocs
+#mkdocs serve &
 
 while :
 do

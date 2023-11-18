@@ -3,7 +3,8 @@ from django import forms
 import os
 from fnmatch import fnmatch
 
-MKDOCS_DOCS = "/mkdocs/docs"
+# TODO: need to make this a passable variable between modules.
+MKDOCS_DOCS = "/cshd/mkdocs/docs"
 
 
 class PlaceholdersForm(forms.Form):
@@ -61,5 +62,22 @@ class MDEditForm(forms.Form):
                 "class": "nhsuk-textarea",
                 "onkeyup": "update_web_view( )",
             }
+        ),
+    )
+
+
+# TODO: need to set both to 'required'
+class GitHubCredentialsForm(forms.Form):
+    github_username = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={"class": "nhsuk-input nhsuk-input--width-30"}
+        ),
+    )
+
+    github_token = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={"class": "nhsuk-input nhsuk-input--width-30"}
         ),
     )

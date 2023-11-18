@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
 {% block main %}
+<legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l">
+  <h1 class="nhsuk-fieldset__heading">
+    Please enter placeholders
+  </h1>
+</legend>
 
 <form action="/placeholders_saved" method="post">
     {% csrf_token %}

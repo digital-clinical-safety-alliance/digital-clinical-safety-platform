@@ -189,7 +189,7 @@
             </li>
             
             <li class="nhsuk-header__navigation-item app-header__navigation-item__item--current">
-              <a class="nhsuk-header__navigation-link" href="http://0.0.0.0:9000">
+              <a class="nhsuk-header__navigation-link" href="/mkdoc_redirect/home">
                 MKDOC
                 <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"  width="34" height="34">
                   <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
@@ -261,21 +261,22 @@
             <div id="mainBody">
 
               {% if messages %}
-                <div style="background-color: #78BE20; min-height: 30px;">
-                  <ul>
+                <div style="background-color: #78BE20; padding:10px">
+                   <ul style="max-width: 100%">
                     {% for message in messages %}
-                      <div class="nhsuk-fieldset__heading">
+                      <div class="nhsuk-fieldset__heading" style="width:100%">
                         <strong><li>{{ message }}</li></strong>
                       </div>
                     {% endfor %}
                   </ul>
                 </div>
+                <div style="height:20px"></div>
               {% endif %}
               
               {% block main %}{% endblock %}
 
-              {% if ALLOW_DOCS_DELETE %}
-              <a href="delete_mkdocs_content">DELETE MKDOCS CONTENT!</a>
+              {% if START_AFRESH %}
+              <a href="start_afresh">Start afresh!</a>
               {% endif %}
             </div>
           </div>

@@ -10,7 +10,7 @@ import re
 import yaml
 
 
-MKDOCS_DOCS = "/mkdocs/docs"
+MKDOCS_DOCS = "/cshd/mkdocs/docs"
 
 
 class Builder:
@@ -18,8 +18,8 @@ class Builder:
 
     def __init__(
         self,
-        template_dir: str | None = "/mkdocs/templates/",
-        output_dir: str | None = "/mkdocs/hazard_logs",
+        template_dir: str | None = "/cshd/mkdocs/templates/",
+        output_dir: str | None = "/cshd/mkdocs/hazard_logs",
     ) -> None:
         if template_dir == None:
             raise ValueError(

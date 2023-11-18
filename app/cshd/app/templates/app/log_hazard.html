@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
 {% block main %}
+<legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l">
+  <h1 class="nhsuk-fieldset__heading">
+    Please log your hazard here
+  </h1>
+</legend>
+
 <form action="/log_hazard" method="post">
     {% csrf_token %}
    

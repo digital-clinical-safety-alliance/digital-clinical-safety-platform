@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append("/docs_builder")
+sys.path.append("/cshd/docs_builder")
 from docs_builder import Builder
 
 
