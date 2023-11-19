@@ -1,6 +1,7 @@
 # Additional
 logs/
 .DS_Store
+mkdocs/docs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

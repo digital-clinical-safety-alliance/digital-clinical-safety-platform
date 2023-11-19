@@ -26,24 +26,64 @@
 
 <legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l">
   <h1 class="nhsuk-fieldset__heading">
-    Please enter Github crendentials
+    Initial Setup
   </h1>
 </legend>
 
 
+<script>
+  function change_visibility() {
+    var allElements = document.querySelectorAll('[id]');
+    var installation_type = document.getElementById("id_installation_type").value;
+
+    for (var i = 0; i < allElements.length; i++) {
+        var element = allElements[i];
+        
+        if (element.id.endsWith("_SA") || element.id.endsWith("_I")) {
+            element.style.display = "none";
+        }
+    }
+
+    if (installation_type === 'SA') {
+        for (var i = 0; i < allElements.length; i++) {
+            var element = allElements[i];
+            
+            if (element.id.endsWith("_SA")) {
+                element.style.display = "block";
+            }
+        }
+    } 
+    else if (installation_type === 'I') {
+        for (var i = 0; i < allElements.length; i++) {
+            var element = allElements[i];
+            
+            if (element.id.endsWith("_I")) {
+                element.style.display = "block";
+            }
+        }
+    } 
+  };
+</script>
+
 <form action="/template_select" method="post">
     {% csrf_token %}
+
     {% for field in form %}
     <div class="nhsuk-form-group">
-      <label class="nhsuk-label" for="id_{{ field.name }}">
-        {{ field.label }} ({{ field.name }})
+      <label class="nhsuk-label" for="id_{{ field.name }}" id="id_label_{{ field.name }}">
+        {{ field.label }}
       </label>
       {{ field }}
     </div>
     {% endfor %}
+
     <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
       Submit
     </button>
   </form>
+
+  <script>
+    change_visibility();
+  </script>
     
 {% endblock %}

@@ -29,7 +29,7 @@ from .forms import (
     PlaceholdersForm,
     MDEditForm,
     MDFileSelect,
-    GitHubCredentialsForm,
+    InstallationForm,
 )
 
 
@@ -40,14 +40,12 @@ def index(request, forwarder=""):
     github_username: str | None = None
     github_token: str | None = None
 
-    form_ptr = formElements()
-
     if not (request.method == "POST" or request.method == "GET"):
-        return render(request, "app/500.html", context)
+        return render(request, "500.html", context)
 
-    # 'environ.get' does not handle a change of envs very well, so used
-    # 'env_variables = dotenv_values(find_dotenv())' instead
     if request.method == "GET":
+        # 'environ.get' does not handle a change of envs very well, so used
+        # 'env_variables = dotenv_values(find_dotenv())' instead
         env_variables = dotenv_values(find_dotenv())
         github_username = env_variables.get("GITHUB_USERNAME")
         github_token = env_variables.get("GITHUB_TOKEN")
@@ -55,27 +53,28 @@ def index(request, forwarder=""):
         if not (github_username and github_token):
             context = {
                 "START_AFRESH": START_AFRESH,
-                "form": GitHubCredentialsForm(),
+                "form": InstallationForm(),
             }
-            return render(request, "app/installation_method.html", context)
+            return render(request, "installation_method.html", context)
 
     if forwarder == "template_select":
         if not os.listdir(MKDOCS_DOCS):
             print(2)
+            form_ptr = formElements()
             form_ptr.templates_HTML()
 
             context = {
                 "templates_html": form_ptr.templates_HTML(),
                 "START_AFRESH": START_AFRESH,
             }
-            return render(request, "app/template_select.html", context)
+            return render(request, "template_select.html", context)
 
     if request.method == "POST":
         # TODO: need to say where to read placeholders from (location wise)
 
         # TODO: need to clean this 'get' code to use a Forms template
         chosen_template = request.POST.get("templates", "")
-        print(f"{ MKDOCS }/templates/{ chosen_template }")
+        # print(f"{ MKDOCS }/templates/{ chosen_template }")
         shutil.copytree(
             f"{ MKDOCS }/templates/{ chosen_template }",
             MKDOCS_DOCS,
@@ -90,7 +89,6 @@ def index(request, forwarder=""):
     if request.method == "POST" or (
         request.method == "GET" and os.listdir(MKDOCS_DOCS)
     ):
-        print(1)
         doc_build = Builder()
         placeholders = doc_build.get_placeholders()
 
@@ -98,35 +96,35 @@ def index(request, forwarder=""):
             "START_AFRESH": START_AFRESH,
             "form": PlaceholdersForm(placeholders),
         }
-        return render(request, "app/showPlaceholders.html", context)
+        return render(request, "showPlaceholders.html", context)
 
     elif request.method == "GET" and not os.listdir(MKDOCS_DOCS):
-        print(2)
+        form_ptr = formElements()
         form_ptr.templates_HTML()
 
         context = {
             "templates_html": form_ptr.templates_HTML(),
             "START_AFRESH": START_AFRESH,
         }
-        return render(request, "app/new_setup.html", context)
+        return render(request, "new_setup.html", context)
 
 
 def template_select(request):
     if not (request.method == "GET" or request.method == "POST"):
-        return render(request, "app/500.html")
+        return render(request, "500.html")
 
     if request.method == "GET":
         return redirect("/")
 
     if request.method == "POST":
-        form = GitHubCredentialsForm(request.POST)
+        form = InstallationForm(request.POST)
         if form.is_valid():
             env_m = ENVManipulator()
             file_md_returned = env_m.add(
-                "GITHUB_USERNAME", form.cleaned_data["github_username"]
+                "GITHUB_USERNAME", form.cleaned_data["github_username_SA"]
             )
             file_md_returned = env_m.add(
-                "GITHUB_TOKEN", form.cleaned_data["github_token"]
+                "GITHUB_TOKEN", form.cleaned_data["github_token_SA"]
             )
 
             messages.success(
@@ -145,7 +143,7 @@ def template_select(request):
         "form": MDFileSelect(),
     }
 
-    return render(request, "app/log_hazard.html", context)
+    return render(request, "log_hazard.html", context)
 
 
 def placeholders_saved(request):
@@ -167,9 +165,9 @@ def placeholders_saved(request):
     doc_build.save_placeholders(placeholders)
     context["START_AFRESH"] = START_AFRESH
 
-    # mc = MkdocsControl()
-    # mc.start()
-    return render(request, "app/placeholders_saved.html", context)
+    mc = MkdocsControl()
+    mc.start()
+    return render(request, "placeholders_saved.html", context)
 
 
 def edit_md(request):
@@ -177,7 +175,7 @@ def edit_md(request):
     files_md: list[str] = []
 
     if not (request.method == "GET" or request.method == "POST"):
-        return render(request, "app/500.html")
+        return render(request, "500.html")
 
     if request.method == "GET":
         if not os.path.isdir(MKDOCS_DOCS):
@@ -206,7 +204,7 @@ def edit_md(request):
         "document_name": files_md[0],
     }
     print(context)
-    return render(request, "app/edit_md.html", context)
+    return render(request, "edit_md.html", context)
 
 
 def saved_md(request):
@@ -239,21 +237,21 @@ def saved_md(request):
                 "text_md": MDEditForm(initial=request.POST),
                 "document_name": file_md_returned,
             }
-            return render(request, "app/edit_md.html", context)
+            return render(request, "edit_md.html", context)
         else:
             # TODO: need to rebuild form with error messages
             return HttpResponse("Error")
 
         return HttpResponse("You're looking at question %s." % question_id)
     else:
-        return render(request, "app/500.html", context)
+        return render(request, "500.html", context)
 
 
 def log_hazard(request):
     msg: str = ""
 
     if not (request.method == "GET" or request.method == "POST"):
-        return render(request, "app/500.html")
+        return render(request, "500.html")
 
     if request.method == "GET":
         msg = "GET"
@@ -267,7 +265,7 @@ def log_hazard(request):
         "msg": msg,
     }
 
-    return render(request, "app/log_hazard.html", context)
+    return render(request, "log_hazard.html", context)
 
 
 def mkdoc_redirect(request, path):
@@ -299,4 +297,4 @@ def start_afresh(request):
 
 # custom 404 view
 def custom_404(request, exception):
-    return render(request, "app/404.html", status=404)
+    return render(request, "404.html", status=404)

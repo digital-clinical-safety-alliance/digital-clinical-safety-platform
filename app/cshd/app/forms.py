@@ -60,24 +60,72 @@ class MDEditForm(forms.Form):
             attrs={
                 "style": "width:100%; overflow:hidden;",
                 "class": "nhsuk-textarea",
-                "onkeyup": "update_web_view( )",
+                "onkeyup": "update_web_view()",
             }
         ),
     )
 
 
 # TODO: need to set both to 'required'
-class GitHubCredentialsForm(forms.Form):
-    github_username = forms.CharField(
-        required=False,
-        widget=forms.TextInput(
-            attrs={"class": "nhsuk-input nhsuk-input--width-30"}
+class InstallationForm(forms.Form):
+    CHOICES = (
+        ("", ""),
+        (
+            "SA",
+            "Stand alone",
+        ),
+        (
+            "I",
+            "Integrated",
         ),
     )
 
-    github_token = forms.CharField(
+    installation_type = forms.ChoiceField(
+        choices=CHOICES,
+        widget=forms.Select(
+            attrs={
+                "class": "nhsuk-select",
+                "onChange": "change_visibility()",
+            }
+        ),
+    )
+
+    github_repo_SA = forms.CharField(
+        label="Github repository",
         required=False,
         widget=forms.TextInput(
-            attrs={"class": "nhsuk-input nhsuk-input--width-30"}
+            attrs={
+                "class": "nhsuk-input nhsuk-input--width-30",
+            }
+        ),
+    )
+
+    github_username_SA = forms.CharField(
+        label="Github username",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "nhsuk-input nhsuk-input--width-30",
+            }
+        ),
+    )
+
+    github_token_SA = forms.CharField(
+        label="Github token",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "nhsuk-input nhsuk-input--width-30",
+            }
+        ),
+    )
+
+    code_location_I = forms.CharField(
+        label="Location of source code",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "nhsuk-input nhsuk-input--width-30",
+            }
         ),
     )
