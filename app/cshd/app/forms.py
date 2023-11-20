@@ -2,71 +2,16 @@ from django import forms
 
 import os
 from fnmatch import fnmatch
-
-# TODO: need to make this a passable variable between modules.
-MKDOCS_DOCS = "/cshd/mkdocs/docs"
+import sys
 
 
-class PlaceholdersForm(forms.Form):
-    def __init__(self, placeholders, *args, **kwargs):
-        super(PlaceholdersForm, self).__init__(*args, **kwargs)
-        placeholder: str = ""
-        value: str = ""
+import app.functions.constants as c
 
-        for placeholder, value in placeholders.items():
-            self.fields[placeholder] = forms.CharField(
-                required=False,
-                initial=value,
-                widget=forms.TextInput(
-                    attrs={"class": "nhsuk-input nhsuk-input--width-30"}
-                ),
-            )
-
-    # TODO need to check no invalid values entered eg '{}'
+sys.path.append(c.FUNCTIONS_APP)
+from docs_builder import Builder
 
 
-class MDFileSelect(forms.Form):
-    choices_list: list = []
-
-    if os.path.isdir(MKDOCS_DOCS):
-        for path, subdirs, files in os.walk(MKDOCS_DOCS):
-            for name in files:
-                if fnmatch(name, "*.md"):
-                    choices_list.append([name, name])
-    else:
-        raise Exception(f"{ MKDOCS_DOCS } if not a valid folder location")
-
-    CHOICES = tuple(choices_list)
-
-    mark_down_file = forms.ChoiceField(
-        choices=CHOICES,
-        widget=forms.Select(
-            attrs={"class": "nhsuk-select", "onChange": "form.submit()"}
-        ),
-    )
-
-
-class MDEditForm(forms.Form):
-    document_name = forms.CharField(
-        label="",
-        required=False,
-        widget=forms.HiddenInput(attrs={}),
-    )
-
-    text_md = forms.CharField(
-        label="",
-        required=False,
-        widget=forms.Textarea(
-            attrs={
-                "style": "width:100%; overflow:hidden;",
-                "class": "nhsuk-textarea",
-                "onkeyup": "update_web_view()",
-            }
-        ),
-    )
-
-
-# TODO: need to set both to 'required'
+# TODO: need to set to 'required'
 class InstallationForm(forms.Form):
     CHOICES = (
         ("", ""),
@@ -126,6 +71,101 @@ class InstallationForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "class": "nhsuk-input nhsuk-input--width-30",
+            }
+        ),
+    )
+
+    def clean_github_repo_SA(self):
+        github_repo_SA = self.cleaned_data["github_repo_SA"]
+        if " " in github_repo_SA:
+            raise forms.ValidationError("Invalid URL")
+        return github_repo_SA
+
+
+class TemplateSelectForm(forms.Form):
+    doc_build: Builder
+    templates: list[str] = []
+    choices_list: list = []
+
+    doc_build = Builder()
+    templates = doc_build.get_templates()
+
+    if len(templates) == 0:
+        raise Exception("No templates found in templates folder!")
+
+    for template in templates:
+        choices_list.append([template, template])
+
+    CHOICES = tuple(choices_list)
+
+    template_choice = forms.ChoiceField(
+        choices=CHOICES,
+        widget=forms.Select(attrs={"class": "nhsuk-select"}),
+    )
+
+
+class PlaceholdersForm(forms.Form):
+    def __init__(self, *args, **kwargs) -> None:
+        super(PlaceholdersForm, self).__init__(*args, **kwargs)
+        doc_build: Builder
+        placeholder: str = ""
+        value: str = ""
+
+        doc_build = Builder()
+        placeholders = doc_build.get_placeholders()
+
+        for placeholder, value in placeholders.items():
+            self.fields[placeholder] = forms.CharField(
+                required=False,
+                initial=value,
+                widget=forms.TextInput(
+                    attrs={"class": "nhsuk-input nhsuk-input--width-30"}
+                ),
+            )
+
+    # TODO need to check no invalid values entered eg '{}'
+
+
+class MDFileSelect(forms.Form):
+    choices_list: list = []
+    # path
+    # subdirs
+    # files
+    # name
+
+    if not os.path.isdir(c.MKDOCS_DOCS):
+        raise Exception(f"{ c.MKDOCS_DOCS } if not a valid folder location")
+
+    for path, subdirs, files in os.walk(c.MKDOCS_DOCS):
+        for name in files:
+            if fnmatch(name, "*.md"):
+                choices_list.append([name, name])
+
+    CHOICES = tuple(choices_list)
+
+    mark_down_file = forms.ChoiceField(
+        choices=CHOICES,
+        widget=forms.Select(
+            attrs={"class": "nhsuk-select", "onChange": "form.submit()"}
+        ),
+    )
+
+
+class MDEditForm(forms.Form):
+    document_name = forms.CharField(
+        label="",
+        required=False,
+        widget=forms.HiddenInput(attrs={}),
+    )
+
+    text_md = forms.CharField(
+        label="",
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                "style": "width:100%; overflow:hidden;",
+                "class": "nhsuk-textarea",
+                "onkeyup": "update_web_view()",
             }
         ),
     )

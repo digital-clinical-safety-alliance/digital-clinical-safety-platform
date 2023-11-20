@@ -20,6 +20,7 @@ from django.urls import path, include
 from django.conf.urls import handler400, handler403, handler404, handler500
 
 handler404 = "app.views.custom_404"
+handler405 = "app.views.custom_405"
 
 urlpatterns = [
     path("", include("app.urls")),

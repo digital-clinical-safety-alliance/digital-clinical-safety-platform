@@ -4,6 +4,7 @@
 
 import os
 from pathlib import Path
+from os import PathLike
 from jinja2 import Environment, meta
 from fnmatch import fnmatch
 import re
@@ -18,7 +19,11 @@ class Builder:
 
     def __init__(
         self,
-        template_dir: str | None = "/cshd/mkdocs/templates/",
+        template_dir: int
+        | str
+        | bytes
+        | PathLike[str]
+        | PathLike[bytes] = "/cshd/mkdocs/templates/",
         output_dir: str | None = "/cshd/mkdocs/hazard_logs",
     ) -> None:
         if template_dir == None:
@@ -28,7 +33,7 @@ class Builder:
 
         if not os.path.isdir(template_dir):
             raise ValueError(
-                f'Template directory "{ template_dir }" does not exist!'
+                f"Template directory '{ template_dir }' does not exist!"  # type: ignore[str-bytes-safe]
             )
 
         if output_dir == None:
@@ -84,22 +89,23 @@ class Builder:
 
         return sorted(templates, key=str.lower)
 
-    def get_placeholders(self) -> dir:
+    def get_placeholders(self) -> dict[str, str]:
         """ """
-        placeholders: list = []
+        placeholders: list[str] = []
         search_location: str = f"{ MKDOCS_DOCS }/"
-        files_to_check: list = []
+        files_to_check: list[str] = []
 
-        placeholders_sub: list = []
-        placeholders_raw: list = []
-        placeholders_clean: dict = {}
-        stored_placeholders: dict = {}
+        placeholders_sub: list[str] = []
+        placeholders_raw: list[str] = []
+        placeholders_clean: dict[str, str] = {}
+        stored_placeholders: dict[str, str] = {}
 
         if os.path.isdir(search_location):
             for path, subdirs, files in os.walk(search_location):
                 for name in files:
                     if fnmatch(name, "*.md"):
                         files_to_check.append(os.path.join(path, name))
+        # TODO:  need to handle if bad path
 
         # print(files_to_check)
 
@@ -143,4 +149,4 @@ if __name__ == "__main__":
     returned_variables = doc_build.read_placeholders()
     print(returned_variables)
     returned_variables["extra"]["author_name"] = "James Doe"
-    doc_build.save_variables(returned_variables)
+    doc_build.save_placeholders(returned_variables)

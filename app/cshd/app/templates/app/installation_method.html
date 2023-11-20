@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 
 {% block main %}
-<div style="height:20px"></div>
+<legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l">
+  <h1 class="nhsuk-fieldset__heading">
+    Initial Setup
+  </h1>
+</legend>
 <details class="nhsuk-details nhsuk-expander">
   <summary class="nhsuk-details__summary">
     <span class="nhsuk-details__summary-text">
@@ -24,12 +28,6 @@
   </div>
 </details>
 
-<legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l">
-  <h1 class="nhsuk-fieldset__heading">
-    Initial Setup
-  </h1>
-</legend>
-
 
 <script>
   function change_visibility() {
@@ -41,6 +39,7 @@
         
         if (element.id.endsWith("_SA") || element.id.endsWith("_I")) {
             element.style.display = "none";
+            element.required = false;
         }
     }
 
@@ -50,6 +49,7 @@
             
             if (element.id.endsWith("_SA")) {
                 element.style.display = "block";
+                element.required = true;
             }
         }
     } 
@@ -59,22 +59,31 @@
             
             if (element.id.endsWith("_I")) {
                 element.style.display = "block";
+                element.required = true;
             }
         }
     } 
   };
 </script>
 
-<form action="/template_select" method="post">
+{% include "error_summary.html" %}
+
+<form action="/" method="post">
     {% csrf_token %}
 
     {% for field in form %}
-    <div class="nhsuk-form-group">
-      <label class="nhsuk-label" for="id_{{ field.name }}" id="id_label_{{ field.name }}">
-        {{ field.label }}
-      </label>
-      {{ field }}
-    </div>
+      {% if field.errors %}
+        <div class="nhsuk-form-group nhsuk-form-group--error">
+        {% endif %}
+          <div class="nhsuk-form-group">
+            <label class="nhsuk-label" for="id_{{ field.name }}" id="id_label_{{ field.name }}">
+              <a name="{{ field.label }}"></a>{{ field.label }}
+            </label>
+            {{ field }}
+          </div>
+        {% if field.errors %}
+        </div>
+      {% endif %}
     {% endfor %}
 
     <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
