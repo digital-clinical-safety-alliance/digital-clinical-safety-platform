@@ -10,7 +10,7 @@ class MkdocsControl:
     def __init__(self) -> None:
         self.process_name: str = "mkdocs"
         self.process_arg1: str = "serve"
-        self.cwd: str = "/cshd/app/cshd/app/functions"
+        self.cwd_sh: str = c.FUNCTIONS_APP
         return
 
     def is_process_running(self) -> bool:
@@ -26,7 +26,7 @@ class MkdocsControl:
         n: int = 0
 
         if not self.is_process_running():
-            subprocess.Popen(["sh", "mkdoc_start.sh"], cwd=self.cwd)
+            subprocess.Popen(["sh", "mkdoc_start.sh"], cwd=self.cwd_sh)
             if wait:
                 while not self.is_process_running():
                     t.sleep(c.TIME_INTERVAL)

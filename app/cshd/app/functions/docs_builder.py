@@ -10,8 +10,9 @@ from fnmatch import fnmatch
 import re
 import yaml
 
+import app.functions.constants as c
 
-MKDOCS_DOCS = "/cshd/mkdocs/docs"
+YAML_PATH: str = f"{ c.MKDOCS_DOCS }/placeholders.yml"
 
 
 class Builder:
@@ -19,12 +20,7 @@ class Builder:
 
     def __init__(
         self,
-        template_dir: int
-        | str
-        | bytes
-        | PathLike[str]
-        | PathLike[bytes] = "/cshd/mkdocs/templates/",
-        output_dir: str | None = "/cshd/mkdocs/hazard_logs",
+        template_dir: str | None = "/cshd/mkdocs/templates/",
     ) -> None:
         if template_dir == None:
             raise ValueError(
@@ -32,49 +28,42 @@ class Builder:
             )
 
         if not os.path.isdir(template_dir):
-            raise ValueError(
+            raise FileNotFoundError(
                 f"Template directory '{ template_dir }' does not exist!"  # type: ignore[str-bytes-safe]
             )
 
-        if output_dir == None:
-            raise ValueError(
-                f"None received for output_dir. Check if .env is set"
-            )
-
-        # No need to check if output_dir exists, as it will be created
-        # in self.create()
-        # TODO: check if true
-
         self.template_dir: str = str(template_dir)
-        self.output_dir: str = str(output_dir)
         return None
 
     def read_placeholders(self) -> dict:
+        # TODO may need to better initialise the dict[] here
         placeholders_extra: dict = {}
+        # file
 
-        # TODO need to check if file exists
-        with open(f"{ MKDOCS_DOCS }/placeholders.yml", "r") as file:
+        if not os.path.isfile(YAML_PATH):
+            raise FileNotFoundError(f"'{ YAML_PATH } is not a valid path")
+
+        with open(YAML_PATH, "r") as file:
             placeholders_extra = yaml.safe_load(file)
 
         return placeholders_extra["extra"]
 
-    def save_placeholders(self, placeholders: dict) -> None:
+    def save_placeholders(self, placeholders: dict[str, str]) -> None:
+        # TODO may need to better initialise the dict[] here
         placeholders_extra: dict = {"extra": placeholders}
+        # file
 
-        with open(f"{ MKDOCS_DOCS }/placeholders.yml", "w") as file:
+        with open(YAML_PATH, "w") as file:
             yaml.dump(placeholders_extra, file)
-        return
-
-    def get_template_types(self):
-        """ """
         return
 
     def get_templates(self) -> list:
         """Get the different types of templates available"""
         templates: list[str] = []
+        # directory
 
-        # List of all content in a directory, filtered so only directories
-        # are returned
+        # List of all content in a directory, filtered so only first
+        # order directories are returned
         templates = [
             directory
             for directory in os.listdir(self.template_dir)
@@ -91,23 +80,29 @@ class Builder:
 
     def get_placeholders(self) -> dict[str, str]:
         """ """
-        placeholders: list[str] = []
-        search_location: str = f"{ MKDOCS_DOCS }/"
+        search_location: str = f"{ c.MKDOCS_DOCS }/"
         files_to_check: list[str] = []
 
         placeholders_sub: list[str] = []
         placeholders_raw: list[str] = []
         placeholders_clean: dict[str, str] = {}
         stored_placeholders: dict[str, str] = {}
+        # path, subdirs, files, name, file
 
-        if os.path.isdir(search_location):
-            for path, subdirs, files in os.walk(search_location):
-                for name in files:
-                    if fnmatch(name, "*.md"):
-                        files_to_check.append(os.path.join(path, name))
-        # TODO:  need to handle if bad path
+        if not os.path.isdir(search_location):
+            raise FileNotFoundError(
+                f"{ search_location } is not a valid directory"
+            )
 
-        # print(files_to_check)
+        for path, subdirs, files in os.walk(search_location):
+            for name in files:
+                if fnmatch(name, "*.md"):
+                    files_to_check.append(os.path.join(path, name))
+
+        if len(files_to_check) == 0:
+            raise FileNotFoundError(
+                f"No templates found in mkdocs templates folder"
+            )
 
         for file in files_to_check:
             f = open(file, "r")
@@ -118,14 +113,9 @@ class Builder:
             for p in placeholders_sub:
                 if p not in placeholders_raw:
                     placeholders_raw.append(p)
-
-            """ templ_str = f.read()
-            env = Environment()
-            ast = env.parse(templ_str)
-            print(meta.find_undeclared_variables(ast))"""
             f.close()
 
-        if os.path.exists(f"{ MKDOCS_DOCS }/placeholders.yml"):
+        if os.path.exists(f"{ c.MKDOCS_DOCS }/placeholders.yml"):
             stored_placeholders = self.read_placeholders()
 
         for p in placeholders_raw:
@@ -134,7 +124,10 @@ class Builder:
             p = p.strip()
             if len(stored_placeholders):
                 # TODO check what happens if 'p' does not exist in stored_placeholders
-                placeholders_clean[p] = stored_placeholders[p]
+                try:
+                    placeholders_clean[p] = stored_placeholders[p]
+                except:
+                    pass
             else:
                 placeholders_clean[p] = ""
 
