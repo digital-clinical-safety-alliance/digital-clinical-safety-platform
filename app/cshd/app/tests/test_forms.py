@@ -12,8 +12,10 @@ import sys
 
 import app.functions.constants as c
 
-sys.path.append(c.FUNCTIONS_APP)
-from docs_builder import Builder
+"""sys.path.append(c.FUNCTIONS_APP)
+from docs_builder import Builder"""
+
+import app.tests.data_forms as d
 
 from app.forms import (
     InstallationForm,
@@ -24,37 +26,47 @@ from app.forms import (
 )
 
 
-INSTALLATION_FORM_GOOD_DATA: dict[str, str] = {
-    "installation_type": "SA",
-    "github_repo_SA": "aaaf",
-    "github_username_SA": "a",
-    "github_token_SA": "x",
-    "code_location_I": "s",
-}
-
-TemplateSelectForm
-TEMPLATE_SELECT_FORM_GOOD_DATA: dict[str, str] = {"template_choice": "DCB0129"}
-
-
 class InstallationFormTest(TestCase):
     def test_good_url(self):
-        form = InstallationForm(data=INSTALLATION_FORM_GOOD_DATA)
+        form = InstallationForm(data=d.INSTALLATION_FORM_GOOD_DATA)
         self.assertTrue(form.is_valid())
 
+    def test_bad_url(self):
+        form = InstallationForm(data=d.INSTALLATION_FORM_BAD_DATA)
+        self.assertFalse(form.is_valid())
 
-class TemplateSelectForm(TestCase):
-    def template_choice_good_data(self):
-        form = TemplateSelectForm(data=TEMPLATE_SELECT_FORM_GOOD_DATA)
+
+class TemplateSelectFormTest(TestCase):
+    def test_template_choice_good_data(self):
+        form = TemplateSelectForm(data=d.TEMPLATE_SELECT_FORM_GOOD_DATA)
         self.assertTrue(form.is_valid())
+
+    def test_template_choice_bad_data(self):
+        form = TemplateSelectForm(data=d.TEMPLATE_SELECT_FORM_BAD_DATA)
+        self.assertFalse(form.is_valid())
 
 
 class PlaceholdersFormTest(TestCase):
-    def test_test(self):
-        form = TemplateSelectForm(data=)
+    def test_good_placeholder(self):
+        form = PlaceholdersForm(data=d.PLACEHOLDERS_FORM_GOOD_DATA)
         self.assertTrue(form.is_valid())
+
+    def test_bad_placeholder(self):
+        form = PlaceholdersForm(data=d.PLACEHOLDERS_FORM_BAD_DATA)
+        self.assertFalse(form.is_valid())
+
+
+class MDFileSelectTest(TestCase):
+    def test_good_data(self):
+        form = MDFileSelect(data=d.MD_FILE_SELECT_GOOD_DATA)
+        self.assertTrue(form.is_valid())
+
+    def test_bad_data(self):
+        form = MDFileSelect(data=d.MD_FILE_SELECT_BAD_DATA)
+        self.assertFalse(form.is_valid())
 
 
 class MDEditFormTest(TestCase):
-    def test_test(self):
-        form = MDEditForm()
+    def test_test2(self):
+        form = MDEditForm(data={})
         self.assertTrue(form.is_valid())

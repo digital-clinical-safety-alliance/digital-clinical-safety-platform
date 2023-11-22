@@ -195,7 +195,7 @@ def edit_md(request: HttpRequest) -> HttpResponse:
             context = {"form": form}
             return render(request, "edit_md.html", context | std_context())
 
-    with open(f"{ c.MKDOCS_DOCS }/{ files_md }", "r") as file:
+    with open(f"{ c.MKDOCS_DOCS }{ files_md }", "r") as file:
         form_fields = {"text_md": file.read(), "document_name": files_md}
 
     context = {
@@ -225,7 +225,7 @@ def saved_md(request: HttpRequest) -> HttpResponse:
             file_md_returned = form.cleaned_data["document_name"]
             text_md_returned = form.cleaned_data["text_md"]
 
-            file_path = f"{ c.MKDOCS_DOCS }/{ file_md_returned }"
+            file_path = f"{ c.MKDOCS_DOCS }{ file_md_returned }"
 
             if not os.path.isfile(file_path):
                 return render(request, "500.html", context | std_context())

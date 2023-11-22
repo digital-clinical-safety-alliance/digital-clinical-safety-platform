@@ -4,6 +4,7 @@ import os
 from fnmatch import fnmatch
 import sys
 
+from typing import Any
 
 import app.functions.constants as c
 
@@ -123,7 +124,20 @@ class PlaceholdersForm(forms.Form):
                 ),
             )
 
-    # TODO need to check no invalid values entered eg '{}'
+    def clean(self):
+        INVALID_CHARACTERS: str = "{}\"'"
+        cleaned_data: Any = self.cleaned_data
+        illegal: str = ""
+        key: str = ""
+        value: str = ""
+
+        for key, value in cleaned_data.items():
+            if any(illegal in value for illegal in INVALID_CHARACTERS):
+                raise forms.ValidationError(
+                    f"Invalid character in placeholder value - '{ value }'"
+                )
+        else:
+            return cleaned_data
 
 
 class MDFileSelect(forms.Form):
