@@ -92,7 +92,7 @@ def index(request: HttpRequest) -> HttpResponse:
             )
 
         elif request.method == "POST":
-            form = TemplateSelectForm(request.POST)
+            form = TemplateSelectForm(request.POST)  # type: ignore[assignment]
             if form.is_valid():
                 env_m = ENVManipulator()
                 env_m.add("setup_step", "2")
@@ -130,7 +130,7 @@ def index(request: HttpRequest) -> HttpResponse:
             )
 
         elif request.method == "POST":
-            form = PlaceholdersForm(request.POST)
+            form = PlaceholdersForm(data=request.POST)  # type: ignore[assignment]
             if form.is_valid():
                 doc_build = Builder()
                 placeholders = doc_build.get_placeholders()
@@ -188,7 +188,8 @@ def edit_md(request: HttpRequest) -> HttpResponse:
                 break
 
     elif request.method == "POST":
-        form = MDFileSelect(request.POST)
+        print(request.POST)
+        form = MDFileSelect(data=request.POST)
         if form.is_valid():
             files_md = form.cleaned_data["mark_down_file"]
         else:
@@ -249,6 +250,9 @@ def saved_md(request: HttpRequest) -> HttpResponse:
         else:
             context = {"form": form}
             return render(request, "edit_md.html", context | std_context())
+
+    # For mypy
+    return render(request, "500.html")
 
 
 def log_hazard(request: HttpRequest) -> HttpResponse:

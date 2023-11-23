@@ -109,9 +109,7 @@ class Builder:
                     files_to_check.append(os.path.join(path, name))
 
         if len(files_to_check) == 0:
-            raise FileNotFoundError(
-                f"No templates found in mkdocs templates folder"
-            )
+            raise FileNotFoundError(f"No files found in mkdocs docs folder")
 
         for file in files_to_check:
             f = open(file, "r")

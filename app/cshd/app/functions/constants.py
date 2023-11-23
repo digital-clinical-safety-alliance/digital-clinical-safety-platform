@@ -21,7 +21,6 @@ MKDOCS_DOCS: str = f"{ MKDOCS }docs/"
 MKDOCS_TEMPLATES: str = f"{ MKDOCS }templates/"
 MKDOCS_PLACEHOLDER_YML: str = f"{ MKDOCS_DOCS }placeholders.yml"
 
-MKDOCS_TEMPLATES: str = f"{ MKDOCS }templates/"
 
 # .env manipulation
 ENV_PATH = f"{ MAIN_FOLDER }.env"
@@ -41,6 +40,6 @@ TESTING_MKDOCS_NO_DOCS_FOLDER: str = (
 TESTING_MKDOCS_NO_TEMPLATES_FOLDER: str = (
     f"{ MAIN_FOLDER }app/cshd/app/tests/test_docs/mkdocs_no_template_folder/"
 )
-TESTING_MKDOCS_TEMPLATES_EMPTY: str = (
-    f"{ MAIN_FOLDER }app/cshd/app/tests/test_docs/mkdocs_templates_empty/"
+TESTING_MKDOCS_EMPTY_FOLDERS: str = (
+    f"{ MAIN_FOLDER }app/cshd/app/tests/test_docs/mkdocs_empty_folders/"
 )

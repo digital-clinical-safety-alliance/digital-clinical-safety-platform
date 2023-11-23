@@ -1,5 +1,7 @@
 """Testing of forms
 
+    NB: Not built for asynchronous testing
+
 """
 
 from django.test import TestCase
@@ -12,8 +14,8 @@ import sys
 
 import app.functions.constants as c
 
-"""sys.path.append(c.FUNCTIONS_APP)
-from docs_builder import Builder"""
+sys.path.append(c.FUNCTIONS_APP)
+from docs_builder import Builder
 
 import app.tests.data_forms as d
 
@@ -47,23 +49,61 @@ class TemplateSelectFormTest(TestCase):
 
 
 class PlaceholdersFormTest(TestCase):
+    def setUp(self):
+        doc_build = Builder(c.TESTING_MKDOCS)
+        doc_build.copy_templates("test_templates")
+        pass
+
     def test_good_placeholder(self):
-        form = PlaceholdersForm(data=d.PLACEHOLDERS_FORM_GOOD_DATA)
+        form = PlaceholdersForm(
+            mkdocs_path=c.TESTING_MKDOCS, data=d.PLACEHOLDERS_FORM_GOOD_DATA
+        )
+
         self.assertTrue(form.is_valid())
 
     def test_bad_placeholder(self):
-        form = PlaceholdersForm(data=d.PLACEHOLDERS_FORM_BAD_DATA)
+        form = PlaceholdersForm(
+            mkdocs_path=c.TESTING_MKDOCS, data=d.PLACEHOLDERS_FORM_BAD_DATA
+        )
         self.assertFalse(form.is_valid())
+
+    def tearDown(self):
+        doc_build = Builder(c.TESTING_MKDOCS)
+        doc_build.empty_docs_folder()
+        pass
 
 
 class MDFileSelectTest(TestCase):
+    def setUp(self):
+        doc_build = Builder(c.TESTING_MKDOCS)
+        doc_build.copy_templates("test_templates")
+        pass
+
     def test_good_data(self):
-        form = MDFileSelect(data=d.MD_FILE_SELECT_GOOD_DATA)
+        form = MDFileSelect(
+            mkdocs_path=c.TESTING_MKDOCS,
+            data=d.MD_FILE_SELECT_GOOD_DATA,
+        )
         self.assertTrue(form.is_valid())
 
     def test_bad_data(self):
-        form = MDFileSelect(data=d.MD_FILE_SELECT_BAD_DATA)
+        form = MDFileSelect(
+            mkdocs_path=c.TESTING_MKDOCS,
+            initial=d.MD_FILE_SELECT_BAD_DATA,
+        )
         self.assertFalse(form.is_valid())
+
+    def test_bad_path(self):
+        with self.assertRaises(FileNotFoundError):
+            MDFileSelect(
+                mkdocs_path="/sss",
+                initial=d.MD_FILE_SELECT_BAD_DATA,
+            )
+
+    def tearDown(self):
+        doc_build = Builder(c.TESTING_MKDOCS)
+        doc_build.empty_docs_folder()
+        pass
 
 
 class MDEditFormTest(TestCase):

@@ -9,9 +9,11 @@ import app.functions.constants as c
 
 class ENVManipulator:
     def __init__(self) -> None:
+        """ """
         return
 
     def delete(self, variable_to_delete: str) -> bool:
+        """ """
         variable_set: bool = False
         env_variables = dotenv_values(find_dotenv())  # TODO need type
         key: str = ""
@@ -36,5 +38,10 @@ class ENVManipulator:
         return variable_set
 
     def add(self, variable: str, value: str) -> None:
+        """ """
         set_key(find_dotenv(), variable, value)
         return
+
+    def read(self):
+        """ """
+        return dotenv_values(find_dotenv())

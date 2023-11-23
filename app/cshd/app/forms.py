@@ -76,7 +76,7 @@ class InstallationForm(forms.Form):
         ),
     )
 
-    def clean_github_repo_SA(self):
+    def clean_github_repo_SA(self) -> str:
         github_repo_SA = self.cleaned_data["github_repo_SA"]
         if " " in github_repo_SA:
             raise forms.ValidationError("Invalid URL")
@@ -106,14 +106,20 @@ class TemplateSelectForm(forms.Form):
 
 
 class PlaceholdersForm(forms.Form):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(
+        self, mkdocs_path: str | None = None, *args, **kwargs
+    ) -> None:
         super(PlaceholdersForm, self).__init__(*args, **kwargs)
         doc_build: Builder
         placeholder: str = ""
         value: str = ""
 
-        doc_build = Builder()
-        placeholders = doc_build.get_placeholders()
+        if mkdocs_path:
+            doc_build = Builder(mkdocs_path)
+            placeholders = doc_build.get_placeholders()
+        else:
+            doc_build = Builder()
+            placeholders = doc_build.get_placeholders()
 
         for placeholder, value in placeholders.items():
             self.fields[placeholder] = forms.CharField(
@@ -124,9 +130,10 @@ class PlaceholdersForm(forms.Form):
                 ),
             )
 
-    def clean(self):
+    def clean(self) -> dict:
         INVALID_CHARACTERS: str = "{}\"'"
         cleaned_data: Any = self.cleaned_data
+        # print(f"***{cleaned_data}")
         illegal: str = ""
         key: str = ""
         value: str = ""
@@ -136,33 +143,47 @@ class PlaceholdersForm(forms.Form):
                 raise forms.ValidationError(
                     f"Invalid character in placeholder value - '{ value }'"
                 )
-        else:
+        else:  # TODO - remove todo??
             return cleaned_data
 
 
 class MDFileSelect(forms.Form):
-    choices_list: list = []
-    # path
-    # subdirs
-    # files
-    # name
+    def __init__(
+        self, mkdocs_path: str | None = None, *args, **kwargs
+    ) -> None:
+        super(MDFileSelect, self).__init__(*args, **kwargs)
+        choices_list: list = []
+        # path
+        # subdirs
+        # files
+        # name
 
-    if not os.path.isdir(c.MKDOCS_DOCS):
-        raise Exception(f"{ c.MKDOCS_DOCS } if not a valid folder location")
+        if not mkdocs_path:
+            mkdocs_path = c.MKDOCS_DOCS
 
-    for path, subdirs, files in os.walk(c.MKDOCS_DOCS):
-        for name in files:
-            if fnmatch(name, "*.md"):
-                choices_list.append([name, name])
+        mkdocs_path_str = str(mkdocs_path)
 
-    CHOICES = tuple(choices_list)
+        if not os.path.isdir(mkdocs_path_str):
+            raise FileNotFoundError(
+                f"{ mkdocs_path_str } if not a valid folder location"
+            )
 
-    mark_down_file = forms.ChoiceField(
-        choices=CHOICES,
-        widget=forms.Select(
-            attrs={"class": "nhsuk-select", "onChange": "form.submit()"}
-        ),
-    )
+        for path, subdirs, files in os.walk(mkdocs_path_str):
+            for name in files:
+                if fnmatch(name, "*.md"):
+                    choices_list.append([name, name])
+
+        self.choices_list = choices_list
+        CHOICES = tuple(choices_list)
+
+        self.fields["mark_down_file"] = forms.ChoiceField(
+            choices=CHOICES,
+            widget=forms.Select(
+                attrs={"class": "nhsuk-select", "onChange": "form.submit()"}
+            ),
+        )
+
+    # Don't need to clean ChoiceFields apparently
 
 
 class MDEditForm(forms.Form):

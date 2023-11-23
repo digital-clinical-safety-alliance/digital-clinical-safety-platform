@@ -1,4 +1,6 @@
-"""Testing for the mkdocs building functionality"""
+"""Testing for the mkdocs building functionality
+    NB: Not built for asynchronous testing
+"""
 
 from unittest import TestCase
 
@@ -7,6 +9,7 @@ import sys
 import os
 from fnmatch import fnmatch
 import shutil
+import yaml
 
 import app.functions.constants as c
 
@@ -16,7 +19,7 @@ from docs_builder import Builder
 import app.tests.data_docs_builder as d
 
 
-class BuilderTest(TestCase):
+class BuilderTestDocsEmpty(TestCase):
     def test_init(self):
         # TODO: may need to improve this test
         # Basically want to check a valid object is returned
@@ -39,7 +42,7 @@ class BuilderTest(TestCase):
         self.assertEqual(["test_templates"], doc_build.get_templates())
 
     def test_get_templates_empty(self):
-        doc_build = Builder(c.TESTING_MKDOCS_TEMPLATES_EMPTY)
+        doc_build = Builder(c.TESTING_MKDOCS_EMPTY_FOLDERS)
         with self.assertRaises(FileNotFoundError):
             doc_build.get_templates()
 
@@ -67,6 +70,11 @@ class BuilderTest(TestCase):
         doc_build.empty_docs_folder()
         self.assertFalse(os.listdir(c.TESTING_MKDOCS_DOCS))
 
+    def test_read_placeholders_yaml_missing(self):
+        doc_build = Builder(c.TESTING_MKDOCS)
+        with self.assertRaises(FileNotFoundError):
+            doc_build.read_placeholders()
+
 
 class BuilderTestDocsPresent(TestCase):
     def setUp(self):
@@ -78,14 +86,24 @@ class BuilderTestDocsPresent(TestCase):
         doc_build = Builder(c.TESTING_MKDOCS)
         self.assertEqual(d.PLACEHOLDERS_EXPECTED, doc_build.get_placeholders())
 
+    def test_get_placeholders_empty_docs_folder(self):
+        doc_build = Builder(c.TESTING_MKDOCS_EMPTY_FOLDERS)
+        with self.assertRaises(FileNotFoundError):
+            doc_build.get_placeholders()
+
     def test_save_placeholders(self):
-        pass
+        doc_build = Builder(c.TESTING_MKDOCS)
+        doc_build.save_placeholders(d.PLACEHOLDERS_GOOD)
+        with open(c.TESTING_MKDOCS_PLACEHOLDERS_YAML, "r") as file:
+            placeholders_extra = yaml.safe_load(file)
+
+        self.assertEqual(placeholders_extra["extra"], d.PLACEHOLDERS_GOOD)
 
     def test_read_placeholders(self):
-        pass
-
-    def test_read_placeholders_yaml_missing(self):
-        pass
+        doc_build = Builder(c.TESTING_MKDOCS)
+        doc_build.save_placeholders(d.PLACEHOLDERS_GOOD)
+        placeholders = doc_build.read_placeholders()
+        self.assertEqual(placeholders, d.PLACEHOLDERS_GOOD)
 
     def tearDown(self):
         doc_build = Builder(c.TESTING_MKDOCS)

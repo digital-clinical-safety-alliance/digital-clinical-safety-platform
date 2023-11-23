@@ -16,3 +16,13 @@ PLACEHOLDERS_EXPECTED = {
     "another_lead_contact": "",
     "todays_date": "",
 }
+
+PLACEHOLDERS_GOOD = {
+    "name_of_app": "The App",
+    "lead_contact": "Mr Smith",
+    "another_word_for_product": "Software",
+    "first_name": "Bob",
+    "surname": "Smith",
+    "another_lead_contact": "Mr Jones",
+    "todays_date": "01/01/2025",
+}

@@ -2,7 +2,7 @@
 logs/
 .DS_Store
 mkdocs/docs/
-app/cshd/app/tests/test_docs/mkdocs/doc
+app/cshd/app/tests/test_docs/mkdocs/docs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
