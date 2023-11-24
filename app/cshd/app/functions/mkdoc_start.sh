@@ -4,4 +4,5 @@
 # and stop zombies being created
 
 cd /cshd/mkdocs
-mkdocs serve &
+mkdocs serve 
+#> /dev/null 2>&1

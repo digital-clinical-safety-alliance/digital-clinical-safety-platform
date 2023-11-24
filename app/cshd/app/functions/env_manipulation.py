@@ -8,14 +8,15 @@ import app.functions.constants as c
 
 
 class ENVManipulator:
-    def __init__(self) -> None:
+    def __init__(self, env_path: str = c.ENV_PATH) -> None:
         """ """
+        self.env_path = env_path
         return
 
     def delete(self, variable_to_delete: str) -> bool:
         """ """
         variable_set: bool = False
-        env_variables = dotenv_values(find_dotenv())  # TODO need type
+        env_variables = dotenv_values(self.env_path)  # TODO need type
         key: str = ""
         # key, value
 
@@ -25,23 +26,25 @@ class ENVManipulator:
 
         if variable_set == True:
             del env_variables[variable_to_delete]
-            os.environ.pop("MYVAR", None)
+            # TODO: may be able to delete this
+            # os.environ.pop(variable_to_delete, None)
             # Clears out contents
-            open(c.ENV_PATH, "w").close()
+            open(self.env_path, "w").close()
 
             for key, value in env_variables.items():
-                set_key(find_dotenv(), str(key), str(value))
+                set_key(self.env_path, str(key), str(value))
 
             # May be able to remove this.
-            load_dotenv(find_dotenv())
+            # load_dotenv(self.env_path)
 
         return variable_set
 
     def add(self, variable: str, value: str) -> None:
         """ """
-        set_key(find_dotenv(), variable, value)
+        set_key(self.env_path, variable, value)
         return
 
-    def read(self):
+    def read(self, key_to_read: str):
         """ """
-        return dotenv_values(find_dotenv())
+        dot_values = dotenv_values(self.env_path)
+        return dot_values.get(key_to_read)

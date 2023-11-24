@@ -1,0 +1,8 @@
+site_name: Test site
+site_description: A place for testing
+site_author: John Smith
+dev_addr: 0.0.0.0:8500
+
+theme:
+  name: material
+

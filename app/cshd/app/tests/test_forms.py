@@ -5,12 +5,7 @@
 """
 
 from django.test import TestCase
-
-
-import os
-from fnmatch import fnmatch
 import sys
-
 
 import app.functions.constants as c
 
@@ -70,14 +65,12 @@ class PlaceholdersFormTest(TestCase):
     def tearDown(self):
         doc_build = Builder(c.TESTING_MKDOCS)
         doc_build.empty_docs_folder()
-        pass
 
 
 class MDFileSelectTest(TestCase):
     def setUp(self):
         doc_build = Builder(c.TESTING_MKDOCS)
         doc_build.copy_templates("test_templates")
-        pass
 
     def test_good_data(self):
         form = MDFileSelect(

@@ -44,6 +44,7 @@ def index(request: HttpRequest) -> HttpResponse:
 
     # 'environ.get' does not handle a change of envs very well, so used
     # 'env_variables = dotenv_values(find_dotenv())' instead
+    # TODO: use new env_manipulator functions
     env_variables = dotenv_values(find_dotenv())
     setup_step = env_variables.get("setup_step")
 
