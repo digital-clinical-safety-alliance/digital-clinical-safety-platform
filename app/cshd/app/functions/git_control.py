@@ -52,7 +52,7 @@ class GitController:
         origin = repo.remote(name="origin")
         # origin.push()
         child = pexpect.spawn("git push", timeout=10)
-        print(child.readline())
+        # print(child.readline())
         child.expect("Username for 'https://github.com': ")
         child.sendline(self.user_org)
         child.expect("Password for 'https://CotswoldsMaker@github.com': ")
