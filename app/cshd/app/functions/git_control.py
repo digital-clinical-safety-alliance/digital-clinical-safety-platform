@@ -49,7 +49,7 @@ class GitController:
         repo.remote().push()
 
         print("Changes committed and pushed successfully.")
-        return
+        return True
 
 
 if __name__ == "__main__":
