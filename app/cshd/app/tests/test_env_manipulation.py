@@ -18,35 +18,35 @@ import app.tests.data_env_manipulation as d
 
 class ENVManipulatorTest(TestCase):
     def test_init(self):
-        ENVManipulator(c.TESTING_ENV_PATH)
+        ENVManipulator(c.TESTING_ENV_PATH_MKDOCS)
 
     def test_delete(self):
         # Clears out the contents
-        open(c.TESTING_ENV_PATH, "w").close()
-        set_key(c.TESTING_ENV_PATH, "key1", d.VALUE1)
-        set_key(c.TESTING_ENV_PATH, "key2", d.VALUE2)
-        em = ENVManipulator(c.TESTING_ENV_PATH)
+        open(c.TESTING_ENV_PATH_MKDOCS, "w").close()
+        set_key(c.TESTING_ENV_PATH_MKDOCS, "key1", d.VALUE1)
+        set_key(c.TESTING_ENV_PATH_MKDOCS, "key2", d.VALUE2)
+        em = ENVManipulator(c.TESTING_ENV_PATH_MKDOCS)
         self.assertTrue(em.delete("key1"))
         self.assertTrue(em.delete("key2"))
 
     def test_delete_key_not_present(self):
         # Clears out the contents
-        open(c.TESTING_ENV_PATH, "w").close()
-        set_key(c.TESTING_ENV_PATH, "key1", d.VALUE1)
-        em = ENVManipulator(c.TESTING_ENV_PATH)
+        open(c.TESTING_ENV_PATH_MKDOCS, "w").close()
+        set_key(c.TESTING_ENV_PATH_MKDOCS, "key1", d.VALUE1)
+        em = ENVManipulator(c.TESTING_ENV_PATH_MKDOCS)
         self.assertFalse(em.delete("wrong_key"))
 
     def test_add(self):
         # Clears out the contents
-        open(c.TESTING_ENV_PATH, "w").close()
-        em = ENVManipulator(c.TESTING_ENV_PATH)
+        open(c.TESTING_ENV_PATH_MKDOCS, "w").close()
+        em = ENVManipulator(c.TESTING_ENV_PATH_MKDOCS)
         em.add("key1", d.VALUE1)
-        dot_values = dotenv_values(c.TESTING_ENV_PATH)
+        dot_values = dotenv_values(c.TESTING_ENV_PATH_MKDOCS)
         self.assertEqual(d.VALUE1, dot_values.get("key1"))
 
     def test_read(self):
         # Clears out the contents
-        open(c.TESTING_ENV_PATH, "w").close()
-        set_key(c.TESTING_ENV_PATH, "key1", d.VALUE1)
-        em = ENVManipulator(c.TESTING_ENV_PATH)
+        open(c.TESTING_ENV_PATH_MKDOCS, "w").close()
+        set_key(c.TESTING_ENV_PATH_MKDOCS, "key1", d.VALUE1)
+        em = ENVManipulator(c.TESTING_ENV_PATH_MKDOCS)
         self.assertEqual(d.VALUE1, em.read("key1"))

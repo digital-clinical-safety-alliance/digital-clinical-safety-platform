@@ -109,7 +109,9 @@ class Builder:
                     files_to_check.append(os.path.join(path, name))
 
         if len(files_to_check) == 0:
-            raise FileNotFoundError(f"No files found in mkdocs docs folder")
+            raise FileNotFoundError(
+                f"No files found in mkdocs '{ self.docs }' folder"
+            )
 
         for file in files_to_check:
             f = open(file, "r")

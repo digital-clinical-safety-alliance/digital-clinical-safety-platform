@@ -27,7 +27,12 @@ ENV_PATH = f"{ MAIN_FOLDER }.env"
 
 
 # Testing
-TESTING_ENV_PATH: str = f"{ MAIN_FOLDER }app/cshd/app/tests/.env"
+TESTING_ENV_PATH_MKDOCS: str = (
+    f"{ MAIN_FOLDER }app/cshd/app/tests/test_docs/.env"
+)
+TESTING_ENV_PATH_DJANGO: str = (
+    f"{ MAIN_FOLDER }app/cshd/app/tests/test_django.env"
+)
 
 TESTING_MKDOCS: str = f"{ MAIN_FOLDER }app/cshd/app/tests/test_docs/mkdocs/"
 TESTING_MKDOCS_CONTROL: str = f"{ MAIN_FOLDER }app/cshd/app/tests/test_docs/mkdocs_testing_mkdocs_control/"

@@ -35,11 +35,11 @@ class InstallationFormTest(TestCase):
 
 class TemplateSelectFormTest(TestCase):
     def test_template_choice_good_data(self):
-        form = TemplateSelectForm(data=d.TEMPLATE_SELECT_FORM_GOOD_DATA)
+        form = TemplateSelectForm(d.TEMPLATE_SELECT_FORM_GOOD_DATA)
         self.assertTrue(form.is_valid())
 
     def test_template_choice_bad_data(self):
-        form = TemplateSelectForm(data=d.TEMPLATE_SELECT_FORM_BAD_DATA)
+        form = TemplateSelectForm(d.TEMPLATE_SELECT_FORM_BAD_DATA)
         self.assertFalse(form.is_valid())
 
 
@@ -50,16 +50,11 @@ class PlaceholdersFormTest(TestCase):
         pass
 
     def test_good_placeholder(self):
-        form = PlaceholdersForm(
-            mkdocs_path=c.TESTING_MKDOCS, data=d.PLACEHOLDERS_FORM_GOOD_DATA
-        )
-
+        form = PlaceholdersForm(data=d.PLACEHOLDERS_FORM_GOOD_DATA)
         self.assertTrue(form.is_valid())
 
     def test_bad_placeholder(self):
-        form = PlaceholdersForm(
-            mkdocs_path=c.TESTING_MKDOCS, data=d.PLACEHOLDERS_FORM_BAD_DATA
-        )
+        form = PlaceholdersForm(data=d.PLACEHOLDERS_FORM_BAD_DATA)
         self.assertFalse(form.is_valid())
 
     def tearDown(self):
@@ -73,25 +68,19 @@ class MDFileSelectTest(TestCase):
         doc_build.copy_templates("test_templates")
 
     def test_good_data(self):
-        form = MDFileSelect(
-            mkdocs_path=c.TESTING_MKDOCS,
-            data=d.MD_FILE_SELECT_GOOD_DATA,
-        )
+        form = MDFileSelect(data=d.MD_FILE_SELECT_GOOD_DATA)
         self.assertTrue(form.is_valid())
 
     def test_bad_data(self):
-        form = MDFileSelect(
-            mkdocs_path=c.TESTING_MKDOCS,
-            initial=d.MD_FILE_SELECT_BAD_DATA,
-        )
+        form = MDFileSelect(initial=d.MD_FILE_SELECT_BAD_DATA)
         self.assertFalse(form.is_valid())
 
-    def test_bad_path(self):
+    """def test_bad_path(self):
         with self.assertRaises(FileNotFoundError):
             MDFileSelect(
                 mkdocs_path="/sss",
                 initial=d.MD_FILE_SELECT_BAD_DATA,
-            )
+            )"""
 
     def tearDown(self):
         doc_build = Builder(c.TESTING_MKDOCS)

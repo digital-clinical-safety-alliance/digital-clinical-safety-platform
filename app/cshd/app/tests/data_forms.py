@@ -36,7 +36,7 @@ PLACEHOLDERS_FORM_BAD_DATA = {
     "todays_date": "",
 }
 
-TEMPLATE_SELECT_FORM_GOOD_DATA = {"template_choice": "DCB0129"}
+TEMPLATE_SELECT_FORM_GOOD_DATA = {"template_choice": "test_templates"}
 
 TEMPLATE_SELECT_FORM_BAD_DATA = {"template_choice": "DCB0111"}
 

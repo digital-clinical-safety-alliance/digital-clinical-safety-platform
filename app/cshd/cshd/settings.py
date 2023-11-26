@@ -13,10 +13,15 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 
+import app.functions.constants as c
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+ENV_LOCATION = c.ENV_PATH
+MKDOCS_LOCATION = c.MKDOCS
+MKDOCS_DOCS_LOCATION = c.MKDOCS_DOCS
+TESTING = False
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 

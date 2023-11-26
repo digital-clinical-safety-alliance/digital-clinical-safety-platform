@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 
 import os
 from fnmatch import fnmatch
@@ -84,42 +85,38 @@ class InstallationForm(forms.Form):
 
 
 class TemplateSelectForm(forms.Form):
-    doc_build: Builder
-    templates: list[str] = []
-    choices_list: list = []
+    def __init__(self, *args, **kwargs) -> None:
+        super(TemplateSelectForm, self).__init__(*args, **kwargs)
+        doc_build: Builder
+        templates: list[str] = []
+        choices_list: list = []
 
-    doc_build = Builder()
-    templates = doc_build.get_templates()
+        doc_build = Builder(settings.MKDOCS_LOCATION)
+        templates = doc_build.get_templates()
 
-    if len(templates) == 0:
-        raise Exception("No templates found in templates folder!")
+        if len(templates) == 0:
+            raise Exception("No templates found in templates folder!")
 
-    for template in templates:
-        choices_list.append([template, template])
+        for template in templates:
+            choices_list.append([template, template])
 
-    CHOICES = tuple(choices_list)
+        CHOICES = tuple(choices_list)
 
-    template_choice = forms.ChoiceField(
-        choices=CHOICES,
-        widget=forms.Select(attrs={"class": "nhsuk-select"}),
-    )
+        self.fields["template_choice"] = forms.ChoiceField(
+            choices=CHOICES,
+            widget=forms.Select(attrs={"class": "nhsuk-select"}),
+        )
 
 
 class PlaceholdersForm(forms.Form):
-    def __init__(
-        self, mkdocs_path: str | None = None, *args, **kwargs
-    ) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         super(PlaceholdersForm, self).__init__(*args, **kwargs)
         doc_build: Builder
         placeholder: str = ""
         value: str = ""
 
-        if mkdocs_path:
-            doc_build = Builder(mkdocs_path)
-            placeholders = doc_build.get_placeholders()
-        else:
-            doc_build = Builder()
-            placeholders = doc_build.get_placeholders()
+        doc_build = Builder(settings.MKDOCS_LOCATION)
+        placeholders = doc_build.get_placeholders()
 
         for placeholder, value in placeholders.items():
             self.fields[placeholder] = forms.CharField(
@@ -133,7 +130,6 @@ class PlaceholdersForm(forms.Form):
     def clean(self) -> dict:
         INVALID_CHARACTERS: str = "{}\"'"
         cleaned_data: Any = self.cleaned_data
-        # print(f"***{cleaned_data}")
         illegal: str = ""
         key: str = ""
         value: str = ""
@@ -148,9 +144,7 @@ class PlaceholdersForm(forms.Form):
 
 
 class MDFileSelect(forms.Form):
-    def __init__(
-        self, mkdocs_path: str | None = None, *args, **kwargs
-    ) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         super(MDFileSelect, self).__init__(*args, **kwargs)
         choices_list: list = []
         # path
@@ -158,22 +152,18 @@ class MDFileSelect(forms.Form):
         # files
         # name
 
-        if not mkdocs_path:
-            mkdocs_path = c.MKDOCS_DOCS
-
-        mkdocs_path_str = str(mkdocs_path)
-
-        if not os.path.isdir(mkdocs_path_str):
+        mkdocs_path = settings.MKDOCS_DOCS_LOCATION
+        if not os.path.isdir(mkdocs_path):
             raise FileNotFoundError(
-                f"{ mkdocs_path_str } if not a valid folder location"
+                f"{ mkdocs_path } if not a valid folder location"
             )
 
-        for path, subdirs, files in os.walk(mkdocs_path_str):
+        for path, subdirs, files in os.walk(mkdocs_path):
             for name in files:
                 if fnmatch(name, "*.md"):
                     choices_list.append([name, name])
 
-        self.choices_list = choices_list
+        # self.choices_list = choices_list
         CHOICES = tuple(choices_list)
 
         self.fields["mark_down_file"] = forms.ChoiceField(
