@@ -59,7 +59,7 @@ class GitController:
         child.sendline(self.token)
         # child.wait()
         output = child.readline()
-        while not (pexpect.EOF in str(output)):
+        while not (pexpect.EOF in output):
             print(output)
             output = child.readline()
         # print(child.read())
