@@ -49,7 +49,7 @@ class GitController:
         origin = repo.remote(name="origin")
         origin.push()
         print(4)
-        # asdjflksajhssssggg11
+        # asdjflksajhssssggg11s
         print("Changes committed and pushed successfully.")
         return True
 
