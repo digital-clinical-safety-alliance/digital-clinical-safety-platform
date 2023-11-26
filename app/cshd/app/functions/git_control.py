@@ -55,14 +55,14 @@ class GitController:
         # print(child.readline())
         child.expect("Username for 'https://github.com': ")
         child.sendline(self.user_org)
-        child.expect(f"Password for '{ self.user_org }@github.com': ")
+        child.expect(f"Password for 'https://{ self.user_org }@github.com': ")
         child.sendline(self.token)
         # child.wait()
         output = child.readline()
-        """while "\r\n" in str(output):
+        while "\r\n" in str(output):
             print(output)
-            output = child.readline()"""
-        print(child.read())
+            output = child.readline()
+        # print(child.read())
         # print(child.before)
         print(4)
         # asdjflksajhssssggg11s
