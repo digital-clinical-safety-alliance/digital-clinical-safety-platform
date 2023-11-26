@@ -57,7 +57,8 @@ class GitController:
         child.sendline(self.user_org)
         child.expect("Password for 'https://clinicians-who-code@github.com': ")
         child.sendline(self.token)
-        print(child.read())
+        child.wait()
+        # print(child.read())
         # print(child.before)
         print(4)
         # asdjflksajhssssggg11s
