@@ -37,17 +37,17 @@ class GitController:
 
         # Open the repository
         repo = Repo(repo_path)
-
+        print(1)
         # Stage all changes
         repo.git.add("--all")
-
+        print(2)
         # Commit the changes
         commit_message = "Testing commits and pushes via python"
         repo.git.commit("-m", commit_message)
-
+        print(3)
         # Push the changes to the remote repository
         repo.remote().push()
-
+        print(4)
         # asdjflksajhssss
         print("Changes committed and pushed successfully.")
         return True
