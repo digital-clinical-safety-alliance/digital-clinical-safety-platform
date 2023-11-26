@@ -64,8 +64,9 @@ class GitController:
             output = child.readline()
         # print(child.read())
         # print(child.before)
-        # child.wait()
+        # child.wait()ff
         print(4)
+
         # asdjflksajhssssggg11s
         print("Changes committed and pushed successfully.")
         return True
