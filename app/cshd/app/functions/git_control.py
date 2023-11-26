@@ -50,13 +50,13 @@ class GitController:
         # Push the changes to the remote repository
         # repo.remote().push()
         origin = repo.remote(name="origin")
-        # origin.push()
-        child = pexpect.spawn("git push", timeout=10)
+        origin.push()
+        """child = pexpect.spawn("git push", timeout=10)
         # print(child.readline())
         child.expect("Username for 'https://github.com': ")
         child.sendline(self.user_org)
         child.expect("Password for 'https://CotswoldsMaker@github.com':")
-        child.sendline(self.token)
+        child.sendline(self.token)"""
         print(child.before)
         print(4)
         # asdjflksajhssssggg11s
