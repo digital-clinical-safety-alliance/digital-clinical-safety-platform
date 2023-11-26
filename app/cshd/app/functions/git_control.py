@@ -59,6 +59,7 @@ class GitController:
         child.sendline(self.token)
         # child.wait()
         output = child.readline()
+        print(output)
         while "\r\n" in str(output):
             print(output)
             output = child.readline()
