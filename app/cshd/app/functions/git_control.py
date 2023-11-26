@@ -37,11 +37,14 @@ class GitController:
 
         return repos_found
 
-    def commit_and_push(self, verbose: bool = False) -> bool:
+    def commit_and_push(
+        self,
+        commit_message: str = "No message supplied",
+        verbose: bool = False,
+    ) -> bool:
         repo = Repo(self.repo_path)
         repo.git.add("--all")
 
-        commit_message = "Testing commits and pushes via python"
         repo.git.commit("-m", commit_message)
 
         origin = repo.remote(name="origin")
@@ -64,5 +67,5 @@ class GitController:
 if __name__ == "__main__":
     print("Starting...")
     gc = GitController("/cshd")
-    gc.commit_and_push()
+    gc.commit_and_push("A commit with a new function")
     # print(gc.get_repos())
