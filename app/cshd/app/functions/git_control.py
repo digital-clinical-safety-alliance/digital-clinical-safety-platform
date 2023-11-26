@@ -48,6 +48,7 @@ class GitController:
         # Push the changes to the remote repository
         repo.remote().push()
 
+        # asdjflksajh
         print("Changes committed and pushed successfully.")
         return True
 
