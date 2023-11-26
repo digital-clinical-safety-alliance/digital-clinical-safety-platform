@@ -17,7 +17,9 @@ class GitController:
             # TODO - will need to change find_dotenv() to live .env location
             dot_values = dotenv_values(find_dotenv())
             self.user_org = dot_values.get("user_org")
+            print(self.user_org)
             self.token = dot_values.get("github_token")
+            print(self.token)
         else:
             raise FileNotFoundError(f"To be determined.")
 
@@ -32,6 +34,10 @@ class GitController:
         return repos_found
 
     def commit_and_push(self) -> bool:
+        os.environ["GIT_ASKPASS"] = "/cshd/app/cshd/app/functions/askpass.py"
+        os.environ["GIT_USERNAME"] = self.user_org
+        os.environ["GIT_PASSWORD"] = self.token
+
         # Path to the local repository
         repo_path = "/cshd"
         # Open the repository
