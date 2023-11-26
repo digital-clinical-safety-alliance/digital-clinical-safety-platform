@@ -27,3 +27,45 @@ PLACEHOLDERS_GOOD_DATA = {
 }
 
 EDIT_MD_GOOD_DATA = {"text_md": "Some test data here {{ name_of_app }}"}
+
+SAVED_MD_GOOD_DATA = {
+    "document_name": "test_template1.md",
+    "text_md": "Some test data here {{ name_of_app }}",
+}
+
+SAVED_MD_BAD_FILENAME = {
+    "document_name": "wrong_filename.md",
+    "text_md": "Some test data here {{ name_of_app }}",
+}
+
+SAVED_MD_TEMPLATE_FILE_PATH = (
+    "/cshd/app/cshd/app/tests/test_docs/mkdocs/docs/test_template1.md"
+)
+
+STD_CONTEXT_SETUP_NONE = {
+    "START_AFRESH": True,
+    "mkdoc_running": False,
+    "docs_available": False,
+}
+
+STD_CONTEXT_SETUP_1 = {
+    "START_AFRESH": True,
+    "mkdoc_running": False,
+    "docs_available": False,
+}
+
+STD_CONTEXT_SETUP_2 = {
+    "START_AFRESH": True,
+    "mkdoc_running": False,
+    "docs_available": True,
+}
+
+STD_CONTEXT_SETUP_3 = {
+    "START_AFRESH": True,
+    "mkdoc_running": True,
+    "docs_available": True,
+}
+
+START_AFRESH_SETUP_3 = (
+    "setup_step='3'\nGITHUB_USERNAME='a username'\nGITHUB_TOKEN='a token'\n"
+)

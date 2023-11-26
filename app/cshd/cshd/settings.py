@@ -18,10 +18,18 @@ import app.functions.constants as c
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
 ENV_LOCATION = c.ENV_PATH
 MKDOCS_LOCATION = c.MKDOCS
 MKDOCS_DOCS_LOCATION = c.MKDOCS_DOCS
 TESTING = False
+START_AFRESH = True
+
+if not DEBUG:
+    START_AFRESH = False
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -30,8 +38,6 @@ SECRET_KEY = (
     "django-insecure-ud!*dfrs=7*gel5$pu0-0#9*ylt_5oc%&r4!%@f-sff=u=x@x-"
 )
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = ["0.0.0.0", "localhost"]
 

@@ -27,6 +27,7 @@ ENV_PATH = f"{ MAIN_FOLDER }.env"
 
 
 # Testing
+# TODO - work out why two env paths ?? for async testing?
 TESTING_ENV_PATH_MKDOCS: str = (
     f"{ MAIN_FOLDER }app/cshd/app/tests/test_docs/.env"
 )

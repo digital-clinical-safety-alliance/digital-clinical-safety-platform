@@ -18,10 +18,6 @@ from mkdocs_control import MkdocsControl
 from docs_builder import Builder
 
 
-START_AFRESH = True
-if not settings.DEBUG:
-    START_AFRESH = False
-
 from .forms import (
     InstallationForm,
     TemplateSelectForm,
@@ -121,7 +117,7 @@ def index(request: HttpRequest) -> HttpResponse:
                     request, "template_select.html", context | std_context()
                 )
 
-    elif setup_step == "2":
+    elif setup_step == "2" or setup_step == "3":
         if request.method == "GET":
             context = {"form": PlaceholdersForm()}
 
@@ -132,6 +128,9 @@ def index(request: HttpRequest) -> HttpResponse:
         elif request.method == "POST":
             form = PlaceholdersForm(data=request.POST)  # type: ignore[assignment]
             if form.is_valid():
+                env_m = ENVManipulator(settings.ENV_LOCATION)
+                env_m.add("setup_step", "3")
+
                 doc_build = Builder(settings.MKDOCS_LOCATION)
                 placeholders = doc_build.get_placeholders()
 
@@ -169,6 +168,7 @@ def edit_md(request: HttpRequest) -> HttpResponse:
     loop_exit: bool = False
     files: list[str] = []
     name: str = ""
+    em: ENVManipulator
 
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", status=405)
@@ -218,45 +218,51 @@ def saved_md(request: HttpRequest) -> HttpResponse:
     text_md_returned: str = ""
     file_md_returned: str = ""
     file_path: str = ""
-
-    if not (request.method == "GET" or request.method == "POST"):
-        return render(request, "405.html")
+    em: ENVManipulator
 
     if request.method == "GET":
         return redirect("/edit_md")
 
-    elif request.method == "POST":
-        form = MDEditForm(request.POST)
-        if form.is_valid():
-            file_md_returned = form.cleaned_data["document_name"]
-            text_md_returned = form.cleaned_data["text_md"]
+    if not request.method == "POST":
+        return render(request, "405.html", std_context(), status=405)
 
-            file_path = (
-                f"{ settings.MKDOCS_DOCS_LOCATION }{ file_md_returned }"
+    em = ENVManipulator(settings.ENV_LOCATION)
+    setup_step = em.read("setup_step")
+
+    if setup_step != "2":
+        return redirect("/")
+
+    form = MDEditForm(request.POST)
+    if form.is_valid():
+        file_md_returned = form.cleaned_data["document_name"]
+        text_md_returned = form.cleaned_data["text_md"]
+
+        file_path = f"{ settings.MKDOCS_DOCS_LOCATION }{ file_md_returned }"
+
+        if not os.path.isfile(file_path):
+            return render(
+                request, "500.html", context | std_context(), status=500
             )
 
-            if not os.path.isfile(file_path):
-                return render(request, "500.html", context | std_context())
+        f = open(file_path, "w")
+        f.write(text_md_returned)
+        f.close()
 
-            f = open(file_path, "w")
-            f.write(text_md_returned)
-            f.close()
-
-            messages.success(
-                request,
-                f'Mark down file "{ file_md_returned }" has been successfully saved',
-            )
-            context = {
-                "MDFileSelect": MDFileSelect(
-                    initial={"mark_down_file": file_md_returned}
-                ),
-                "text_md": MDEditForm(initial=request.POST),
-                "document_name": file_md_returned,
-            }
-            return render(request, "edit_md.html", context | std_context())
-        else:
-            context = {"form": form}
-            return render(request, "edit_md.html", context | std_context())
+        messages.success(
+            request,
+            f'Mark down file "{ file_md_returned }" has been successfully saved',
+        )
+        context = {
+            "MDFileSelect": MDFileSelect(
+                initial={"mark_down_file": file_md_returned}
+            ),
+            "text_md": MDEditForm(initial=request.POST),
+            "document_name": file_md_returned,
+        }
+        return render(request, "edit_md.html", context | std_context())
+    else:
+        context = {"form": form}
+        return render(request, "edit_md.html", context | std_context())
 
     # For mypy
     return render(request, "500.html", status=500)
@@ -266,7 +272,7 @@ def log_hazard(request: HttpRequest) -> HttpResponse:
     context: dict[str, Any] = {}
 
     if not (request.method == "GET" or request.method == "POST"):
-        return render(request, "500.html", std_context(), status=500)
+        return render(request, "405.html", std_context(), status=405)
 
     context = {}
 
@@ -277,7 +283,7 @@ def mkdoc_redirect(request: HttpRequest, path: str) -> HttpResponse:
     mkdocs: MkdocsControl
 
     if not request.method == "GET":
-        return render(request, "500.html", std_context(), status=500)
+        return render(request, "405.html", std_context(), status=405)
 
     mkdocs = MkdocsControl()
     mkdocs.start()
@@ -305,11 +311,11 @@ def std_context() -> dict[str, Any]:
     em = ENVManipulator(settings.ENV_LOCATION)
     setup_step = em.read("setup_step")
 
-    if setup_step == "2":
+    if setup_step == "2" or setup_step == "3":
         docs_available = True
 
     std_context_dict = {
-        "START_AFRESH": START_AFRESH,
+        "START_AFRESH": settings.START_AFRESH,
         "mkdoc_running": mkdoc_running,
         "docs_available": docs_available,
     }
@@ -323,9 +329,9 @@ def start_afresh(request: HttpRequest) -> HttpResponse:
     # root, dirs, files, d
 
     if not request.method == "GET":
-        return render(request, "500.html", std_context(), status=500)
+        return render(request, "405.html", std_context(), status=405)
 
-    if START_AFRESH or settings.TESTING:
+    if settings.START_AFRESH or settings.TESTING:
         for root, dirs, files in os.walk(settings.MKDOCS_DOCS_LOCATION):
             for f in files:
                 os.unlink(os.path.join(root, f))
@@ -336,7 +342,6 @@ def start_afresh(request: HttpRequest) -> HttpResponse:
         env_m.delete("setup_step")
         env_m.delete("GITHUB_USERNAME")
         env_m.delete("GITHUB_TOKEN")
-
         mkdocs = MkdocsControl()
         if not mkdocs.stop(wait=True):
             return render(request, "500.html", status=500)
