@@ -22,7 +22,6 @@ class GitController:
 
     def get_repos(self) -> list[str]:
         repos_found: list[str] = []
-
         g = Github(self.token)
         github_ctrl = g.get_user(self.user_org)
 
