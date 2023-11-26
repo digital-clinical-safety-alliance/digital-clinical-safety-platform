@@ -290,7 +290,14 @@ class StdContect(TestCase):
         self.assertEqual(std_context(), d.STD_CONTEXT_SETUP_3)
 
 
-class StartAfresh(TestCase):
+class StartAfreshEnabled(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.start_fresh_previous_state = settings.START_AFRESH
+        settings.START_AFRESH = True
+        cls.testing_previous_state = settings.TESTING
+        settings.TESTING = True
+
     def setUp(self):
         self.client.get("/start_afresh")
 
@@ -312,6 +319,55 @@ class StartAfresh(TestCase):
 
         f = open(c.TESTING_ENV_PATH_DJANGO, "r")
         self.assertEqual(f.read(), d.START_AFRESH_SETUP_3)
+        self.client.get("/start_afresh")
+        f = open(c.TESTING_ENV_PATH_DJANGO, "r")
+        self.assertEqual(f.read(), "")
+
+    @classmethod
+    def tearDownClass(cls):
+        settings.START_AFRESH = cls.start_fresh_previous_state
+        settings.TESTING = cls.testing_previous_state
+
+
+class StartAfreshDisabled(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.start_fresh_previous_state = settings.START_AFRESH
+        settings.START_AFRESH = False
+        cls.testing_previous_state = settings.TESTING
+        settings.TESTING = False
+
+    def setUp(self):
+        settings.TESTING = True
+        self.client.get("/start_afresh")
+        settings.TESTING = False
+
+    def test_bad_method(self):
+        response = self.client.delete("/start_afresh")
+        self.assertEqual(response.status_code, 405)
+
+    def test_start_afresh_with_nothing_running(self):
+        if not os.path.isfile(c.TESTING_ENV_PATH_DJANGO):
+            self.assertTrue(False)
+
+        f = open(c.TESTING_ENV_PATH_DJANGO, "r")
+        self.assertEqual(f.read(), "")
+
+    def test_start_afresh_with_everything_running(self):
+        setup_level(self, 3)
+        if not os.path.isfile(c.TESTING_ENV_PATH_DJANGO):
+            self.assertTrue(False)
+
+        f = open(c.TESTING_ENV_PATH_DJANGO, "r")
+        self.assertEqual(f.read(), d.START_AFRESH_SETUP_3)
+        self.client.get("/start_afresh")
+        f = open(c.TESTING_ENV_PATH_DJANGO, "r")
+        self.assertEqual(f.read(), d.START_AFRESH_SETUP_3)
+
+    @classmethod
+    def tearDownClass(cls):
+        settings.START_AFRESH = cls.start_fresh_previous_state
+        settings.TESTING = cls.testing_previous_state
 
 
 class Custum404(TestCase):
