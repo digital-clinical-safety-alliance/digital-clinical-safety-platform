@@ -60,7 +60,8 @@ class GitController:
         # child.wait()
         output = child.readline()
         print(output)
-        while "\r\n" in str(output):
+        print(child.readline())
+        while b"\r\n" in output:
             print(output)
             output = child.readline()
         # print(child.read())
