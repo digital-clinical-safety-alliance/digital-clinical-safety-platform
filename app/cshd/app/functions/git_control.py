@@ -33,7 +33,9 @@ class GitController:
 
     def commit_and_push(self) -> bool:
         # Path to the local repository
-        repo_path = "/cshd"
+        """repo_path = "/cshd"
+
+
 
         # Open the repository
         repo = Repo(repo_path)
@@ -52,7 +54,7 @@ class GitController:
         print(4)
         # asdjflksajhssssggg
         print("Changes committed and pushed successfully.")
-        return True
+        return True"""
 
 
 if __name__ == "__main__":
