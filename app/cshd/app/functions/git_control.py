@@ -47,7 +47,7 @@ class GitController:
         # Push the changes to the remote repository
         # repo.remote().push()
         origin = repo.remote(name="origin")
-        origin.push("CotswoldsMaker", self.token)
+        origin.push()
         print(4)
         # asdjflksajhssssggg11
         print("Changes committed and pushed successfully.")
