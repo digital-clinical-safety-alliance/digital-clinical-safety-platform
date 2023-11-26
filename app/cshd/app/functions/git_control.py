@@ -59,11 +59,12 @@ class GitController:
         child.sendline(self.token)
         # child.wait()
         output = child.readline()
-        while "\r\n" in str(output):
+        while not (pexpect.EOF in str(output)):
             print(output)
             output = child.readline()
         # print(child.read())
         # print(child.before)
+        child.wait()
         print(4)
         # asdjflksajhssssggg11s
         print("Changes committed and pushed successfully.")
