@@ -46,7 +46,8 @@ class GitController:
         repo.git.commit("-m", commit_message)
         print(3)
         # Push the changes to the remote repository
-        repo.remote().push()
+        # repo.remote().push()
+        repo.remote(name="origin")
         print(4)
         # asdjflksajhssss
         print("Changes committed and pushed successfully.")
