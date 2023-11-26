@@ -32,39 +32,8 @@ class GitController:
         return repos_found
 
     def commit_and_push(self) -> bool:
-        # def commit_and_push(repository_path, commit_message):
-        # Get GitHub token from environment variable
-        github_token = self.token
-        repository_path = "/cshd"
-        commit_message = "gitpython trial"
-
-        # Open the local repository using GitPython
-        repo = Repo(repository_path)
-
-        # Stage all changes
-        repo.git.add("--all")
-
-        # Commit the changes
-        repo.index.commit(commit_message)
-
-        # Get the GitHub repository using PyGithub
-        g = Github(github_token)
-        repo_name = os.path.basename(repository_path)
-        github_repo = g.get_user().get_repo(repo_name)
-
-        # Push the changes to GitHub
-        origin = repo.remote(name="origin")
-        origin.push()
-
-        """g = Github(self.token)
-        github_ctrl = g.get_user(self.user_org)
-
-            github_ctrl.get_repos():"""
         # Path to the local repository
-        """repo_path = "/cshd"
-
-
-
+        repo_path = "/cshd"
         # Open the repository
         repo = Repo(repo_path)
         print(1)
@@ -81,7 +50,7 @@ class GitController:
         origin.push()
         print(4)
         # asdjflksajhssssggg
-        print("Changes committed and pushed successfully.")"""
+        print("Changes committed and pushed successfully.")
         return True
 
 
