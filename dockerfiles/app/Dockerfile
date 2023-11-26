@@ -3,7 +3,7 @@ FROM ubuntu:latest
 WORKDIR /cshd
 COPY requirements.txt /cshd
 COPY packages.txt /cshd
-#TODO: may need to remove update as this will different updates over time
+#TODO: may need to remove update as this will have different updates over time
 RUN apt-get update
 
 RUN xargs apt-get -y install <packages.txt
