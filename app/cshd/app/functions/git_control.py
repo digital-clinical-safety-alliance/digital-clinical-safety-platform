@@ -7,6 +7,7 @@ import sys
 from git import Repo
 from github import Github
 import os
+import pexpect
 
 
 class GitController:
@@ -34,10 +35,6 @@ class GitController:
         return repos_found
 
     def commit_and_push(self) -> bool:
-        os.environ["GIT_ASKPASS"] = "/cshd/app/cshd/app/functions/askpass.py"
-        os.environ["GIT_USERNAME"] = self.user_org
-        os.environ["GIT_PASSWORD"] = self.token
-
         # Path to the local repository
         repo_path = "/cshd"
         # Open the repository
@@ -53,7 +50,12 @@ class GitController:
         # Push the changes to the remote repository
         # repo.remote().push()
         origin = repo.remote(name="origin")
-        origin.push()
+        # origin.push()
+        child = pexpect.spawn("git push", timeout=10)
+        child.expect("Username for 'https://github.com':")
+        child.sendline(self.user_org)
+        child.expect("Password for 'https://")
+        child.sendline(self.token)
         print(4)
         # asdjflksajhssssggg11s
         print("Changes committed and pushed successfully.")
