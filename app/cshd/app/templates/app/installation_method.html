@@ -19,14 +19,25 @@
     <p>CSHD uses a <a href="https://en.wikipedia.org/wiki/Django_(web_framework)">Django</a>
       (python based) web app (the one you are using now) to collect 
       details to initialise your
-      clinical safety documents. You can then upload the initialised documents
-      to Github and the documents can be viewed there.
+      clinical safety documents.
       Once setup, you will be able to view the documents
-      in an <a href="https://www.mkdocs.org/">mkdoc server</a>. These docuements are then available
+      in an <a href="https://www.mkdocs.org/">mkdoc server</a>. These documents are then available
       as a static site on Github.</p>
-    <p> What you see on screen will
+    <p> What you see on the <b>mkdocs server screen</b> the will
       be what is displayed on Github. If you need to update placeholders or the prose of
-      the safety documents that can be done within the Django part of CSHD.
+      the safety documents that can be done within the Django part of CSHD. Please see 
+      below details for installation type:
+    </p>
+    <h3>Stand alone</h2>
+    <p>This will create a safety documents only setup. This will link to Github directly.
+      You will be able to undertake normal Github operations (eg updating your online documents
+      or raising hazards), from the Django app.
+    </p>
+    <h3>Integrated</h2>
+    <p>This will add the safety documentations to a pre-existing repository. Useful if you want
+      to integrate your safety documentation directly in with your source code. You can also
+      use CSHD to pull docstrings from your code for documentation. <font color="#A9A9A9">
+      Future feature, hazard logging directly in code.</font>
     </p>
   </div>
 </details>
@@ -80,7 +91,7 @@
         {% endif %}
           <div class="nhsuk-form-group">
             <label class="nhsuk-label" for="id_{{ field.name }}" id="id_label_{{ field.name }}">
-              <a name="{{ field.label }}"></a>{{ field.label }}
+              <a name="{{ field.label }}"></a>{{ field.label | safe }}
             </label>
             {{ field }}
           </div>

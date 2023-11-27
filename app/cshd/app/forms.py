@@ -11,6 +11,7 @@ import app.functions.constants as c
 
 sys.path.append(c.FUNCTIONS_APP)
 from docs_builder import Builder
+from git_control import GitController
 
 
 # TODO: need to set to 'required'
@@ -38,7 +39,7 @@ class InstallationForm(forms.Form):
     )
 
     github_repo_SA = forms.CharField(
-        label="Github repository",
+        label="Github repository (current or soon to be created)",
         required=False,
         widget=forms.TextInput(
             attrs={
@@ -47,8 +48,8 @@ class InstallationForm(forms.Form):
         ),
     )
 
-    github_username_SA = forms.CharField(
-        label="Github username",
+    github_username_org_SA = forms.CharField(
+        label="Github username / organisation (of where the documents will be / are stored)",
         required=False,
         widget=forms.TextInput(
             attrs={
@@ -58,9 +59,9 @@ class InstallationForm(forms.Form):
     )
 
     github_token_SA = forms.CharField(
-        label="Github token",
+        label="Github token (<a href='https://github.com/settings/tokens/new' target='_blank'>get Github token</a>)",
         required=False,
-        widget=forms.TextInput(
+        widget=forms.PasswordInput(
             attrs={
                 "class": "nhsuk-input nhsuk-input--width-30",
             }
@@ -194,3 +195,44 @@ class MDEditForm(forms.Form):
             }
         ),
     )
+
+
+class LogHazardForm(forms.Form):
+    def __init__(self, *args, **kwargs) -> None:
+        super(LogHazardForm, self).__init__(*args, **kwargs)
+        gc: GitController = GitController()
+        available_labels: list[dict[str, str]] | list[
+            str
+        ] = gc.available_hazard_labels("name_only")
+        labels_choices: list = []
+
+        for label in available_labels:
+            labels_choices.append([label, label])
+
+        CHOICES = tuple(labels_choices)
+
+        self.fields["title"] = forms.CharField(
+            required=False,
+            widget=forms.TextInput(
+                attrs={
+                    "class": "nhsuk-input nhsuk-input--width-30",
+                }
+            ),
+        )
+
+        self.fields["body"] = forms.CharField(
+            required=False,
+            widget=forms.TextInput(
+                attrs={
+                    "class": "nhsuk-input nhsuk-input--width-30",
+                }
+            ),
+        )
+
+        self.fields["labels"] = forms.MultipleChoiceField(
+            label="Label (press CTRL / CMD and select several as needed)",
+            choices=CHOICES,
+            widget=forms.SelectMultiple(
+                attrs={"class": "nhsuk-select", "style": "height: 150px"}
+            ),
+        )

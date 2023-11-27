@@ -52,3 +52,9 @@ TESTING_MKDOCS_NO_TEMPLATES_FOLDER: str = (
 TESTING_MKDOCS_EMPTY_FOLDERS: str = (
     f"{ MAIN_FOLDER }app/cshd/app/tests/test_docs/mkdocs_empty_folders/"
 )
+
+
+# git and Github
+REPO_NAME: str = "clinical-safety-hazard-documentation"
+ISSUE_LABELS_PATH: str = "/cshd/.github/labels.yml"
+REPO_PATH_LOCAL: str = "/cshd"

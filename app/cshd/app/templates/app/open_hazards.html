@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block main %}
+<legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l">
+  <h1 class="nhsuk-fieldset__heading">
+    Open hazards
+  </h1>
+</legend>
+
+<p>List open Hazards here</p>
+
+<form action="/log_hazard" method="post">
+    {% csrf_token %}
+
+    <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
+      Submit
+    </button>
+    
+  </form>
+{% endblock %}

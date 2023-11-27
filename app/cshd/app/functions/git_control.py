@@ -8,33 +8,47 @@ from github import Github, Issue
 import pexpect
 import yaml
 
-ISSUE_LABELS_PATH: str = "/cshd/.github/labels.yml"
+import constants as c
 
 
 class GitController:
     def __init__(
         self,
-        repo_path_local: str | None = None,
-        repo_name: str | None = None,
+        repo_path_local: str | None = c.REPO_PATH_LOCAL,
+        repo_name: str | None = c.REPO_NAME,
         user_org: str | None = None,
         token: str | None = None,
+        env_location: str | None = c.ENV_PATH,
     ) -> None:
-        if user_org == None and token == None:
-            # TODO - will need to change find_dotenv() to live .env location
-            dot_values = dotenv_values(find_dotenv())
-            self.user_org = dot_values.get("user_org")
-            self.token = dot_values.get("github_token")
-        else:
-            raise FileNotFoundError(f"To be determined.")
+        dot_values = dotenv_values(env_location)
 
-        # TODO - will need to handle None case
-        self.repo_path_local = repo_path_local
-        self.repo_name = repo_name
+        if user_org == None:
+            self.user_org = dot_values.get("GITHUB_USERNAME_ORG")
+            if self.user_org == None:
+                raise ValueError(
+                    f"Github username / org is not set either as an arguement or in .env"
+                )
+        if token == None:
+            self.token = dot_values.get("GITHUB_TOKEN")
+            if self.token == None:
+                raise ValueError(
+                    f"Github token is not set either as an arguement or in .env"
+                )
 
+        if repo_path_local == None:
+            raise ValueError(f"'repo_path_local' has not been set")
+
+        if repo_name == None:
+            raise ValueError(f"'repo_name' has not been set")
+
+        self.repo_path_local = str(repo_path_local)
+        self.repo_name = str(repo_name)
         return
 
     def get_repos(self) -> list[str]:
+        """ """
         repos_found: list[str] = []
+
         g = Github(self.token)
         github_ctrl = g.get_user(self.user_org)
 
@@ -42,6 +56,45 @@ class GitController:
             repos_found.append(repo.name)
 
         return repos_found
+
+    def current_repo_on_github(self, repo_name: str) -> bool:
+        """ """
+        current_repos_on_github: list[str] = []
+
+        current_repos_on_github = self.get_repos()
+
+        if repo_name in current_repos_on_github:
+            return True
+        else:
+            return False
+
+    def create_repo(self, repo_name: str) -> bool:
+        """ """
+        g: Github
+        # github_ctrl
+
+        if self.current_repo_on_github(repo_name):
+            return False
+
+        g = Github(self.user_org, self.token)
+        github_ctrl = g.get_organization(self.user_org)
+        repo = github_ctrl.create_repo(repo_name)
+
+        return True
+
+    def delete_repo(self, repo_name: str) -> bool:
+        """ """
+        g: Github
+        # github_ctrl
+
+        if not self.current_repo_on_github(repo_name):
+            return False
+
+        g = Github(self.user_org, self.token)
+        github_ctrl = g.get_organization(self.user_org)
+        repo = github_ctrl.get_repo(repo_name)
+        repo.delete()
+        return True
 
     def commit_and_push(
         self,
@@ -70,7 +123,7 @@ class GitController:
             child.wait()
         return True
 
-    def hazard_log(self, title: str, body: str, labels: list[str]) -> bool:
+    def log_hazard(self, title: str, body: str, labels: list[str]) -> bool:
         g: Github
         # repo
 
@@ -96,14 +149,12 @@ class GitController:
         self, details: str = "full"
     ) -> list[dict[str, str]] | list[str]:
         issues_yml: list[dict[str, str]]
-        issues_names_only: list[str]
+        issues_names_only: list[str] = []
 
         if details != "full" and details != "name_only":
-            raise ValueError(
-                    f"'{ details } is not a valid option"
-                )
+            raise ValueError(f"'{ details } is not a valid option")
 
-        with open(ISSUE_LABELS_PATH, "r") as file:
+        with open(c.ISSUE_LABELS_PATH, "r") as file:
             issues_yml = yaml.safe_load(file)
 
         # for label in issues_yml:
@@ -113,8 +164,8 @@ class GitController:
             return issues_yml
         else:
             for label_definition in issues_yml:
-                label_definition["name"].lower():
-
+                issues_names_only.append(label_definition["name"].lower())
+            return issues_names_only  # TODO - need to test if works
 
     def verify_hazard_label(self, label: str) -> bool:
         issues_yml: list[dict[str, str]]
@@ -127,12 +178,26 @@ class GitController:
 
         return False
 
+    def open_hazards(self):
+        g = Github(self.token)
+        repo = g.get_repo(f"{ self.user_org }/{ self.repo_name }")
+        open_issues = repo.get_issues(state="open")
+        # print(open_issues)
+        for issue in open_issues:
+            print(issue)
+        return
+
 
 if __name__ == "__main__":
     print("Starting...")
     gc = GitController("/cshd", "clinical-safety-hazard-documentation")
+    # print(gc.get_repos())
+    # print(gc.current_repo_on_github("clinical-safety-hazard-documentation"))
     # gc.commit_and_push("A commit with a new function")
     # print(gc.get_repos())
-    gc.hazard_log("Test title 3", "This is a test body of issue 3", ["hazard"])
+    # gc.hazard_log("Test title 3", "This is a test body of issue 3", ["hazard"])
     # gc.available_hazard_labels()
     # print(gc.verify_hazard_label("hazard"))
+    # gc.open_issues()
+    # print(gc.create_repo("abc"))
+    print(gc.delete_repo("abc"))

@@ -16,6 +16,7 @@ sys.path.append(c.FUNCTIONS_APP)
 from env_manipulation import ENVManipulator
 from mkdocs_control import MkdocsControl
 from docs_builder import Builder
+from git_control import GitController
 
 
 from .forms import (
@@ -24,6 +25,7 @@ from .forms import (
     PlaceholdersForm,
     MDEditForm,
     MDFileSelect,
+    LogHazardForm,
 )
 
 
@@ -33,6 +35,8 @@ def index(request: HttpRequest) -> HttpResponse:
     env_variables: dict = {}
     setup_step: str | None = None
     template_choice: str = ""
+    gc: GitController
+    repo: str = ""
     # form
 
     if not (request.method == "POST" or request.method == "GET"):
@@ -59,11 +63,27 @@ def index(request: HttpRequest) -> HttpResponse:
             if form.is_valid():
                 env_m = ENVManipulator(settings.ENV_LOCATION)
                 env_m.add("setup_step", "1")
-                env_m.add("GITHUB_REPO", form.cleaned_data["github_repo_SA"])
+                repo = form.cleaned_data["github_repo_SA"]
+                env_m.add("GITHUB_REPO", repo)
                 env_m.add(
-                    "GITHUB_USERNAME", form.cleaned_data["github_username_SA"]
+                    "GITHUB_USERNAME_ORG",
+                    form.cleaned_data["github_username_org_SA"],
                 )
                 env_m.add("GITHUB_TOKEN", form.cleaned_data["github_token_SA"])
+
+                gc = GitController()
+
+                """if not gc.current_repo_on_github(repo):
+                    context["repo"] = repo
+                    return render(
+                        request,
+                        "not_a_current_repo.html",
+                        context | std_context(),
+                    )
+
+                print(
+                    f"Is this a repo on Github: {gc.current_repo_on_github(form.cleaned_data['github_repo_SA'])}"
+                )"""
 
                 messages.success(
                     request, "Initialisation selections stored [tbc]"
@@ -275,9 +295,31 @@ def log_hazard(request: HttpRequest) -> HttpResponse:
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", std_context(), status=405)
 
+    if request.method == "GET":
+        context = {"form": LogHazardForm()}
+        return render(request, "log_hazard.html", context | std_context())
+
+    if request.method == "POST":
+        form = LogHazardForm(request.POST)
+        print(request.POST)
+        if form.is_valid():
+            return HttpResponse("It worked")
+        else:
+            return HttpResponse("Opps")
+
+    return HttpResponse("Blah")
+
+
+# TODO - testing needed
+def open_hazards(request: HttpRequest) -> HttpResponse:
+    context: dict[str, Any] = {}
+
+    if not (request.method == "GET" or request.method == "POST"):
+        return render(request, "405.html", std_context(), status=405)
+
     context = {}
 
-    return render(request, "log_hazard.html", context | std_context())
+    return render(request, "open_hazards.html", context | std_context())
 
 
 def mkdoc_redirect(request: HttpRequest, path: str) -> HttpResponse:
@@ -342,7 +384,7 @@ def start_afresh(request: HttpRequest) -> HttpResponse:
         env_m = ENVManipulator(settings.ENV_LOCATION)
         env_m.delete("setup_step")
         env_m.delete("GITHUB_REPO")
-        env_m.delete("GITHUB_USERNAME")
+        env_m.delete("GITHUB_USERNAME_ORG")
         env_m.delete("GITHUB_TOKEN")
 
         mkdocs = MkdocsControl()

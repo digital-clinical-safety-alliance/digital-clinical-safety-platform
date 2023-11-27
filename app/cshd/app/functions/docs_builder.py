@@ -11,7 +11,7 @@ import re
 import yaml
 import shutil
 
-import app.functions.constants as c
+import constants as c
 
 
 class Builder:
