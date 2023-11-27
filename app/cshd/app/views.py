@@ -177,7 +177,7 @@ def edit_md(request: HttpRequest) -> HttpResponse:
     em = ENVManipulator(settings.ENV_LOCATION)
     setup_step = em.read("setup_step")
 
-    if setup_step != "2":
+    if setup_step != "2" and setup_step != "3":
         return redirect("/")
 
     if request.method == "GET":
