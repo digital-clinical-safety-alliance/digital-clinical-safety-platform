@@ -59,6 +59,7 @@ def index(request: HttpRequest) -> HttpResponse:
             if form.is_valid():
                 env_m = ENVManipulator(settings.ENV_LOCATION)
                 env_m.add("setup_step", "1")
+                env_m.add("GITHUB_REPO", form.cleaned_data["github_repo_SA"])
                 env_m.add(
                     "GITHUB_USERNAME", form.cleaned_data["github_username_SA"]
                 )
@@ -340,8 +341,10 @@ def start_afresh(request: HttpRequest) -> HttpResponse:
 
         env_m = ENVManipulator(settings.ENV_LOCATION)
         env_m.delete("setup_step")
+        env_m.delete("GITHUB_REPO")
         env_m.delete("GITHUB_USERNAME")
         env_m.delete("GITHUB_TOKEN")
+
         mkdocs = MkdocsControl()
         if not mkdocs.stop(wait=True):
             return render(request, "500.html", status=500)
