@@ -28,12 +28,17 @@ class GitController:
                 raise ValueError(
                     f"Github username / org is not set either as an arguement or in .env"
                 )
+        else:
+            self.user_org = user_org
+
         if token == None:
             self.token = dot_values.get("GITHUB_TOKEN")
             if self.token == None:
                 raise ValueError(
                     f"Github token is not set either as an arguement or in .env"
                 )
+        else:
+            self.token = token
 
         if repo_path_local == None:
             raise ValueError(f"'repo_path_local' has not been set")
@@ -44,6 +49,18 @@ class GitController:
         self.repo_path_local = str(repo_path_local)
         self.repo_name = str(repo_name)
         return
+
+    def check_credentials(self) -> bool:
+        """ """
+        g: Github
+
+        try:
+            g = Github(self.user_org, self.token)
+            g.get_organization(self.user_org)
+        except:
+            return False
+        else:
+            return True
 
     def get_repos(self) -> list[str]:
         """ """
@@ -129,13 +146,12 @@ class GitController:
 
         for label in labels:
             print(label)
-            if not self.verify_label(label):
+            if not self.verify_hazard_label(label):
                 raise ValueError(
                     f"'{ label } is not a valid hazard label. Please review label.yml for available values."
                 )
 
-        # Can use assignee="github-username" too
-        g = Github(self.token)
+        g = Github(self.user_org, self.token)
         repo = g.get_repo(f"{ self.user_org }/{ self.repo_name }")
         repo.create_issue(
             title=title,
@@ -178,26 +194,44 @@ class GitController:
 
         return False
 
-    def open_hazards(self):
+    def open_hazards(self) -> list[dict]:
+        """ """
+        g: Github
+        open_hazards: list[dict] = []
+        label_list: list = []
+
         g = Github(self.token)
         repo = g.get_repo(f"{ self.user_org }/{ self.repo_name }")
         open_issues = repo.get_issues(state="open")
-        # print(open_issues)
+
         for issue in open_issues:
             print(issue)
-        return
+            label_list.clear()
+            for label in issue.labels:
+                label_list.append(label.name)
+                # print(label.split('"')[1].split('"')[0])
+            open_hazards.append(
+                {
+                    "number": issue.number,
+                    "title": issue.title,
+                    "body": issue.body,
+                    "labels": label_list.copy(),
+                }
+            )
+        return open_hazards
 
 
 if __name__ == "__main__":
     print("Starting...")
     gc = GitController("/cshd", "clinical-safety-hazard-documentation")
+    print(gc.check_credentials())
     # print(gc.get_repos())
-    # print(gc.current_repo_on_github("clinical-safety-hazard-documentation"))
     # gc.commit_and_push("A commit with a new function")
     # print(gc.get_repos())
-    # gc.hazard_log("Test title 3", "This is a test body of issue 3", ["hazard"])
+    # gc.log_hazard("Test title 3", "This is a test body of issue 3", ["hazard"])
     # gc.available_hazard_labels()
     # print(gc.verify_hazard_label("hazard"))
     # gc.open_issues()
     # print(gc.create_repo("abc"))
-    print(gc.delete_repo("abc"))
+    # print(gc.delete_repo("abc"))
+    # gc.open_hazards()

@@ -2,13 +2,15 @@
   <div class="nhsuk-error-summary" aria-labelledby="error-summary-title" role="alert" tabindex="-1">
     <h2 class="nhsuk-error-summary__title" id="error-summary-title">
       Please correct the below errors
-    </h2> 
+    </h2>     
+
     <div class="nhsuk-error-summary__body">
       {% for field in form %}
+      
         <ul class="nhsuk-list nhsuk-error-summary__list" role="list">
            {% for error in field.errors %}
             <li>
-              <a href="#{{ field.label }}">{{field.label}}: {{ error|escape }}</a>
+              <a href="#{{ field.label }}">{{ error|escape }}</a>
             </li>
            {% endfor %}
         </ul>

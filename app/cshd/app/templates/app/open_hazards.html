@@ -7,14 +7,24 @@
   </h1>
 </legend>
 
-<p>List open Hazards here</p>
+{% for hazard in open_hazards %}
+<div class="nhsuk-form-group">
+  {% for key, value in hazard.items %}
+  <label class="nhsuk-label" for="id_{{ field.name }}">
+    {{ key|title }}
+  </label>
+  {{ value }}
+  {% endfor %}
+</br>
+<a href="/open_hazards">Add comment to hazard</a>
+</div>
+{% endfor %}
 
 <form action="/log_hazard" method="post">
     {% csrf_token %}
-
     <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
       Submit
     </button>
-    
   </form>
+
 {% endblock %}

@@ -104,3 +104,24 @@ label {
     font-size: 48px;
   }
 }
+
+
+
+/* For the loading animation */
+.loading-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.loader {
+  width: 120px;
+  height: 120px;
+}
+
+/* Hide the loader when the page is loaded */
+body.loaded .loading-container {
+  display: none;
+}

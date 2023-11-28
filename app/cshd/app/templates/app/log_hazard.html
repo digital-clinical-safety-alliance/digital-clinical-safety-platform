@@ -10,16 +10,11 @@
   Enter details of the hazard here. On pressing submit, these will be added to Github to then
   be actioned.
 </div>
+
+{% include "error_summary.html" %}
+
 <form action="/log_hazard" method="post">
     {% csrf_token %}
-
-    {% if form.errors %}
-      <ul class="errors">
-          {% for error in form.errors %}
-              <li>{{ error }}</li>
-          {% endfor %}
-      </ul>
-    {% endif %}
    
     {% for field in form %}
     <div class="nhsuk-form-group">

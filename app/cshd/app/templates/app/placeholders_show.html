@@ -7,21 +7,15 @@
   </h1>
 </legend>
 
+{% include "error_summary.html" %}
+
 <form action="/" method="post">
     {% csrf_token %}
-    
-    {% if form.errors %}
-      <ul class="errors">
-          {% for error in form.errors %}
-              <li>{{ error }}</li>
-          {% endfor %}
-      </ul>
-    {% endif %}
 
     {% for field in form %}
     <div class="nhsuk-form-group">
       <label class="nhsuk-label" for="id_{{ field.name }}">
-        {{ field.label }} ({{ field.name }})
+        <a name="{{ field.label }}"></a>{{ field.label }} ({{ field.name }})
       </label>
       {{ field }}
     </div>

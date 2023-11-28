@@ -78,11 +78,42 @@ class InstallationForm(forms.Form):
         ),
     )
 
-    def clean_github_repo_SA(self) -> str:
-        github_repo_SA = self.cleaned_data["github_repo_SA"]
-        if " " in github_repo_SA:
-            raise forms.ValidationError("Invalid URL")
-        return github_repo_SA
+    def clean(self):
+        print("clean")
+        cleaned_data: Any = self.cleaned_data
+        installation_type: str = cleaned_data["installation_type"]
+        github_repo: str = cleaned_data["github_repo_SA"]
+        github_username_org: str = cleaned_data["github_username_org_SA"]
+        github_token: str = cleaned_data["github_token_SA"]
+        code_location: str = cleaned_data["code_location_I"]
+        print(installation_type)
+
+        if installation_type != "SA" and installation_type != "I":
+            raise ValueError(
+                f"Error with installation type received - { installation_type }"
+            )
+
+        if installation_type == "SA":
+            gc = GitController(
+                repo_name=github_repo,
+                user_org=github_username_org,
+                token=github_token,
+            )
+
+            if not gc.check_credentials():
+                self.add_error(
+                    "github_username_org_SA",
+                    f"Credentials supplied for Github are not valid. Please try again",
+                )
+
+            if " " in github_repo:
+                self.add_error("github_repo_SA", "Invalid URL")
+
+        if installation_type == "I":
+            if " " in code_location:
+                self.add_error("code_location_I", "Invalid path")
+
+        return cleaned_data
 
 
 class TemplateSelectForm(forms.Form):
@@ -130,18 +161,19 @@ class PlaceholdersForm(forms.Form):
 
     def clean(self) -> dict:
         INVALID_CHARACTERS: str = "{}\"'"
-        cleaned_data: Any = self.cleaned_data
+        cleaned_data: Any = self.cleaned_data.copy()
         illegal: str = ""
         key: str = ""
         value: str = ""
 
         for key, value in cleaned_data.items():
             if any(illegal in value for illegal in INVALID_CHARACTERS):
-                raise forms.ValidationError(
-                    f"Invalid character in placeholder value - '{ value }'"
+                self.add_error(
+                    key,
+                    f"Invalid character in placeholder '{ key }' - '{ value }'",
                 )
-        else:  # TODO - remove todo??
-            return cleaned_data
+
+        return cleaned_data
 
 
 class MDFileSelect(forms.Form):
@@ -180,7 +212,6 @@ class MDFileSelect(forms.Form):
 class MDEditForm(forms.Form):
     document_name = forms.CharField(
         label="",
-        required=False,
         widget=forms.HiddenInput(attrs={}),
     )
 
@@ -212,7 +243,6 @@ class LogHazardForm(forms.Form):
         CHOICES = tuple(labels_choices)
 
         self.fields["title"] = forms.CharField(
-            required=False,
             widget=forms.TextInput(
                 attrs={
                     "class": "nhsuk-input nhsuk-input--width-30",
@@ -221,7 +251,6 @@ class LogHazardForm(forms.Form):
         )
 
         self.fields["body"] = forms.CharField(
-            required=False,
             widget=forms.TextInput(
                 attrs={
                     "class": "nhsuk-input nhsuk-input--width-30",

@@ -272,25 +272,61 @@
         <div class="nhsuk-grid-row">
           <div class="nhsuk-grid-column-full app-component-reading-width">
             <div id="mainBody">
-
-              {% if messages %}
-                <div style="background-color: #78BE20; padding:10px">
-                   <ul style="max-width: 100%">
-                    {% for message in messages %}
-                      <div class="nhsuk-fieldset__heading" style="width:100%">
-                        <strong><li>{{ message }}</li></strong>
-                      </div>
-                    {% endfor %}
-                  </ul>
+              <!-- Loading animation -->
+              <div class="loading-container">
+                <div class="loader">
+                  <object type="image/svg+xml" data="static/assets/gifs/Loading SD.svg">
+                    <img src="static/assets/gifs/Loading SD.svg" />
+                    </object>
+                  <!---<img src="static/assets/gifs/Loading SD.svg" alt="Loading gif">-->
                 </div>
-                <div style="height:20px"></div>
-              {% endif %}
+              </div>
 
-              {% block main %}{% endblock %}
+              <div class="fade-out-element">
+                {% if messages %}
+                  <div style="background-color: #78BE20; padding:10px">
+                    <ul style="max-width: 100%">
+                      {% for message in messages %}
+                        <div class="nhsuk-fieldset__heading" style="width:100%">
+                          <strong><li>{{ message }}</li></strong>
+                        </div>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                  <div style="height:20px"></div>
+                {% endif %}
 
-              {% if START_AFRESH %}
-              Developer: <a href="start_afresh">Start afresh!</a>
-              {% endif %}
+                  {% block main %}{% endblock %}
+                  {% if START_AFRESH %}
+                    Developer: <a href="start_afresh">Start afresh!</a>
+                  {% endif %}
+              </div>
+
+
+              <script>
+                var element = document.querySelector('.fade-out-element'); 
+                function fadeOut(el) {
+                  var opacity = 1; // Initial opacity
+                  var interval = setInterval(function() {
+                      if (opacity > 0) {
+                        opacity -= 0.1;
+                        el.style.opacity = opacity;
+                      } else {
+                        clearInterval(interval); // Stop the interval when opacity reaches 0
+                        //el.style.display = 'none'; // Hide the element
+                      }
+                  }, 50);
+                }
+              </script>
+
+              <script>
+                document.body.classList.add('loaded');
+                window.onbeforeunload = function(e){
+                  document.querySelector('.loading-container').style.display = 'block'
+                  fadeOut(element);
+                }
+              </script>
+
             </div>
           </div>
         </div>

@@ -62,7 +62,6 @@ def index(request: HttpRequest) -> HttpResponse:
             form = InstallationForm(request.POST)
             if form.is_valid():
                 env_m = ENVManipulator(settings.ENV_LOCATION)
-                env_m.add("setup_step", "1")
                 repo = form.cleaned_data["github_repo_SA"]
                 env_m.add("GITHUB_REPO", repo)
                 env_m.add(
@@ -70,24 +69,9 @@ def index(request: HttpRequest) -> HttpResponse:
                     form.cleaned_data["github_username_org_SA"],
                 )
                 env_m.add("GITHUB_TOKEN", form.cleaned_data["github_token_SA"])
+                env_m.add("setup_step", "1")
 
-                gc = GitController()
-
-                """if not gc.current_repo_on_github(repo):
-                    context["repo"] = repo
-                    return render(
-                        request,
-                        "not_a_current_repo.html",
-                        context | std_context(),
-                    )
-
-                print(
-                    f"Is this a repo on Github: {gc.current_repo_on_github(form.cleaned_data['github_repo_SA'])}"
-                )"""
-
-                messages.success(
-                    request, "Initialisation selections stored [tbc]"
-                )
+                messages.success(request, "Initialisation selections stored")
 
                 context = {"form": TemplateSelectForm()}
 
@@ -180,7 +164,7 @@ def index(request: HttpRequest) -> HttpResponse:
                 )
 
     # Should never really get here, but added for mypy
-    return render(request, "500.html", std_context())
+    return render(request, "500.html", std_context(), status=500)
 
 
 def edit_md(request: HttpRequest) -> HttpResponse:
@@ -291,6 +275,7 @@ def saved_md(request: HttpRequest) -> HttpResponse:
 
 def log_hazard(request: HttpRequest) -> HttpResponse:
     context: dict[str, Any] = {}
+    gc: GitController
 
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", std_context(), status=405)
@@ -303,23 +288,58 @@ def log_hazard(request: HttpRequest) -> HttpResponse:
         form = LogHazardForm(request.POST)
         print(request.POST)
         if form.is_valid():
-            return HttpResponse("It worked")
-        else:
-            return HttpResponse("Opps")
+            hazard_title = form.cleaned_data["title"]
+            hazard_body = form.cleaned_data["body"]
+            hazard_labels = form.cleaned_data["labels"]
+            gc = GitController()
 
-    return HttpResponse("Blah")
+            if gc.log_hazard(hazard_title, hazard_body, hazard_labels):
+                messages.success(
+                    request,
+                    f"Hazard has been uploaded to GitHub",
+                )
+                context = {"form": LogHazardForm()}
+                return render(
+                    request, "log_hazard.html", context | std_context()
+                )
+            else:
+                messages.error(
+                    request,
+                    f"Error with hazard upload to GitHub",
+                )
+
+                context = {"form": LogHazardForm(initial=request.POST)}
+
+                return render(
+                    request, "log_hazard.html", context | std_context()
+                )
+        else:
+            context = {"form": form}
+            return render(request, "log_hazard.html", context | std_context())
+
+    # Should never really get here, but added for mypy
+    return render(request, "500.html", std_context(), status=500)
 
 
 # TODO - testing needed
 def open_hazards(request: HttpRequest) -> HttpResponse:
     context: dict[str, Any] = {}
+    gc: GitController
+    open_hazards: list[dict] = []
 
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", std_context(), status=405)
 
-    context = {}
+    if request.method == "GET":
+        # TODO need to check github credentials are valid
+        gc = GitController()
+        open_hazards = gc.open_hazards()
+        context = {"open_hazards": open_hazards}
 
-    return render(request, "open_hazards.html", context | std_context())
+        return render(request, "open_hazards.html", context | std_context())
+
+    if request.method == "POST":
+        return HttpResponse("POST handling not yet built")
 
 
 def mkdoc_redirect(request: HttpRequest, path: str) -> HttpResponse:

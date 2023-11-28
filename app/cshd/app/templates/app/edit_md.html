@@ -33,6 +33,8 @@
   Please note: you cannot add placeholders in the meta field (eg between the '---' markers)
 </div>
 
+{% include "error_summary.html" %}
+
 <form action="/edit_md" method="post">
   {% csrf_token %}
   <div class="nhsuk-form-group">
