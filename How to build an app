@@ -49,9 +49,14 @@ If Docker cannot build the container (eg "network [network long name] not found)
 >> docker-compose up --force-recreate -d
 
 
+# Mkdocs on Github
+Need to set ph-pages on Github as publishing source for mkdocs.
+
 ----
 # Notes:
 
 You cannot have variables (eg {{ variable_name}}) inside the metadata of markdown files for mkdocs. Mkdocs does not recognise the format and shows the meta data on the broswer screen.
 
 You need to add github secrets for updating issue labels. Need to manually run once as well.
+
+
