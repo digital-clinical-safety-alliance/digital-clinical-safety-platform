@@ -26,6 +26,7 @@ from .forms import (
     MDEditForm,
     MDFileSelect,
     LogHazardForm,
+    UploadToGithub,
 )
 
 
@@ -286,7 +287,6 @@ def log_hazard(request: HttpRequest) -> HttpResponse:
 
     if request.method == "POST":
         form = LogHazardForm(request.POST)
-        print(request.POST)
         if form.is_valid():
             hazard_title = form.cleaned_data["title"]
             hazard_body = form.cleaned_data["body"]
@@ -357,6 +357,43 @@ def mkdoc_redirect(request: HttpRequest, path: str) -> HttpResponse:
         return redirect(f"http://localhost:9000")
     else:
         return redirect(f"http://localhost:9000/{ path }")
+
+
+# TODO - testing needed
+def upload_to_github(request: HttpRequest) -> HttpResponse:
+    context: dict[str, Any] = {}
+    gc: GitController
+
+    if not (request.method == "GET" or request.method == "POST"):
+        return render(request, "405.html", std_context(), status=405)
+
+    if request.method == "GET":
+        context = {"form": UploadToGithub()}
+
+        return render(
+            request, "upload_to_github.html", context | std_context()
+        )
+
+    if request.method == "POST":
+        form = UploadToGithub(request.POST)
+        if form.is_valid():
+            comment = form.cleaned_data["comment"]
+            gc = GitController()
+            gc.commit_and_push(comment)
+            messages.success(
+                request,
+                f"Uploaded to Github with a comment of '{ comment }'",
+            )
+            context = {"form": UploadToGithub()}
+            return render(
+                request, "upload_to_github.html", context | std_context()
+            )
+
+        else:
+            context = {"form": form}
+            return render(
+                request, "upload_to_github.html", context | std_context()
+            )
 
 
 # -----

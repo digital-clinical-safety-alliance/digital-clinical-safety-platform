@@ -20,4 +20,5 @@ urlpatterns = [
         name="mkdoc_redirect_home",
     ),
     path("mkdoc_redirect/<path>", views.mkdoc_redirect, name="mkdoc_redirect"),
+    path("upload_to_github", views.upload_to_github, name="upload_to_github"),
 ]

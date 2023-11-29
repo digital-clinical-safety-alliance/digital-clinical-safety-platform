@@ -1,9 +1,9 @@
 extra:
-  __project_slug: '123'
-  clinical_safety_officer_contact: '123'
-  clinical_safety_officer_name: '123'
-  clinical_safety_team_name: '123'
-  hazard_log_url: '123'
-  organisation_name: '123'
-  project_name: abc
-  security_responsible_disclosure_email: '123'
+  __project_slug: ''
+  clinical_safety_officer_contact: ''
+  clinical_safety_officer_name: ''
+  clinical_safety_team_name: ''
+  hazard_log_url: ''
+  organisation_name: ''
+  project_name: ''
+  security_responsible_disclosure_email: ''

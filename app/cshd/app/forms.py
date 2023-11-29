@@ -264,3 +264,13 @@ class LogHazardForm(forms.Form):
                 attrs={"class": "nhsuk-select", "style": "height: 150px"}
             ),
         )
+
+
+class UploadToGithub(forms.Form):
+    comment = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                "class": "nhsuk-input nhsuk-input--width-30",
+            }
+        ),
+    )

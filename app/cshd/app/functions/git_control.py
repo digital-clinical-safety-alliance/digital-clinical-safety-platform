@@ -8,6 +8,8 @@ from github import Github, Issue, Auth
 import pexpect
 import yaml
 import requests
+import os
+
 import constants as c
 from constants import GhCredentials
 
@@ -18,9 +20,12 @@ class GitController:
         user_org: str | None = None,
         repo_name: str | None = c.REPO_NAME,
         token: str | None = None,
+        username_only: str | None = None,  # TODO
+        email: str | None = None,
         repo_path_local: str | None = c.REPO_PATH_LOCAL,
         env_location: str | None = c.ENV_PATH,
     ) -> None:
+        """ """
         dot_values = dotenv_values(env_location)
 
         if user_org == None:
@@ -49,6 +54,24 @@ class GitController:
 
         self.repo_path_local = str(repo_path_local)
         self.repo_name = str(repo_name)
+
+        if username_only == None:
+            self.username_only = dot_values.get("USERNAME_ONLY")
+            if self.username_only == None:
+                raise ValueError(
+                    f"USERNAME_ONLY has not been set as an argument or in .env"
+                )
+        else:
+            self.username_only = username_only
+
+        if email == None:
+            self.email = dot_values.get("EMAIL")
+            if self.email == None:
+                raise ValueError(
+                    f"EMAIL has not been set as an argument or in .env"
+                )
+        else:
+            self.email = email
         return
 
     def check_credentials(self) -> dict[str, str]:
@@ -89,6 +112,7 @@ class GitController:
             pass
         else:
             try:
+                # TODO - manage both users and organisastions (may need an extra field in the web app)
                 permission = repo.get_collaborator_permission("CotswoldsMaker")
                 print(f"- Permission of user for repo: {permission}")
             except:
@@ -154,11 +178,15 @@ class GitController:
         repo.delete()
         return True
 
+    # TODO - need to figure out if it failed
     def commit_and_push(
         self,
         commit_message: str = "No message supplied",
         verbose: bool = False,
     ) -> bool:
+        """ """
+        os.system(f"git config --global user.name '{ self.username_only }'")
+        os.system(f"git config --global user.email '{ self.email }'")
         repo = Repo(self.repo_path_local)
         repo.git.add("--all")
 
