@@ -1,6 +1,7 @@
 """ Constants
 
 """
+from enum import Enum
 
 MAIN_FOLDER: str = "/cshd/"
 
@@ -58,3 +59,9 @@ TESTING_MKDOCS_EMPTY_FOLDERS: str = (
 REPO_NAME: str = "clinical-safety-hazard-documentation"
 ISSUE_LABELS_PATH: str = "/cshd/.github/labels.yml"
 REPO_PATH_LOCAL: str = "/cshd"
+
+
+class GhCredentials(Enum):
+    USER = "user"
+    ORG = "org"
+    INVALID = "invalid"

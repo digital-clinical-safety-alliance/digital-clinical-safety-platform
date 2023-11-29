@@ -4,20 +4,21 @@
 from dotenv import load_dotenv, set_key, find_dotenv, dotenv_values
 import sys
 from git import Repo
-from github import Github, Issue
+from github import Github, Issue, Auth
 import pexpect
 import yaml
-
+import requests
 import constants as c
+from constants import GhCredentials
 
 
 class GitController:
     def __init__(
         self,
-        repo_path_local: str | None = c.REPO_PATH_LOCAL,
-        repo_name: str | None = c.REPO_NAME,
         user_org: str | None = None,
+        repo_name: str | None = c.REPO_NAME,
         token: str | None = None,
+        repo_path_local: str | None = c.REPO_PATH_LOCAL,
         env_location: str | None = c.ENV_PATH,
     ) -> None:
         dot_values = dotenv_values(env_location)
@@ -50,17 +51,57 @@ class GitController:
         self.repo_name = str(repo_name)
         return
 
-    def check_credentials(self) -> bool:
+    def check_credentials(self) -> dict[str, str]:
         """ """
         g: Github
+        user_org_exists: bool = False
+        repo_exists: bool = False
+        permission: str = GhCredentials.INVALID
+        results: dict[str, str] = {}
+
+        print(self.user_org)
+        print(self.repo_name)
+        print(self.token)
+
+        r = requests.get(
+            f"https://api.github.com/users/{ self.user_org }",
+            auth=(self.user_org, self.token),
+        )
+
+        if r.status_code == 200:
+            print("- User / Organisation exists")
+            user_org_exists = True
+        elif r.status_code == 404:
+            print("- User / Organisation does NOT exists")
+        else:
+            raise ValueError(
+                f"Error with user/organisation Github checking. Returned value of: {r.status_code }"
+            )
+
+        g = Github(self.user_org, self.token)
 
         try:
-            g = Github(self.user_org, self.token)
-            g.get_organization(self.user_org)
+            repo = g.get_repo(f"{ self.user_org }/{ self.repo_name }")
+            repo_exists = True
+            print("- Repository exists")
         except:
-            return False
+            print("- Repository does not exists")
+            pass
         else:
-            return True
+            try:
+                permission = repo.get_collaborator_permission("CotswoldsMaker")
+                print(f"- Permission of user for repo: {permission}")
+            except:
+                print(f"- No permission for this repo")
+
+        results = {
+            "user_org_exists": user_org_exists,
+            "repo_exists": repo_exists,
+            "permission": permission,
+        }
+        print(results)
+
+        return results
 
     def get_repos(self) -> list[str]:
         """ """
@@ -223,8 +264,10 @@ class GitController:
 
 if __name__ == "__main__":
     print("Starting...")
-    gc = GitController("/cshd", "clinical-safety-hazard-documentation")
-    print(gc.check_credentials())
+    gc = GitController(
+        "clinicians-who-code", "clinical-safety-hazard-documentation"
+    )
+    gc.check_credentials()
     # print(gc.get_repos())
     # gc.commit_and_push("A commit with a new function")
     # print(gc.get_repos())

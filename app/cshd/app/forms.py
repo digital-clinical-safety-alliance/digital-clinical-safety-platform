@@ -8,6 +8,7 @@ import sys
 from typing import Any
 
 import app.functions.constants as c
+from app.functions.constants import GhCredentials
 
 sys.path.append(c.FUNCTIONS_APP)
 from docs_builder import Builder
@@ -38,8 +39,8 @@ class InstallationForm(forms.Form):
         ),
     )
 
-    github_repo_SA = forms.CharField(
-        label="Github repository (current or soon to be created)",
+    github_username_org_SA = forms.CharField(
+        label="Github username / organisation (of where the documents will be / are stored)",
         required=False,
         widget=forms.TextInput(
             attrs={
@@ -48,8 +49,8 @@ class InstallationForm(forms.Form):
         ),
     )
 
-    github_username_org_SA = forms.CharField(
-        label="Github username / organisation (of where the documents will be / are stored)",
+    github_repo_SA = forms.CharField(
+        label="Github repository (current or soon to be created)",
         required=False,
         widget=forms.TextInput(
             attrs={
@@ -79,14 +80,12 @@ class InstallationForm(forms.Form):
     )
 
     def clean(self):
-        print("clean")
         cleaned_data: Any = self.cleaned_data
         installation_type: str = cleaned_data["installation_type"]
         github_repo: str = cleaned_data["github_repo_SA"]
         github_username_org: str = cleaned_data["github_username_org_SA"]
         github_token: str = cleaned_data["github_token_SA"]
         code_location: str = cleaned_data["code_location_I"]
-        print(installation_type)
 
         if installation_type != "SA" and installation_type != "I":
             raise ValueError(
@@ -100,7 +99,7 @@ class InstallationForm(forms.Form):
                 token=github_token,
             )
 
-            if not gc.check_credentials():
+            if gc.check_credentials() == GhCredentials.INVALID:
                 self.add_error(
                     "github_username_org_SA",
                     f"Credentials supplied for Github are not valid. Please try again",
