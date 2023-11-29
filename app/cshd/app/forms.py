@@ -266,6 +266,16 @@ class LogHazardForm(forms.Form):
         )
 
 
+class HazardCommentForm(forms.Form):
+    comment = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                "class": "nhsuk-input nhsuk-input--width-30",
+            }
+        ),
+    )
+
+
 class UploadToGithub(forms.Form):
     comment = forms.CharField(
         widget=forms.TextInput(
