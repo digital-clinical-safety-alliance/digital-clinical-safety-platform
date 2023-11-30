@@ -257,7 +257,10 @@ class GitController:
         repo = Repo(self.repo_path_local)
         repo.git.add("--all")
 
-        repo.git.commit("-m", commit_message)
+        try:
+            repo.git.commit("-m", commit_message)
+        except Exception as e:
+            print(e)
 
         # origin = repo.remote(name="origin")
 
