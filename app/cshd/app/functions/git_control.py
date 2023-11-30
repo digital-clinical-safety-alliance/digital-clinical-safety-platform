@@ -254,7 +254,9 @@ class GitController:
         child = pexpect.spawn("git push", timeout=10)
         child.expect("Username for 'https://github.com': ")
         child.sendline(self.github_username)
-        child.expect(f"Password for 'https://{ self.user_org }@github.com': ")
+        child.expect(
+            f"Password for 'https://{ self.github_username }@github.com': "
+        )
         child.sendline(self.github_token)
 
         if verbose:
