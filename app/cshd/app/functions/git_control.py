@@ -1,10 +1,12 @@
 """
+    If no organisation is provided, repos will be presumed to be stored under username
+    on Github
 
 """
 from dotenv import load_dotenv, set_key, find_dotenv, dotenv_values
 import sys
 from git import Repo
-from github import Github, Issue, Auth
+from github import Github, Issue, Auth, GithubException
 import pexpect
 import yaml
 import requests
@@ -17,164 +19,218 @@ from constants import GhCredentials
 class GitController:
     def __init__(
         self,
-        user_org: str | None = None,
-        repo_name: str | None = c.REPO_NAME,
-        token: str | None = None,
-        username_only: str | None = None,  # TODO
+        github_username: str | None = None,
         email: str | None = None,
+        github_organisation: str | None = None,
+        github_repo: str | None = c.REPO_NAME,
+        github_token: str | None = None,
         repo_path_local: str | None = c.REPO_PATH_LOCAL,
         env_location: str | None = c.ENV_PATH,
     ) -> None:
-        """ """
+        """Initialising GitController class"""
+
+        if env_location == None or env_location == "":
+            if self.github_username == None or self.github_username == "":
+                raise ValueError(f".env location is invalid")
+
         dot_values = dotenv_values(env_location)
 
-        if user_org == None:
-            self.user_org = dot_values.get("GITHUB_USERNAME_ORG")
-            if self.user_org == None:
+        if github_username == None or github_username == "":
+            self.github_username = dot_values.get("GITHUB_USERNAME")
+            if self.github_username == None or self.github_username == "":
                 raise ValueError(
-                    f"Github username / org is not set either as an arguement or in .env"
+                    f"Github username is not set either as an arguement or in .env"
                 )
         else:
-            self.user_org = user_org
+            self.github_username = github_username
 
-        if token == None:
-            self.token = dot_values.get("GITHUB_TOKEN")
-            if self.token == None:
-                raise ValueError(
-                    f"Github token is not set either as an arguement or in .env"
-                )
-        else:
-            self.token = token
-
-        if repo_path_local == None:
-            raise ValueError(f"'repo_path_local' has not been set")
-
-        if repo_name == None:
-            raise ValueError(f"'repo_name' has not been set")
-
-        self.repo_path_local = str(repo_path_local)
-        self.repo_name = str(repo_name)
-
-        if username_only == None:
-            self.username_only = dot_values.get("USERNAME_ONLY")
-            if self.username_only == None:
-                raise ValueError(
-                    f"USERNAME_ONLY has not been set as an argument or in .env"
-                )
-        else:
-            self.username_only = username_only
-
-        if email == None:
+        if email == None or email == "":
             self.email = dot_values.get("EMAIL")
-            if self.email == None:
+            if self.email == None or self.email == "":
                 raise ValueError(
-                    f"EMAIL has not been set as an argument or in .env"
+                    f"'Email' has not been set as an argument or in .env"
                 )
         else:
             self.email = email
-        return
 
-    def check_credentials(self) -> dict[str, str]:
-        """ """
+        if github_organisation == None:
+            self.github_organisation = dot_values.get("GITHUB_ORGANISATION")
+            if (
+                self.github_organisation == None
+                or self.github_organisation == ""
+            ):
+                raise ValueError(
+                    f"'Organisation' has not been set as an argument or in .env"
+                )
+        else:
+            self.github_organisation = github_organisation
+
+        if github_repo == None or github_repo == "":
+            raise ValueError(f"'github_repo' has not been set")
+        else:
+            self.github_repo = str(github_repo)
+
+        if github_token == None:
+            self.github_token = dot_values.get("GITHUB_TOKEN")
+            if self.github_token == None or self.github_token == "":
+                raise ValueError(
+                    f"'Github token' is not set either as an arguement or in .env"
+                )
+        else:
+            self.github_token = github_token
+
+        if repo_path_local == None or repo_path_local == "":
+            raise ValueError(f"'repo_path_local' has not been set")
+        else:
+            self.repo_path_local = str(repo_path_local)
+
+        return None
+
+    def check_github_credentials(self) -> dict[str, str | bool | None]:
+        """Checking Github credentials
+        If no organisation is provided, then username will be used for repo storage location
+        """
         g: Github
-        user_org_exists: bool = False
+        github_username_exists: bool = False
+        github_organisation_exists: bool = False
+        repo_domain: str = ""
         repo_exists: bool = False
-        permission: str = GhCredentials.INVALID
-        results: dict[str, str] = {}
+        permission: str | None = None
+        results: dict[str, str | bool | None] = {}
+        # username_request
+        # organisation_request
+        # repo_request
 
-        print(self.user_org)
-        print(self.repo_name)
-        print(self.token)
-
-        r = requests.get(
-            f"https://api.github.com/users/{ self.user_org }",
-            auth=(self.user_org, self.token),
+        username_request = requests.get(
+            f"https://api.github.com/users/{ self.github_username }",
+            auth=(self.github_username, self.github_token),
         )
 
-        if r.status_code == 200:
-            print("- User / Organisation exists")
-            user_org_exists = True
-        elif r.status_code == 404:
-            print("- User / Organisation does NOT exists")
+        if username_request.status_code == 200:
+            github_username_exists = True
+        elif username_request.status_code == 404:
+            github_username_exists = False
         else:
             raise ValueError(
-                f"Error with user/organisation Github checking. Returned value of: {r.status_code }"
+                f"Error with Github username checking. Returned value of: {username_request.status_code }"
             )
 
-        g = Github(self.user_org, self.token)
+        github_organisation_exists = self.organisation_exists(
+            self.github_organisation
+        )
 
-        try:
-            repo = g.get_repo(f"{ self.user_org }/{ self.repo_name }")
-            repo_exists = True
-            print("- Repository exists")
-        except:
-            print("- Repository does not exists")
-            pass
+        if self.github_organisation == None:
+            repo_domain = self.github_username
         else:
+            repo_domain = self.github_organisation
+
+        repo_request = requests.get(
+            f"https://api.github.com/repos/{ repo_domain }/{ self.github_repo }"
+        )
+
+        if repo_request.status_code == 200:
+            repo_exists = True
+
+            g = Github(self.github_username, self.github_token)
+            repo = g.get_repo(f"{ repo_domain }/{ self.github_repo }")
+
             try:
-                # TODO - manage both users and organisastions (may need an extra field in the web app)
-                permission = repo.get_collaborator_permission("CotswoldsMaker")
-                print(f"- Permission of user for repo: {permission}")
-            except:
-                print(f"- No permission for this repo")
+                permission = repo.get_collaborator_permission(
+                    self.github_username
+                )
+            except GithubException as error:
+                # print(f"Error - { error.data['message'] }")
+                pass
+        elif repo_request.status_code == 404:
+            repo_exists = False
+        else:
+            raise ValueError(
+                f"Error with Github repo checking. Returned value of: {repo_request.status_code }"
+            )
 
         results = {
-            "user_org_exists": user_org_exists,
+            "github_username_exists": github_username_exists,
+            "github_organisation_exists": github_organisation_exists,
             "repo_exists": repo_exists,
             "permission": permission,
         }
-        print(results)
-
         return results
 
-    def get_repos(self) -> list[str]:
+    def organisation_exists(self, organisation: str) -> bool:
+        """ """
+        # organisation_request
+        # github_organisation_exists
+
+        organisation_request = requests.get(
+            f"https://api.github.com/users/{ organisation }",
+            auth=(self.github_organisation, self.github_token),
+        )
+
+        if organisation_request.status_code == 200:
+            github_organisation_exists = True
+        elif organisation_request.status_code == 404:
+            github_organisation_exists = False
+        else:
+            raise ValueError(
+                f"Error with Github organisation checking. Returned value of: {organisation_request.status_code }"
+            )
+
+        return github_organisation_exists
+
+    def get_repos(self, github_user_org: str) -> list[str]:
         """ """
         repos_found: list[str] = []
 
-        g = Github(self.token)
-        github_ctrl = g.get_user(self.user_org)
-
-        for repo in github_ctrl.get_repos():
-            repos_found.append(repo.name)
+        g = Github(self.github_username, self.github_token)
+        try:
+            github_ctrl = g.get_user(github_user_org)
+        except GithubException as error:
+            # print(f"- Fail, repo was '{ error.data['message'] }'")
+            pass
+        else:
+            for repo in github_ctrl.get_repos():
+                repos_found.append(repo.name)
 
         return repos_found
 
-    def current_repo_on_github(self, repo_name: str) -> bool:
+    def current_repo_on_github(
+        self, github_use_org: str, github_repo: str
+    ) -> bool:
         """ """
         current_repos_on_github: list[str] = []
 
-        current_repos_on_github = self.get_repos()
+        current_repos_on_github = self.get_repos(github_use_org)
 
-        if repo_name in current_repos_on_github:
+        if github_repo in current_repos_on_github:
             return True
         else:
             return False
 
-    def create_repo(self, repo_name: str) -> bool:
+    def create_repo(self, github_repo: str) -> bool:
         """ """
         g: Github
         # github_ctrl
 
-        if self.current_repo_on_github(repo_name):
+        if self.current_repo_on_github(github_repo):
             return False
 
-        g = Github(self.user_org, self.token)
+        g = Github(self.user_org, self.github_token)
         github_ctrl = g.get_organization(self.user_org)
-        repo = github_ctrl.create_repo(repo_name)
+        repo = github_ctrl.create_repo(github_repo)
 
         return True
 
-    def delete_repo(self, repo_name: str) -> bool:
+    def delete_repo(self, github_repo: str) -> bool:
         """ """
         g: Github
         # github_ctrl
 
-        if not self.current_repo_on_github(repo_name):
+        if not self.current_repo_on_github(github_repo):
             return False
 
-        g = Github(self.user_org, self.token)
+        g = Github(self.user_org, self.github_token)
         github_ctrl = g.get_organization(self.user_org)
-        repo = github_ctrl.get_repo(repo_name)
+        repo = github_ctrl.get_repo(github_repo)
         repo.delete()
         return True
 
@@ -185,7 +241,8 @@ class GitController:
         verbose: bool = False,
     ) -> bool:
         """ """
-        os.system(f"git config --global user.name '{ self.username_only }'")
+        # TODO - need to check if set or not, and then only set if not already done
+        os.system(f"git config --global user.name '{ self.github_username }'")
         os.system(f"git config --global user.email '{ self.email }'")
         repo = Repo(self.repo_path_local)
         repo.git.add("--all")
@@ -198,7 +255,7 @@ class GitController:
         child.expect("Username for 'https://github.com': ")
         child.sendline(self.user_org)
         child.expect(f"Password for 'https://{ self.user_org }@github.com': ")
-        child.sendline(self.token)
+        child.sendline(self.github_token)
 
         if verbose:
             output = child.readline()
@@ -220,8 +277,8 @@ class GitController:
                     f"'{ label } is not a valid hazard label. Please review label.yml for available values."
                 )
 
-        g = Github(self.user_org, self.token)
-        repo = g.get_repo(f"{ self.user_org }/{ self.repo_name }")
+        g = Github(self.user_org, self.github_token)
+        repo = g.get_repo(f"{ self.user_org }/{ self.github_repo }")
         repo.create_issue(
             title=title,
             body=body,
@@ -269,8 +326,8 @@ class GitController:
         open_hazards: list[dict] = []
         label_list: list = []
 
-        g = Github(self.token)
-        repo = g.get_repo(f"{ self.user_org }/{ self.repo_name }")
+        g = Github(self.github_token)
+        repo = g.get_repo(f"{ self.user_org }/{ self.github_repo }")
         open_issues = repo.get_issues(state="open")
 
         for issue in open_issues:
@@ -292,12 +349,24 @@ class GitController:
 
 if __name__ == "__main__":
     print("Starting...")
+    # gc = GitController()
     gc = GitController(
-        "clinicians-who-code", "clinical-safety-hazard-documentation"
+        github_username="CotswoldsMaker",
+        github_organisation="clinicians-who-code",
+        github_repo="clinical-safety-hazard-documentation",
     )
-    gc.check_credentials()
-    # print(gc.get_repos())
-    # gc.commit_and_push("A commit with a new function")
+    """gc = GitController(
+        github_username="CotswoldsMaker",
+        github_repo="QuickSpiritum",
+    )"""
+    # print(gc.check_github_credentials())
+    # print(gc.get_repos("clinicians-who-code"))
+    """print(
+        gc.current_repo_on_github(
+            "clinicians-who-code", "clinical-safety-hazard-documentation"
+        )
+    )"""
+    gc.commit_and_push("A commit with a new function")
     # print(gc.get_repos())
     # gc.log_hazard("Test title 3", "This is a test body of issue 3", ["hazard"])
     # gc.available_hazard_labels()

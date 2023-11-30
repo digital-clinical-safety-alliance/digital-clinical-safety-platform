@@ -65,3 +65,11 @@ class GhCredentials(Enum):
     USER = "user"
     ORG = "org"
     INVALID = "invalid"
+
+
+class EnvKeys(Enum):
+    GITHUB_USERNAME = "GITHUB_USERNAME"
+    EMAIL = "EMAIL"
+    GITHUB_ORGANISATION = "GITHUB_ORGANISATION"
+    GITHUB_REPO = "GITHUB_REPO"
+    GITHUB_TOKEN = "GITHUB_TOKEN"

@@ -39,8 +39,28 @@ class InstallationForm(forms.Form):
         ),
     )
 
-    github_username_org_SA = forms.CharField(
-        label="Github username / organisation (of where the documents will be / are stored)",
+    github_username_SA = forms.CharField(
+        label="Github username",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "nhsuk-input nhsuk-input--width-30",
+            }
+        ),
+    )
+
+    email_SA = forms.CharField(
+        label="Email",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "nhsuk-input nhsuk-input--width-30",
+            }
+        ),
+    )
+
+    github_organisation_SA = forms.CharField(
+        label="Github organisation (leave blank if you are / will be storing the documents under your own username on Github)",
         required=False,
         widget=forms.TextInput(
             attrs={
@@ -70,7 +90,7 @@ class InstallationForm(forms.Form):
     )
 
     code_location_I = forms.CharField(
-        label="Location of source code",
+        label="Local location of source code (related to the git repository root)",
         required=False,
         widget=forms.TextInput(
             attrs={
@@ -82,28 +102,54 @@ class InstallationForm(forms.Form):
     def clean(self):
         cleaned_data: Any = self.cleaned_data
         installation_type: str = cleaned_data["installation_type"]
+        github_username: str = cleaned_data["github_username_SA"]
+        email: str = cleaned_data["email_SA"]
+        github_organisation: str = cleaned_data["github_organisation_SA"]
         github_repo: str = cleaned_data["github_repo_SA"]
-        github_username_org: str = cleaned_data["github_username_org_SA"]
         github_token: str = cleaned_data["github_token_SA"]
         code_location: str = cleaned_data["code_location_I"]
+        credentials_check_results: dict[str, str | bool] = {}
 
         if installation_type != "SA" and installation_type != "I":
-            raise ValueError(
-                f"Error with installation type received - { installation_type }"
+            self.add_error(
+                "installation_type",
+                f"Error with installation type received - { installation_type }",
             )
+
+        if github_organisation == "":
+            github_organisation = github_username
 
         if installation_type == "SA":
             gc = GitController(
-                repo_name=github_repo,
-                user_org=github_username_org,
-                token=github_token,
+                github_username=github_username,
+                email=email,
+                github_organisation=github_organisation,
+                github_repo=github_repo,
+                github_token=github_token,
             )
 
-            if gc.check_credentials() == GhCredentials.INVALID:
+            credentials_check_results = gc.check_github_credentials()
+
+            if not credentials_check_results["github_username_exists"]:
                 self.add_error(
-                    "github_username_org_SA",
-                    f"Credentials supplied for Github are not valid. Please try again",
+                    "github_username_SA", "Username does not exist on Github"
                 )
+
+            if not credentials_check_results["github_organisation_exists"]:
+                self.add_error(
+                    "github_organisation_SA",
+                    "Organisation does not exist on Github",
+                )
+
+            if not credentials_check_results["repo_exists"]:
+                self.add_error("github_repo_SA", "Repository does not exist")
+
+            if credentials_check_results["permission"] != "admin":
+                self.add_error(
+                    "github_repo_SA", "No admin rights to this repo"
+                )
+
+            # TODO - need to check emails are valid
 
             if " " in github_repo:
                 self.add_error("github_repo_SA", "Invalid URL")

@@ -11,6 +11,7 @@ import shutil
 from typing import Any
 
 import app.functions.constants as c
+from app.functions.constants import EnvKeys
 
 sys.path.append(c.FUNCTIONS_APP)
 from env_manipulation import ENVManipulator
@@ -34,11 +35,8 @@ from .forms import (
 def index(request: HttpRequest) -> HttpResponse:
     context: dict[str, Any] = {}
     placeholders: dict[str, str] = {}
-    env_variables: dict = {}
     setup_step: str | None = None
     template_choice: str = ""
-    gc: GitController
-    repo: str = ""
     # form
 
     if not (request.method == "POST" or request.method == "GET"):
@@ -64,13 +62,27 @@ def index(request: HttpRequest) -> HttpResponse:
             form = InstallationForm(request.POST)
             if form.is_valid():
                 env_m = ENVManipulator(settings.ENV_LOCATION)
-                repo = form.cleaned_data["github_repo_SA"]
-                env_m.add("GITHUB_REPO", repo)
+
                 env_m.add(
-                    "GITHUB_USERNAME_ORG",
-                    form.cleaned_data["github_username_org_SA"],
+                    EnvKeys.GITHUB_USERNAME.value,
+                    form.cleaned_data["github_username_SA"],
                 )
-                env_m.add("GITHUB_TOKEN", form.cleaned_data["github_token_SA"])
+                env_m.add(
+                    EnvKeys.EMAIL.value,
+                    form.cleaned_data["email_SA"],
+                )
+                env_m.add(
+                    EnvKeys.GITHUB_ORGANISATION.value,
+                    form.cleaned_data["github_organisation_SA"],
+                )
+                env_m.add(
+                    EnvKeys.GITHUB_REPO.value,
+                    form.cleaned_data["github_repo_SA"],
+                )
+                env_m.add(
+                    EnvKeys.GITHUB_TOKEN.value,
+                    form.cleaned_data["github_token_SA"],
+                )
                 env_m.add("setup_step", "1")
 
                 messages.success(request, "Initialisation selections stored")
@@ -236,7 +248,8 @@ def saved_md(request: HttpRequest) -> HttpResponse:
     em = ENVManipulator(settings.ENV_LOCATION)
     setup_step = em.read("setup_step")
 
-    if setup_step != "2":
+    # TODO need to safety return a number from .env or appropriately handle the error
+    if int(setup_step) < 2:
         return redirect("/")
 
     form = MDEditForm(request.POST)

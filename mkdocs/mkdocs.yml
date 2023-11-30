@@ -47,7 +47,7 @@ dev_addr: 0.0.0.0:9000
 
 
 # Copyright information which is shown in the footer
-copyright: Copyright *** needs date ***
+copyright: Clinicians-who-code
 
 # these lines configure the 'GitHub repo' widget on the top right
 # uncomment to enable
