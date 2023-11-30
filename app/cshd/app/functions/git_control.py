@@ -253,7 +253,7 @@ class GitController:
         # TODO - need to erro handle this part with 'try'
         child = pexpect.spawn("git push", timeout=10)
         child.expect("Username for 'https://github.com': ")
-        child.sendline(self.user_org)
+        child.sendline(self.github_username)
         child.expect(f"Password for 'https://{ self.user_org }@github.com': ")
         child.sendline(self.github_token)
 
