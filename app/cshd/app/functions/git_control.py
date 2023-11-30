@@ -242,12 +242,12 @@ class GitController:
         verbose: bool = False,
     ) -> bool:
         """ """
-
+        user_email = ""
         repo = Repo(self.repo_path_local)
         user_name = repo.config_reader().get_value("user", "name")
         try:
-            user_email = repo.config_reader().get_value("user", "email")
-        except ConfigParser.NoOptionError:
+            user_email = repo.config_reader().get_value("user", "email1")
+        except configparser.NoOptionError:
             print("error")
         print(user_name)
         print(user_email)
