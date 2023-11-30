@@ -244,7 +244,9 @@ class GitController:
 
         repo = Repo(self.repo_path_local)
         user_name = repo.config_reader().get_value("user", "name")
+        user_email = repo.config_reader().get_value("user", "email")
         print(user_name)
+        print(user_email)
 
         # TODO - need to check if set or not, and then only set if not already done
         os.system(f"git config --global user.name '{ self.github_username }'")
