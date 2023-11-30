@@ -288,6 +288,20 @@ def saved_md(request: HttpRequest) -> HttpResponse:
     return render(request, "500.html", status=500)
 
 
+def new_md(request: HttpRequest) -> HttpResponse:
+    """ """
+
+    if not (request.method == "GET" or request.method == "POST"):
+        return render(request, "405.html", std_context(), status=405)
+
+    if request.method == "GET":
+        context = {"form": LogHazardForm()}
+        return render(request, "new_md.html", context | std_context())
+
+    # For mypy
+    return render(request, "500.html", status=500)
+
+
 def log_hazard(request: HttpRequest) -> HttpResponse:
     context: dict[str, Any] = {}
     gc: GitController
@@ -335,7 +349,7 @@ def log_hazard(request: HttpRequest) -> HttpResponse:
     return render(request, "500.html", std_context(), status=500)
 
 
-def hazard_comment(request: HttpRequest, number: "str") -> HttpResponse:
+def hazard_comment(request: HttpRequest, hazard_number: "str") -> HttpResponse:
     context: dict[str, Any] = {}
     gc: GitController
     open_hazard: dict = {}
@@ -348,47 +362,41 @@ def hazard_comment(request: HttpRequest, number: "str") -> HttpResponse:
         open_hazards_full = gc.open_hazards()
 
         for hazard in open_hazards_full:
-            if hazard["number"] == int(number):
+            if hazard["number"] == int(hazard_number):
                 open_hazard = hazard.copy()
                 break
 
         context = {
             "open_hazard": open_hazard,
-            "form": HazardCommentForm(),
+            "form": HazardCommentForm(
+                initial={"comment": c.TEMPLATE_HAZARD_COMMENT}
+            ),
+            "hazard_number": hazard_number,
         }
         return render(request, "hazard_comment.html", context | std_context())
 
     if request.method == "POST":
-        form = LogHazardForm(request.POST)
+        form = HazardCommentForm(request.POST)
         if form.is_valid():
-            hazard_title = form.cleaned_data["title"]
-            hazard_body = form.cleaned_data["body"]
-            hazard_labels = form.cleaned_data["labels"]
+            comment = form.cleaned_data["comment"]
             gc = GitController()
-
-            if gc.log_hazard(hazard_title, hazard_body, hazard_labels):
-                messages.success(
-                    request,
-                    f"Hazard has been uploaded to GitHub",
-                )
-                context = {"form": LogHazardForm()}
-                return render(
-                    request, "hazard_comment.html", context | std_context()
-                )
-            else:
-                messages.error(
-                    request,
-                    f"Error with hazard upload to GitHub",
-                )
-
-                context = {"form": LogHazardForm(initial=request.POST)}
-
-                return render(
-                    request, "hazard_comment.html", context | std_context()
-                )
+            # TODO - need error handling here
+            gc.add_comment_to_hazard(
+                hazard_number=int(hazard_number), comment=comment
+            )
+            messages.success(
+                request,
+                f"Hazard '{ hazard_number }' updated.",
+            )
+            context = {"form": LogHazardForm()}
+            return render(
+                request, "hazard_comment.html", context | std_context()
+            )
         else:
             context = {"form": form}
-            return render(request, "log_hazard.html", context | std_context())
+            return render(
+                request, "hazard_comment.html", context | std_context()
+            )
 
     # Should never really get here, but added for mypy
     return render(request, "500.html", std_context(), status=500)

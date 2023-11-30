@@ -12,9 +12,10 @@ urlpatterns = [
     ),
     path("edit_md", views.edit_md, name="edit_md"),
     path("saved_md", views.saved_md, name="saved_md"),
+    path("new_md", views.new_md, name="new_md"),
     path("log_hazard", views.log_hazard, name="log_hazard"),
     path(
-        "hazard_comment/<number>",
+        "hazard_comment/<hazard_number>",
         views.hazard_comment,
         name="hazard_comment",
     ),

@@ -296,9 +296,10 @@ class LogHazardForm(forms.Form):
         )
 
         self.fields["body"] = forms.CharField(
-            widget=forms.TextInput(
+            widget=forms.Textarea(
                 attrs={
                     "class": "nhsuk-input nhsuk-input--width-30",
+                    "style": "height: 150px",
                 }
             ),
         )
@@ -307,16 +308,21 @@ class LogHazardForm(forms.Form):
             label="Label (press CTRL / CMD and select several as needed)",
             choices=CHOICES,
             widget=forms.SelectMultiple(
-                attrs={"class": "nhsuk-select", "style": "height: 150px"}
+                attrs={
+                    "class": "nhsuk-select",
+                    "style": "height: 150px",
+                }
             ),
         )
 
 
 class HazardCommentForm(forms.Form):
     comment = forms.CharField(
-        widget=forms.TextInput(
+        widget=forms.Textarea(
             attrs={
-                "class": "nhsuk-input nhsuk-input--width-30",
+                "class": "nhsuk-input nhsuk-u-width-full",
+                "style": "height: 500px",
+                "onkeyup": "update_web_view()",
             }
         ),
     )
@@ -324,9 +330,10 @@ class HazardCommentForm(forms.Form):
 
 class UploadToGithub(forms.Form):
     comment = forms.CharField(
-        widget=forms.TextInput(
+        widget=forms.Textarea(
             attrs={
                 "class": "nhsuk-input nhsuk-input--width-30",
+                "style": "height: 150px",
             }
         ),
     )

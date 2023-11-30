@@ -3,6 +3,9 @@
     on Github
 
 """
+
+# TODO - need to check all function work with username and organisations as domain_name
+
 from dotenv import load_dotenv, set_key, find_dotenv, dotenv_values
 import sys
 from git import Repo
@@ -94,7 +97,6 @@ class GitController:
         g: Github
         github_username_exists: bool = False
         github_organisation_exists: bool = False
-        repo_domain: str = ""
         repo_exists: bool = False
         permission: str | None = None
         results: dict[str, str | bool | None] = {}
@@ -120,20 +122,17 @@ class GitController:
             self.github_organisation
         )
 
-        if self.github_organisation == None:
-            repo_domain = self.github_username
-        else:
-            repo_domain = self.github_organisation
-
         repo_request = requests.get(
-            f"https://api.github.com/repos/{ repo_domain }/{ self.github_repo }"
+            f"https://api.github.com/repos/{ self.repo_domain_name() }/{ self.github_repo }"
         )
 
         if repo_request.status_code == 200:
             repo_exists = True
 
             g = Github(self.github_username, self.github_token)
-            repo = g.get_repo(f"{ repo_domain }/{ self.github_repo }")
+            repo = g.get_repo(
+                f"{ self.repo_domain_name() }/{ self.github_repo }"
+            )
 
             try:
                 permission = repo.get_collaborator_permission(
@@ -207,30 +206,34 @@ class GitController:
         else:
             return False
 
-    def create_repo(self, github_repo: str) -> bool:
+    def create_repo(self, github_use_org: str, github_repo: str) -> bool:
         """ """
         g: Github
         # github_ctrl
 
-        if self.current_repo_on_github(github_repo):
+        if self.current_repo_on_github(github_use_org, github_repo):
             return False
 
-        g = Github(self.user_org, self.github_token)
-        github_ctrl = g.get_organization(self.user_org)
+        g = Github(self.github_username, self.github_token)
+        # try:
+        # github_ctrl = g.get_user(github_use_org)
+        # except:
+        github_ctrl = g.get_organization(github_use_org)
+
         repo = github_ctrl.create_repo(github_repo)
 
         return True
 
-    def delete_repo(self, github_repo: str) -> bool:
+    def delete_repo(self, github_use_org: str, github_repo: str) -> bool:
         """ """
         g: Github
         # github_ctrl
 
-        if not self.current_repo_on_github(github_repo):
+        if not self.current_repo_on_github(github_use_org, github_repo):
             return False
 
-        g = Github(self.user_org, self.github_token)
-        github_ctrl = g.get_organization(self.user_org)
+        g = Github(self.github_username, self.github_token)
+        github_ctrl = g.get_organization(github_use_org)
         repo = github_ctrl.get_repo(github_repo)
         repo.delete()
         return True
@@ -258,6 +261,7 @@ class GitController:
         repo.git.add("--all")
 
         try:
+            # This fails if branch is up to date
             repo.git.commit("-m", commit_message)
         except Exception as e:
             return False
@@ -289,14 +293,13 @@ class GitController:
         # repo
 
         for label in labels:
-            print(label)
             if not self.verify_hazard_label(label):
                 raise ValueError(
                     f"'{ label } is not a valid hazard label. Please review label.yml for available values."
                 )
 
-        g = Github(self.user_org, self.github_token)
-        repo = g.get_repo(f"{ self.user_org }/{ self.github_repo }")
+        g = Github(self.github_username, self.github_token)
+        repo = g.get_repo(f"{ self.repo_domain_name() }/{ self.github_repo }")
         repo.create_issue(
             title=title,
             body=body,
@@ -344,16 +347,14 @@ class GitController:
         open_hazards: list[dict] = []
         label_list: list = []
 
-        g = Github(self.github_token)
-        repo = g.get_repo(f"{ self.user_org }/{ self.github_repo }")
+        g = Github(self.github_username, self.github_token)
+        repo = g.get_repo(f"{ self.repo_domain_name() }/{ self.github_repo }")
         open_issues = repo.get_issues(state="open")
 
         for issue in open_issues:
-            print(issue)
             label_list.clear()
             for label in issue.labels:
                 label_list.append(label.name)
-                # print(label.split('"')[1].split('"')[0])
             open_hazards.append(
                 {
                     "number": issue.number,
@@ -363,6 +364,30 @@ class GitController:
                 }
             )
         return open_hazards
+
+    def repo_domain_name(self) -> str:
+        """ """
+        repo_domain: str = ""
+
+        if self.github_organisation == None:
+            repo_domain = self.github_username
+        else:
+            repo_domain = self.github_organisation
+
+        return repo_domain
+
+    def add_comment_to_hazard(
+        self,
+        github_use_org: str = "",
+        github_repo: str = "",
+        hazard_number: str = "",
+        comment: str = "",
+    ) -> bool:
+        """ """
+        g = Github(self.github_username, self.github_token)
+        repo = g.get_repo(f"{ self.repo_domain_name() }/{ self.github_repo }")
+        issue = repo.get_issue(number=hazard_number)
+        issue.create_comment(comment)
 
 
 if __name__ == "__main__":
@@ -378,18 +403,25 @@ if __name__ == "__main__":
         github_repo="QuickSpiritum",
     )"""
     # print(gc.check_github_credentials())
-    # print(gc.get_repos("clinicians-who-code"))
+
     """print(
         gc.current_repo_on_github(
             "clinicians-who-code", "clinical-safety-hazard-documentation"
         )
     )"""
-    print(gc.commit_and_push("A commit with a new function"))
-    # print(gc.get_repos())
-    # gc.log_hazard("Test title 3", "This is a test body of issue 3", ["hazard"])
-    # gc.available_hazard_labels()
+    # print(gc.commit_and_push("A commit with a new function"))
+    # print(gc.get_repos("clinicians-who-code"))
+    # gc.log_hazard("Test 30/11/23", "Body of test 30/11/23", ["hazard"])
+    """labels = gc.available_hazard_labels()
+    for label in labels:
+        print(label)"""
     # print(gc.verify_hazard_label("hazard"))
-    # gc.open_issues()
-    # print(gc.create_repo("abc"))
-    # print(gc.delete_repo("abc"))
+    """open_hazards = gc.open_hazards()
+    for hazard in open_hazards:
+        print(hazard)"""
+    # print(gc.create_repo("clinicians-who-code", "abc13456"))
+    #  print(gc.delete_repo("clinicians-who-code", "abc1"))
     # gc.open_hazards()
+    gc.add_comment_to_hazard(
+        hazard_number=13, comment="a test comment 30/11/23"
+    )
