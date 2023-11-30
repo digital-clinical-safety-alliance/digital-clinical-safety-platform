@@ -368,7 +368,7 @@ if __name__ == "__main__":
             "clinicians-who-code", "clinical-safety-hazard-documentation"
         )
     )"""
-    gc.commit_and_push("A commit with a new function")
+    gc.commit_and_push("A commit with a new function", True)
     # print(gc.get_repos())
     # gc.log_hazard("Test title 3", "This is a test body of issue 3", ["hazard"])
     # gc.available_hazard_labels()
