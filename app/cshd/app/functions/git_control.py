@@ -260,7 +260,7 @@ class GitController:
         try:
             repo.git.commit("-m", commit_message)
         except Exception as e:
-            print(f"***{e}")
+            return False
 
         # origin = repo.remote(name="origin")
 
