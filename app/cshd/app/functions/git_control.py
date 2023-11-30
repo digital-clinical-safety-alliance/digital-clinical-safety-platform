@@ -259,8 +259,9 @@ class GitController:
 
         repo.git.commit("-m", commit_message)
 
-        origin = repo.remote(name="origin")
-        # TODO - need to erro handle this part with 'try'
+        # origin = repo.remote(name="origin")
+
+        # TODO - need to error handle this part with 'try'
         child = pexpect.spawn("git push", timeout=10)
         child.expect("Username for 'https://github.com': ")
         child.sendline(self.github_username)
