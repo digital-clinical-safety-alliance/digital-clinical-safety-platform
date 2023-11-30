@@ -1,9 +1,9 @@
 extra:
-  __project_slug: ''
-  clinical_safety_officer_contact: ''
-  clinical_safety_officer_name: ''
-  clinical_safety_team_name: ''
-  hazard_log_url: ''
-  organisation_name: ''
-  project_name: ''
-  security_responsible_disclosure_email: ''
+  __project_slug: https://github.com/clinicians-who-code/clinical-safety-hazard-documentation
+  clinical_safety_officer_contact: clinicianswhocode@gmail.com
+  clinical_safety_officer_name: Clinicians-who-code
+  clinical_safety_team_name: Clinicians-who-code
+  hazard_log_url: https://github.com/clinicians-who-code/clinical-safety-hazard-documentation/issues
+  organisation_name: Clinicians-who-code
+  project_name: Clinical Safety Hazard Documentation
+  security_responsible_disclosure_email: clinicianswhocode@gmail.com

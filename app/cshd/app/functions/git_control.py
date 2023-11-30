@@ -239,6 +239,7 @@ class GitController:
         return True
 
     # TODO - need to figure out if it failed
+    # TODO - also need to make sure a push to gh pages is set on Github
     def commit_and_push(
         self,
         commit_message: str = "No message supplied",
