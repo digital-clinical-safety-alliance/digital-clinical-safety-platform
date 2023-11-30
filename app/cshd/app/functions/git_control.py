@@ -242,19 +242,18 @@ class GitController:
         verbose: bool = False,
     ) -> bool:
         """ """
-        user_email = ""
-        repo = Repo(self.repo_path_local)
-        user_name = repo.config_reader().get_value("user", "name")
-        try:
-            user_email = repo.config_reader().get_value("user", "email1")
-        except configparser.NoOptionError:
-            print("error")
-        print(user_name)
-        print(user_email)
 
-        # TODO - need to check if set or not, and then only set if not already done
-        os.system(f"git config --global user.name '{ self.github_username }'")
-        os.system(f"git config --global user.email '{ self.email }'")
+        repo = Repo(self.repo_path_local)
+
+        try:
+            repo.config_reader().get_value("user", "name")
+            repo.config_reader().get_value("user", "email")
+        except configparser.NoOptionError:
+            os.system(
+                f"git config --global user.name '{ self.github_username }'"
+            )
+            os.system(f"git config --global user.email '{ self.email }'")
+
         repo = Repo(self.repo_path_local)
         repo.git.add("--all")
 
