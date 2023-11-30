@@ -241,6 +241,11 @@ class GitController:
         verbose: bool = False,
     ) -> bool:
         """ """
+
+        repo = Repo(self.repo_path_local)
+        user_name = repo.config_reader().get_value("user", "name")
+        print(user_name)
+
         # TODO - need to check if set or not, and then only set if not already done
         os.system(f"git config --global user.name '{ self.github_username }'")
         os.system(f"git config --global user.email '{ self.email }'")
@@ -370,7 +375,7 @@ if __name__ == "__main__":
             "clinicians-who-code", "clinical-safety-hazard-documentation"
         )
     )"""
-    gc.commit_and_push("A commit with a new function", True)
+    gc.commit_and_push("A commit with a new function")
     # print(gc.get_repos())
     # gc.log_hazard("Test title 3", "This is a test body of issue 3", ["hazard"])
     # gc.available_hazard_labels()
