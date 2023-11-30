@@ -262,7 +262,9 @@ class GitController:
         if verbose:
             output = child.readline()
             while b"\r\n" in output:
-                print(output)
+                split = output.split(b"\r")
+                for s in split:
+                    print(s)
                 output = child.readline()
         else:
             child.wait()
