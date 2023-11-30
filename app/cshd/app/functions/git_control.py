@@ -264,7 +264,7 @@ class GitController:
             while b"\r\n" in output:
                 split = output.split(b"\r")
                 for s in split:
-                    print(str(s))
+                    print(s.decode("ascii"))
                 output = child.readline()
         else:
             child.wait()
