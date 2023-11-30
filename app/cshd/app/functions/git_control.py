@@ -6,7 +6,8 @@
 from dotenv import load_dotenv, set_key, find_dotenv, dotenv_values
 import sys
 from git import Repo
-from github import Github, Issue, Auth, GithubException
+from github import Github, Issue, Auth
+import configparser
 import pexpect
 import yaml
 import requests
@@ -244,7 +245,10 @@ class GitController:
 
         repo = Repo(self.repo_path_local)
         user_name = repo.config_reader().get_value("user", "name")
-        user_email = repo.config_reader().get_value("user", "email")
+        try:
+            user_email = repo.config_reader().get_value("user", "email")
+        except ConfigParser.NoOptionError:
+            print("error")
         print(user_name)
         print(user_email)
 
