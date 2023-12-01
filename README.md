@@ -10,7 +10,7 @@ Other documentation templates can be uploaded
 - Materials for MkDocs for the static site (where the clinical safety documentation is stored.)
 
 # View documentation
-Please visit [documents](https://clinicians-who-code.github.io/clinical-safety-hazard-documentation/)
+Please visit [documents](https://digital-clinical-safety-alliance.github.io/digital-clinical-safety-platform/)
 
 # Licence
 MIT licence (see attaced documenation)
