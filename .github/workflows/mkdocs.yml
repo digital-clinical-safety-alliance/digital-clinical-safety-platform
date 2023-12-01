@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: 3.x
       - run: pip install mkdocs 
-      - run: pip install mkdocstrings[python]
+      - run: pip install mkdocstrings
       - run: pip install mkdocs-material 
       - run: pip install mkdocs-macros-plugin
       - run: pwd
