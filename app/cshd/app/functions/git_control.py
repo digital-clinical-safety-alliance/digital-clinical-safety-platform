@@ -258,7 +258,7 @@ class GitController:
         try:
             repo.config_reader().get_value("user", "name")
             repo.config_reader().get_value("user", "email")
-        except configparser.NoOptionError:
+        except:
             os.system(
                 f"git config --global user.name '{ self.github_username }'"
             )

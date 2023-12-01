@@ -1,10 +1,10 @@
 extra:
-  __project_slug: ''
-  clinical_safety_officer_contact: ''
-  clinical_safety_officer_name: ''
-  clinical_safety_team_name: ''
-  hazard_log_url: ''
-  organisation_name: ''
-  project_name: ''
-  security_responsible_disclosure_email: ''
-  test_placeholder: ''
+  __project_slug: clinicians-who-code-slug
+  clinical_safety_officer_contact: clinicianswhocode@gmail.com
+  clinical_safety_officer_name: Clinicians-who-code
+  clinical_safety_team_name: Clinicians-who-code
+  hazard_log_url: github.com/cshd.org
+  organisation_name: Clinicians-who-code
+  project_name: CSHD
+  security_responsible_disclosure_email: mark.allan.bailey@gmail.com
+  test_placeholder: Test placeholder

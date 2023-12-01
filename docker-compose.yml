@@ -11,12 +11,7 @@ services:
       - "9000:9000"
     volumes:
       - ./:/cshd
-      #- ./app:/app
-      #- ./logs:/logs
-      #- ./docs_builder:/docs_builder
-      #- ./mkdocs:/mkdocs
     working_dir: /cshd/app
-    env_file: .env
     entrypoint: bash PID_1.sh
     #TODO: need to run as non-root at some point
 
