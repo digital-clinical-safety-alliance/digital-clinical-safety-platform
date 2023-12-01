@@ -92,7 +92,13 @@ class GitController:
 
     def check_github_credentials(self) -> dict[str, str | bool | None]:
         """Checking Github credentials
+
         If no organisation is provided, then username will be used for repo storage location
+        Args:
+            none taken
+        Returns:
+            dict: a dictionary with 4 values covering the validity of the credentials supplied
+                  in the initialisation of the GitController class
         """
         g: Github
         github_username_exists: bool = False

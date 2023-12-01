@@ -5,6 +5,10 @@ site_url: http://0.0.0.0:9000
 
 plugins:
   - macros
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [/cshd/app/cshd/app]
 
 theme:
   name: material
@@ -122,9 +126,6 @@ markdown_extensions:
   - abbr
   - admonition
   - attr_list
-  - pymdownx.emoji:
-      emoji_generator: !!python/name:materialx.emoji.to_svg
-      emoji_index: !!python/name:materialx.emoji.twemoji
   - pymdownx.highlight
   - pymdownx.inlinehilite
   - pymdownx.keys

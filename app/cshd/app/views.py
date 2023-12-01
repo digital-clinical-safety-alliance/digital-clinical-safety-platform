@@ -1,3 +1,9 @@
+"""Manages the views for the cshd app
+
+This is part of a Django web server app that is used to create a static site in
+mkdocs. It utilises several other functions git, github, env manipulation and 
+mkdocs
+"""
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpRequest
 from django.contrib import messages
@@ -33,6 +39,34 @@ from .forms import (
 
 
 def index(request: HttpRequest) -> HttpResponse:
+    """Index page, carrying out steps to initialise a static site
+
+    Acting as a single page application, this function undertakes several
+    steps to set up the mkdocs static site. The state of the installation is
+    stored in an .env file as 'setup_step'. There are 4 steps in the
+    installation process (labelled steps None, 1, 2 and 3):
+
+    - None: Initial step for the installation process. No value stored for the
+    step_step in the .env file. During this step the user is asked if they want
+    a 'stand alone' or an 'integrated' installation.
+        - Stand alone: this setup is very the CSHD app is only used for hazard
+          documentation, with no source code integration. Basically the version
+          control is managed by the CSHD app.
+        - Integrated: the CSHD is integrated into an already version controlled
+          source base, for example along side already written source code.
+    - 1: In this step the user is asked to chose a template for the static
+         website.
+    - 2: In this step the user is asked to enter values for placeholders for the
+         static site.
+    - 3: The static site is now built and mkdocs has been started and the site
+         should be visible.
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
     context: dict[str, Any] = {}
     placeholders: dict[str, str] = {}
     setup_step: str | None = None
@@ -42,11 +76,6 @@ def index(request: HttpRequest) -> HttpResponse:
     if not (request.method == "POST" or request.method == "GET"):
         return render(request, "405.html", std_context(), status=405)
 
-    # 'environ.get' does not handle a change of envs very well, so used
-    # 'env_variables = dotenv_values(find_dotenv())' instead
-    # TODO: use new env_manipulator functions
-    # env_variables = dotenv_values(settings.ENV_LOCATION)
-    # setup_step = env_variables.get("setup_step")
     em = ENVManipulator(settings.ENV_LOCATION)
     setup_step = em.read("setup_step")
 
@@ -182,6 +211,17 @@ def index(request: HttpRequest) -> HttpResponse:
 
 
 def edit_md(request: HttpRequest) -> HttpResponse:
+    """Function for editing of markdown files in the static site
+
+    A webpage to allow the user to edit the markdown files used in the
+    static site on mkdocs.
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
     context: dict[str, Any] = {}
     files_md: str = ""
     loop_exit: bool = False
@@ -233,6 +273,16 @@ def edit_md(request: HttpRequest) -> HttpResponse:
 
 
 def saved_md(request: HttpRequest) -> HttpResponse:
+    """Title
+
+    Description
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
     context: dict = {}
     text_md_returned: str = ""
     file_md_returned: str = ""
@@ -289,7 +339,16 @@ def saved_md(request: HttpRequest) -> HttpResponse:
 
 
 def new_md(request: HttpRequest) -> HttpResponse:
-    """ """
+    """Title
+
+    Description
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
 
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", std_context(), status=405)
@@ -303,6 +362,16 @@ def new_md(request: HttpRequest) -> HttpResponse:
 
 
 def log_hazard(request: HttpRequest) -> HttpResponse:
+    """Title
+
+    Description
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
     context: dict[str, Any] = {}
     gc: GitController
 
@@ -350,6 +419,17 @@ def log_hazard(request: HttpRequest) -> HttpResponse:
 
 
 def hazard_comment(request: HttpRequest, hazard_number: "str") -> HttpResponse:
+    """Title
+
+    Description
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
+
     context: dict[str, Any] = {}
     gc: GitController
     open_hazard: dict = {}
@@ -404,6 +484,17 @@ def hazard_comment(request: HttpRequest, hazard_number: "str") -> HttpResponse:
 
 # TODO - testing needed
 def open_hazards(request: HttpRequest) -> HttpResponse:
+    """Title
+
+    Description
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
+
     context: dict[str, Any] = {}
     gc: GitController
     open_hazards: list[dict] = []
@@ -424,6 +515,17 @@ def open_hazards(request: HttpRequest) -> HttpResponse:
 
 
 def mkdoc_redirect(request: HttpRequest, path: str) -> HttpResponse:
+    """Title
+
+    Description
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
+
     mkdocs: MkdocsControl
 
     if not request.method == "GET":
@@ -442,6 +544,17 @@ def mkdoc_redirect(request: HttpRequest, path: str) -> HttpResponse:
 
 # TODO - testing needed
 def upload_to_github(request: HttpRequest) -> HttpResponse:
+    """Title
+
+    Description
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
+
     context: dict[str, Any] = {}
     gc: GitController
 
@@ -482,6 +595,17 @@ def upload_to_github(request: HttpRequest) -> HttpResponse:
 
 
 def std_context() -> dict[str, Any]:
+    """Title
+
+    Description
+
+    Args:
+        none
+
+    Returns:
+        dict[str,Any]: context that is comment across the different views
+    """
+
     std_context_dict: dict[str, Any] = {}
     mkdoc_running: bool = False
     docs_available: bool = False
@@ -506,6 +630,17 @@ def std_context() -> dict[str, Any]:
 
 
 def start_afresh(request: HttpRequest) -> HttpResponse:
+    """Title
+
+    Description
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
+
     env_m: ENVManipulator
     mkdocs: MkdocsControl
     # root, dirs, files, d
@@ -533,8 +668,30 @@ def start_afresh(request: HttpRequest) -> HttpResponse:
 
 
 def custom_404(request: HttpRequest, exception) -> HttpResponse:
+    """Title
+
+    Description
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
+
     return render(request, "404.html", context=std_context(), status=404)
 
 
 def custom_405(request: HttpRequest, exception) -> HttpResponse:
+    """Title
+
+    Description
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
+
     return render(request, "405.html", context=std_context(), status=405)

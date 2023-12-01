@@ -1,7 +1,12 @@
+"""Form management for the Django dynamic site app
+
+"""
+
 from django import forms
 from django.conf import settings
 
 import os
+import glob
 from fnmatch import fnmatch
 import sys
 
@@ -17,6 +22,8 @@ from git_control import GitController
 
 # TODO: need to set to 'required'
 class InstallationForm(forms.Form):
+    """For managing initial installation parameters"""
+
     CHOICES = (
         ("", ""),
         (
@@ -225,21 +232,30 @@ class MDFileSelect(forms.Form):
     def __init__(self, *args, **kwargs) -> None:
         super(MDFileSelect, self).__init__(*args, **kwargs)
         choices_list: list = []
+        name_with_path: str = ""
+        md_files_shortened: list = []
         # path
         # subdirs
         # files
         # name
 
         mkdocs_path = settings.MKDOCS_DOCS_LOCATION
+
         if not os.path.isdir(mkdocs_path):
             raise FileNotFoundError(
                 f"{ mkdocs_path } if not a valid folder location"
             )
 
-        for path, subdirs, files in os.walk(mkdocs_path):
-            for name in files:
-                if fnmatch(name, "*.md"):
-                    choices_list.append([name, name])
+        md_files = []
+        for root, dirs, files in os.walk(mkdocs_path):
+            md_files.extend(glob.glob(os.path.join(root, "*.md")))
+
+        for file in md_files:
+            md_files_shortened.append(file.replace(mkdocs_path, ""))
+
+        for file in md_files_shortened:
+            choices_list.append([file, file])
+            print(file)
 
         # self.choices_list = choices_list
         CHOICES = tuple(choices_list)
