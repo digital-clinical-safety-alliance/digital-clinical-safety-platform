@@ -1,3 +1,11 @@
+"""Setting up and controlling a mkdocs static site
+
+MkdocsControl:houses the methods for controlling mkdocs.
+is_process_running: returns whether an instance of mkdocs is running.
+start: starts up an instance of mkdocs serve
+stop: stops all running instances of mkdocs serve
+"""
+
 import psutil
 import time as t
 import os
@@ -7,12 +15,26 @@ import app.functions.constants as c
 
 class MkdocsControl:
     def __init__(self, cwd_sh: str = c.MKDOCS) -> None:
+        """Initialises the MkDocsControl class
+
+        Args:
+            cwd_sh (str): the current working directory for the shell script
+        Returns:
+            None
+        """
         self.process_name: str = "mkdocs"
         self.process_arg1: str = "serve"
         self.cwd_sh: str = cwd_sh
         return
 
     def is_process_running(self) -> bool:
+        """Checks if there is an instance of an mkdocs serve running
+
+        Args:
+            Takes none
+        Returns:
+            bool: True is running, False if not running
+        """
         process: psutil.Process  # TODO can this be initialised to something?
 
         for process in psutil.process_iter(["pid", "name"]):
@@ -29,6 +51,15 @@ class MkdocsControl:
 
     # TODO: need to have error managment in this function
     def start(self, wait: bool = False) -> bool:
+        """Tests if an instance of mkdocs serve is running
+
+        Args:
+            wait: set to True to wait for the mkdocs instance to start before
+                  exiting the method.
+        Returns:
+            bool: when wait = True, if mkdocs does not start up in alloated
+                  time, False is returned
+        """
         n: int = 0
 
         """child = pexpect.run("mkdocs serve", cwd=self.cwd_sh)
@@ -58,6 +89,15 @@ class MkdocsControl:
         return True
 
     def stop(self, wait: bool = False) -> bool:
+        """Stops all instances of mkdocs serve that are running
+
+        Args:
+            wait: set to True to wait for the mkdocs instance to stop before
+                  exiting the method.
+        Returns:
+            bool: when wait = True, if mkdocs does not stop in alloated
+                  time, False is returned
+        """
         process: psutil.Process
         n: int = 0
 
