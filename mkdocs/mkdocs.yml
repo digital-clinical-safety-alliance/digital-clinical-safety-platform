@@ -8,7 +8,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [/app/cshd/app, /cshd/app/cshd/app]
+          paths: [./app/cshd/app, /cshd/app/cshd/app]
 
 theme:
   name: material
