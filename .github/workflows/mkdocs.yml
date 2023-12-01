@@ -21,3 +21,5 @@ jobs:
       - run: mkdocs gh-deploy -v --force --config-file './mkdocs/mkdocs.yml'
       - run: pwd
       - run: ls -aux
+      - run: cd ./app/cshd/app
+      - run: ls -aux
