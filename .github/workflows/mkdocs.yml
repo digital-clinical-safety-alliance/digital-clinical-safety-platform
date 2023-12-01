@@ -14,12 +14,5 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: 3.x
-      - run: pip install mkdocs 
-      - run: pip install mkdocstrings
-      - run: pip install mkdocs-material 
-      - run: pip install mkdocs-macros-plugin
-      - run: pwd
-      - run: ls -aux
-      - run: cd ./app/cshd/app
-      - run: ls -aux
+      - run: pip install -r './requirements.txt'
       - run: mkdocs gh-deploy -v --force --config-file './mkdocs/mkdocs.yml'
