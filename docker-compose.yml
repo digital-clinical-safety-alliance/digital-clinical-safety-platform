@@ -10,8 +10,8 @@ services:
       - "8500:8500"
       - "9000:9000"
     volumes:
-      - ./:/cshd
-    working_dir: /cshd/app
+      - ./:/dcsp
+    working_dir: /dcsp/app
     entrypoint: bash PID_1.sh
     #TODO: need to run as non-root at some point
 

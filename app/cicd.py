@@ -1,7 +1,7 @@
 import sys
 from mypy import api
 
-result1 = api.run(["/cshd/app/cshd/app/functions"])
+result1 = api.run(["/dcsp/app/dcsp/app/functions"])
 
 if result1[0]:
     print("Type checking report:")
@@ -12,7 +12,7 @@ if result1[1]:
     print(result1[1])  # stderr
 
 
-result2 = api.run(["/cshd/app/cshd/app/views.py"])
+result2 = api.run(["/dcsp/app/dcsp/app/views.py"])
 
 if result2[0]:
     print("Type checking report:")

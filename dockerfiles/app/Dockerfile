@@ -1,8 +1,8 @@
 #TODO: need to pin down ubuntu version
 FROM ubuntu:latest 
-WORKDIR /cshd
-COPY requirements.txt /cshd
-COPY packages.txt /cshd
+WORKDIR /dcsp
+COPY requirements.txt /dcsp
+COPY packages.txt /dcsp
 #TODO: may need to remove update as this will have different updates over time
 RUN apt-get update
 

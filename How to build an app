@@ -13,9 +13,9 @@
 >> docker exec -it docs-builder bash
 * Good reading resource - https://realpython.com/django-setup/
 * Create a new django project
->> django-admin startproject cshd
+>> django-admin startproject dcsp
 * Jump into the newly created project
->> cd ./cshd
+>> cd ./dcsp
 * Create a new django app
 >> python3 manage.py startapp app
 * Start up the basic Django app and then go to http://0.0.0.0:8000
@@ -23,7 +23,7 @@
 * Close down the server with ctrl-c
 * Follow https://realpython.com/get-started-with-django-1/
 * or perhaps https://docs.djangoproject.com/en/4.2/intro/tutorial01/
-* in cshd/cshd/settings.py add 'app' to the INSTALLED_APPS list.
+* in dcsp/dcsp/settings.py add 'app' to the INSTALLED_APPS list.
 >> pip install tzdata
 * Some Django writing up
 * Add NHS styling and javascript for reacting

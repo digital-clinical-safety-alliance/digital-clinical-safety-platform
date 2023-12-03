@@ -1,10 +1,9 @@
 extra:
-  __project_slug: Digital-Clinical-Safety-Alliance-slug
-  clinical_safety_officer_contact: clinicianswhocode@gmail.com
-  clinical_safety_officer_name: Digital-Clinical-Safety-Alliance
-  clinical_safety_team_name: Digital-Clinical-Safety-Alliance
-  hazard_log_url: https://github.com/digital-clinical-safety-alliance/digital-clinical-safety-platform/issues
-  organisation_name: Digital-Clinical-Safety-Alliance
-  project_name: CSHD
-  security_responsible_disclosure_email: clinicianswhocode@gmail.com
-  test_placeholder: Test placeholder
+  __project_slug: ''
+  clinical_safety_officer_contact: ''
+  clinical_safety_officer_name: ''
+  clinical_safety_team_name: ''
+  hazard_log_url: ''
+  organisation_name: ''
+  project_name: ''
+  security_responsible_disclosure_email: ''

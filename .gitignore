@@ -1,7 +1,8 @@
 # Additional
 logs/
 .DS_Store
-app/cshd/app/tests/test_docs/mkdocs/docs/
+/dcsp/app/dcsp/app/tests/test_docs/mkdocs/docs/
+/dcsp/app/dcsp/app/tests/test_docs/mkdocs_empty_folders/docs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
