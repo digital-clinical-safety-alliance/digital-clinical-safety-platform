@@ -1,9 +1,9 @@
-"""Setting up and controlling a mkdocs static site
+"""Starting and stopping (and test if running) of mkdocs
 
-MkdocsControl:houses the methods for controlling mkdocs.
-is_process_running: returns whether an instance of mkdocs is running.
-start: starts up an instance of mkdocs serve
-stop: stops all running instances of mkdocs serve
+Starts, stops and assesses state of mkdocs serve
+
+Classes:
+    MkdocsControl
 """
 
 import psutil
@@ -31,7 +31,7 @@ class MkdocsControl:
         """Checks if there is an instance of an mkdocs serve running
 
         Args:
-            Takes none
+            Nil
         Returns:
             bool: True is running, False if not running
         """
@@ -54,7 +54,7 @@ class MkdocsControl:
         """Tests if an instance of mkdocs serve is running
 
         Args:
-            wait: set to True to wait for the mkdocs instance to start before
+            wait (bool): set to True to wait for the mkdocs instance to start before
                   exiting the method.
         Returns:
             bool: when wait = True, if mkdocs does not start up in alloated
@@ -92,7 +92,7 @@ class MkdocsControl:
         """Stops all instances of mkdocs serve that are running
 
         Args:
-            wait: set to True to wait for the mkdocs instance to stop before
+            wait (bool): set to True to wait for the mkdocs instance to stop before
                   exiting the method.
         Returns:
             bool: when wait = True, if mkdocs does not stop in alloated
@@ -112,9 +112,3 @@ class MkdocsControl:
                         if n > c.MAX_WAIT:
                             return False
         return True
-
-
-if __name__ == "__main__":
-    mc = MkdocsControl()
-    mc.stop()
-    # mc.start()

@@ -4,6 +4,7 @@ from django.conf import settings
 import time as t
 import sys
 import os
+import shutil
 
 
 import app.functions.constants as c
@@ -17,7 +18,7 @@ settings.START_AFRESH = True
 
 sys.path.append(c.FUNCTIONS_APP)
 
-from env_manipulation import ENVManipulator
+from app.functions.env_manipulation import ENVManipulator
 from app.views import std_context
 import app.tests.data_views as d
 
@@ -246,12 +247,15 @@ class LogHazardTest(TestCase):
         self.assertEqual(response.status_code, 405)
 
     def test_get(self):
-        pass
+        pass  # TODO - needs finishing
 
     def test_get_correct_template(self):
+        # previous_env_location = settings.ENV_LOCATION
+        shutil.copyfile(c.TESTING_ENV_PATH_GIT_FULL, c.TESTING_ENV_PATH_DJANGO)
         response = self.client.get("/log_hazard")
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "log_hazard.html")
+        # settings.ENV_LOCATION = previous_env_location
 
     def test_post(self):
         pass

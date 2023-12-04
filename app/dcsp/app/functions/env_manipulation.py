@@ -1,5 +1,9 @@
 """ env manipulator
 
+Better live env manipulation than standard python library.
+
+Classes:
+    ENVManipulator
 """
 import os
 from dotenv import load_dotenv, set_key, find_dotenv, dotenv_values
@@ -9,12 +13,26 @@ import app.functions.constants as c
 
 class ENVManipulator:
     def __init__(self, env_path: str = c.ENV_PATH) -> None:
-        """ """
+        """Initialise the env path
+
+        Initialise the env path
+        Args:
+            env_path (str): location of the env file. Sets to c.ENV_PATH if not
+                            sets.
+        """
         self.env_path = env_path
         return
 
     def delete(self, variable_to_delete: str) -> bool:
-        """ """
+        """Remove a variable from the env file
+
+        Removes the variable from the env file.
+
+        Args:
+            variable_to_delete (str): as name
+        Returns:
+            bool: True if was present and deleted, False if was never present.
+        """
         variable_set: bool = False
         env_variables = dotenv_values(self.env_path)  # TODO need type
         key: str = ""
@@ -40,16 +58,41 @@ class ENVManipulator:
         return variable_set
 
     def delete_all(self) -> None:
-        """ """
+        """Remove all variables from env file
+
+        Removes all the variables from the env file, keeping the file itself
+        howver.
+
+        Returns:
+            None
+        """
         open(self.env_path, "w").close()
         return
 
     def add(self, variable: str, value: str) -> None:
-        """ """
+        """Add or change a variable in the env file
+
+        Add or change a variable in the env file
+
+        Args:
+            variable (str): name of variable.
+            value (str): value to set.
+        Returns:
+            None
+        """
         set_key(self.env_path, variable, value)
         return
 
-    def read(self, key_to_read: str):
-        """ """
+    def read(self, key_to_read: str) -> str:
+        """Reads a variable from env file
+
+        Reads a variable from an env file
+
+        Args:
+            key_to_read (str): the variable to read.
+        Returns:
+            str: value of the variable. This will return empty string ("")
+                 if the variable has not been set.
+        """
         dot_values = dotenv_values(self.env_path)
-        return dot_values.get(key_to_read)
+        return str(dot_values.get(key_to_read) or "")

@@ -1,7 +1,6 @@
 """Testing of env_manipulation.py
 
-    NB: Not built for asynchronous testing
-
+NB: Not built for asynchronous testing
 """
 
 from unittest import TestCase
@@ -11,7 +10,7 @@ from dotenv import set_key, dotenv_values
 import app.functions.constants as c
 
 sys.path.append(c.FUNCTIONS_APP)
-from env_manipulation import ENVManipulator
+from app.functions.env_manipulation import ENVManipulator
 
 import app.tests.data_env_manipulation as d
 

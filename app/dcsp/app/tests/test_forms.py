@@ -5,12 +5,13 @@
 """
 
 from django.test import TestCase
+
 import sys
 
 import app.functions.constants as c
 
 sys.path.append(c.FUNCTIONS_APP)
-from docs_builder import Builder
+from app.functions.docs_builder import Builder
 
 import app.tests.data_forms as d
 

@@ -20,10 +20,10 @@ import app.functions.constants as c
 from app.functions.constants import EnvKeys
 
 sys.path.append(c.FUNCTIONS_APP)
-from env_manipulation import ENVManipulator
-from mkdocs_control import MkdocsControl
-from docs_builder import Builder
-from git_control import GitController
+from app.functions.env_manipulation import ENVManipulator
+from app.functions.mkdocs_control import MkdocsControl
+from app.functions.docs_builder import Builder
+from app.functions.git_control import GitController
 
 
 from .forms import (
@@ -513,6 +513,9 @@ def open_hazards(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         return HttpResponse("POST handling not yet built")
 
+    # Should never really get here, but added for mypy
+    return render(request, "500.html", std_context(), status=500)
+
 
 def mkdoc_redirect(request: HttpRequest, path: str) -> HttpResponse:
     """Title
@@ -540,6 +543,9 @@ def mkdoc_redirect(request: HttpRequest, path: str) -> HttpResponse:
         return redirect(f"http://localhost:9000")
     else:
         return redirect(f"http://localhost:9000/{ path }")
+
+    # Should never really get here, but added for mypy
+    return render(request, "500.html", std_context(), status=500)
 
 
 # TODO - testing needed
@@ -589,6 +595,9 @@ def upload_to_github(request: HttpRequest) -> HttpResponse:
             return render(
                 request, "upload_to_github.html", context | std_context()
             )
+
+    # Should never really get here, but added for mypy
+    return render(request, "500.html", std_context(), status=500)
 
 
 # -----

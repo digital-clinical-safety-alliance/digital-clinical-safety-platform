@@ -9,7 +9,7 @@ import sys
 import app.functions.constants as c
 
 sys.path.append(c.FUNCTIONS_APP)
-from mkdocs_control import MkdocsControl
+from app.functions.mkdocs_control import MkdocsControl
 
 
 class MkdocsControlTest(TestCase):

@@ -14,7 +14,7 @@ import yaml
 import app.functions.constants as c
 
 sys.path.append(c.FUNCTIONS_APP)
-from docs_builder import Builder
+from app.functions.docs_builder import Builder
 
 import app.tests.data_docs_builder as d
 
@@ -80,11 +80,26 @@ class BuilderTestDocsPresent(TestCase):
     def setUp(self):
         doc_build = Builder(c.TESTING_MKDOCS)
         doc_build.copy_templates("test_templates")
-        pass
 
     def test_get_placeholders(self):
         doc_build = Builder(c.TESTING_MKDOCS)
         self.assertEqual(d.PLACEHOLDERS_EXPECTED, doc_build.get_placeholders())
+        doc_build.get_placeholders()
+
+    def test_get_placeholders_file_empty(self):
+        doc_build = Builder(c.TESTING_MKDOCS)
+        self.assertEqual(d.PLACEHOLDERS_EXPECTED, doc_build.get_placeholders())
+        open(f"{ c.TESTING_MKDOCS }docs/placeholders.yml", "w").close()
+        with self.assertRaises(ValueError):
+            doc_build.get_placeholders()
+
+    def test_get_placeholders_only_one_placeholder_in_yaml(self):
+        doc_build = Builder(c.TESTING_MKDOCS)
+        self.assertEqual(d.PLACEHOLDERS_EXPECTED, doc_build.get_placeholders())
+        f = open(f"{ c.TESTING_MKDOCS }docs/placeholders.yml", "w")
+        f.write("extra:\n  name_of_app=The App\n")
+        f.close()
+        doc_build.get_placeholders()
 
     def test_get_placeholders_empty_docs_folder(self):
         doc_build = Builder(c.TESTING_MKDOCS_EMPTY_FOLDERS)
@@ -104,6 +119,26 @@ class BuilderTestDocsPresent(TestCase):
         doc_build.save_placeholders(d.PLACEHOLDERS_GOOD)
         placeholders = doc_build.read_placeholders()
         self.assertEqual(placeholders, d.PLACEHOLDERS_GOOD)
+
+    def test_linter_single_file(self):
+        doc_build = Builder(c.TESTING_MKDOCS_LINTER)
+        results = doc_build.linter("good_files/good_file1.md")
+        self.assertEqual(results, d.TEST_LINTER_SINGLE_FILE)
+
+    def test_linter_folder(self):
+        doc_build = Builder(c.TESTING_MKDOCS_LINTER)
+        results = doc_build.linter("good_files")
+        self.assertEqual(results, d.TEST_LINTER_FOLDER)
+
+    def test_linter_single_file_bad(self):
+        doc_build = Builder(c.TESTING_MKDOCS_LINTER)
+        results = doc_build.linter("bad_files/bad_file1.md")
+        self.assertEqual(results, d.TEST_LINTER_SINGLE_FILE_BAD)
+
+    def test_linter_folder_bad(self):
+        doc_build = Builder(c.TESTING_MKDOCS_LINTER)
+        results = doc_build.linter("bad_files")
+        self.assertEqual(results, d.TEST_LINTER_FOLDER_BAD)
 
     def tearDown(self):
         doc_build = Builder(c.TESTING_MKDOCS)

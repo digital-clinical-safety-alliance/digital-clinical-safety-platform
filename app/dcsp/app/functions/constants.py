@@ -1,9 +1,11 @@
 """ Constants
 
+Forward slash '/' is placed at the end of directory names
 """
 from enum import Enum
 
 MAIN_FOLDER: str = "/dcsp/"
+TESTS_LOCATION: str = f"{ MAIN_FOLDER }app/dcsp/app/tests/"
 
 ILLEGAL_DIR_CHARS: str = '<>?:"\\|?*,'
 
@@ -27,17 +29,15 @@ MKDOCS_PLACEHOLDER_YML: str = f"{ MKDOCS_DOCS }placeholders.yml"
 ENV_PATH = f"{ MAIN_FOLDER }.env"
 
 
-# Testing
+# Testing MKDOCS
 # TODO - work out why two env paths ?? for async testing?
-TESTING_ENV_PATH_MKDOCS: str = (
-    f"{ MAIN_FOLDER }app/dcsp/app/tests/test_docs/.env"
-)
-TESTING_ENV_PATH_DJANGO: str = (
-    f"{ MAIN_FOLDER }app/dcsp/app/tests/test_django/.env"
-)
+TESTING_ENV_PATH_MKDOCS: str = f"{ TESTS_LOCATION }test_docs/.env"
 
-TESTING_MKDOCS: str = f"{ MAIN_FOLDER }app/dcsp/app/tests/test_docs/mkdocs/"
-TESTING_MKDOCS_CONTROL: str = f"{ MAIN_FOLDER }app/dcsp/app/tests/test_docs/mkdocs_testing_mkdocs_control/"
+
+TESTING_MKDOCS: str = f"{ TESTS_LOCATION }test_docs/mkdocs/"
+TESTING_MKDOCS_CONTROL: str = (
+    f"{ TESTS_LOCATION }test_docs/mkdocs_testing_mkdocs_control/"
+)
 TESTING_MKDOCS_DOCS: str = f"{ TESTING_MKDOCS }docs/"
 TESTING_MKDOCS_TEMPLATES: str = f"{ TESTING_MKDOCS }templates/"
 TESTING_MKDOCS_PLACEHOLDERS_YAML: str = (
@@ -45,19 +45,22 @@ TESTING_MKDOCS_PLACEHOLDERS_YAML: str = (
 )
 
 TESTING_MKDOCS_NO_DOCS_FOLDER: str = (
-    f"{ MAIN_FOLDER }app/dcsp/app/tests/test_docs/mkdocs_no_docs_folder/"
+    f"{ TESTS_LOCATION }test_docs/mkdocs_no_docs_folder/"
 )
 TESTING_MKDOCS_NO_TEMPLATES_FOLDER: str = (
-    f"{ MAIN_FOLDER }app/dcsp/app/tests/test_docs/mkdocs_no_template_folder/"
+    f"{ TESTS_LOCATION }test_docs/mkdocs_no_template_folder/"
 )
 TESTING_MKDOCS_EMPTY_FOLDERS: str = (
-    f"{ MAIN_FOLDER }app/dcsp/app/tests/test_docs/mkdocs_empty_folders/"
+    f"{ TESTS_LOCATION }test_docs/mkdocs_empty_folders/"
 )
+TESTING_MKDOCS_LINTER: str = f"{ TESTS_LOCATION }test_docs/mkdocs_linter/"
 
+# testing Django
+TESTING_ENV_PATH_DJANGO: str = f"{ TESTS_LOCATION }test_django/.env"
 
 # git and Github
 REPO_NAME: str = "clinical-safety-hazard-documentation"
-ISSUE_LABELS_PATH: str = "/dcsp/.github/labels.yml"
+ISSUE_LABELS_PATH: str = "/dcsp/app/dcsp/app/functions/labels.yml"
 REPO_PATH_LOCAL: str = "/dcsp"
 
 
@@ -107,3 +110,7 @@ An analysis of the Causes of the Hazard
 * If Harm is reduced then you can change the labels to reflect this and reclassify the Risk Score.
 * Issues can be linked to: Issues describing specific software changes, Pull Requests or Commits fixing Issues, external links, and much more supporting documentation. Aim for a comprehensive, well-evidenced, public and open discussion on risk and safety.
 """
+
+# Testing git and GitHub
+TESTING_ENV_PATH_GIT: str = f"{ TESTS_LOCATION }git_control/"
+TESTING_ENV_PATH_GIT_FULL: str = f"{ TESTS_LOCATION }git_control/.env"

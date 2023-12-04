@@ -9,73 +9,84 @@
 from dotenv import load_dotenv, set_key, find_dotenv, dotenv_values
 import sys
 from git import Repo
-from github import Github, Issue, Auth
+from github import Github, Issue, Auth, GithubException
 import configparser
 import pexpect
 import yaml
 import requests
 import os
+from email.utils import parseaddr
 
-import constants as c
-from constants import GhCredentials
+import app.functions.constants as c
+from app.functions.constants import GhCredentials
+from app.functions.email_functions import EmailFunctions
 
 
 class GitController:
     def __init__(
         self,
-        github_username: str | None = None,
-        email: str | None = None,
-        github_organisation: str | None = None,
-        github_repo: str | None = c.REPO_NAME,
-        github_token: str | None = None,
-        repo_path_local: str | None = c.REPO_PATH_LOCAL,
-        env_location: str | None = c.ENV_PATH,
+        github_username: str = "",
+        email: str = "",
+        github_organisation: str = "",
+        github_repo: str = c.REPO_NAME,
+        github_token: str = "",
+        repo_path_local: str = c.REPO_PATH_LOCAL,
+        env_location: str = c.ENV_PATH,
     ) -> None:
         """Initialising GitController class"""
+        self.github_username: str = ""
+        self.email: str = ""
+        self.github_organisation: str = ""
+        self.github_token: str = ""
 
-        if env_location == None or env_location == "":
-            if self.github_username == None or self.github_username == "":
-                raise ValueError(f".env location is invalid")
+        if env_location == "":
+            raise ValueError(f".env location is invalid")
+
+        if not os.path.isfile(env_location):
+            raise ValueError(f"Path for .env file does not exist")
 
         dot_values = dotenv_values(env_location)
 
-        if github_username == None or github_username == "":
-            self.github_username = dot_values.get("GITHUB_USERNAME")
-            if self.github_username == None or self.github_username == "":
+        if github_username == "":
+            self.github_username = str(dot_values.get("GITHUB_USERNAME") or "")
+            if self.github_username == "":
                 raise ValueError(
                     f"Github username is not set either as an arguement or in .env"
                 )
         else:
             self.github_username = github_username
 
-        if email == None or email == "":
-            self.email = dot_values.get("EMAIL")
-            if self.email == None or self.email == "":
+        if email == "":
+            self.email = str(dot_values.get("EMAIL") or "")
+            if self.email == "":
                 raise ValueError(
                     f"'Email' has not been set as an argument or in .env"
                 )
         else:
             self.email = email
 
-        if github_organisation == None:
-            self.github_organisation = dot_values.get("GITHUB_ORGANISATION")
-            if (
-                self.github_organisation == None
-                or self.github_organisation == ""
-            ):
+        email_function = EmailFunctions()
+        if not email_function.valid_syntax(self.email):
+            raise ValueError(f"Email address '{ self.email } is invalid")
+
+        if github_organisation == "":
+            self.github_organisation = str(
+                dot_values.get("GITHUB_ORGANISATION" or "")
+            )
+            if self.github_organisation == "":
                 raise ValueError(
                     f"'Organisation' has not been set as an argument or in .env"
                 )
         else:
-            self.github_organisation = github_organisation
+            self.github_organisation = str(github_organisation)
 
-        if github_repo == None or github_repo == "":
+        if github_repo == "":
             raise ValueError(f"'github_repo' has not been set")
         else:
-            self.github_repo = str(github_repo)
+            self.github_repo = github_repo
 
-        if github_token == None:
-            self.github_token = dot_values.get("GITHUB_TOKEN")
+        if github_token == "":
+            self.github_token = str(dot_values.get("GITHUB_TOKEN") or "")
             if self.github_token == None or self.github_token == "":
                 raise ValueError(
                     f"'Github token' is not set either as an arguement or in .env"
@@ -86,7 +97,7 @@ class GitController:
         if repo_path_local == None or repo_path_local == "":
             raise ValueError(f"'repo_path_local' has not been set")
         else:
-            self.repo_path_local = str(repo_path_local)
+            self.repo_path_local = repo_path_local
 
         return None
 
@@ -128,8 +139,10 @@ class GitController:
             self.github_organisation
         )
 
+        # TODO this is dependent on valid credentials
         repo_request = requests.get(
-            f"https://api.github.com/repos/{ self.repo_domain_name() }/{ self.github_repo }"
+            f"https://api.github.com/repos/{ self.repo_domain_name() }/{ self.github_repo }",
+            auth=(self.github_organisation, self.github_token),
         )
 
         if repo_request.status_code == 200:
@@ -144,8 +157,7 @@ class GitController:
                 permission = repo.get_collaborator_permission(
                     self.github_username
                 )
-            except GithubException as error:
-                # print(f"Error - { error.data['message'] }")
+            except GithubException:
                 pass
         elif repo_request.status_code == 404:
             repo_exists = False
@@ -188,6 +200,7 @@ class GitController:
         repos_found: list[str] = []
 
         g = Github(self.github_username, self.github_token)
+
         try:
             github_ctrl = g.get_user(github_user_org)
         except GithubException as error:
@@ -244,17 +257,31 @@ class GitController:
         repo.delete()
         return True
 
+    # TODO #20 - needs lots of testing
     # TODO - need to figure out if it failed
     # TODO - also need to make sure a push to gh pages is set on Github
     def commit_and_push(
         self,
-        commit_message: str = "No message supplied",
+        commit_message: str = "Automated commit",
         verbose: bool = False,
     ) -> bool:
-        """ """
+        """Commits changes and then pushes to repo
+
+        Initially checks if the git configs are set, and if not sets
+        The username and email. Then commits the changes with the supplied
+        message. If verbose is set to true, then a print out of the pexpect
+        execution is given.
+
+        Args:
+            commit_message (str): message for the commit
+            verbose (bool): set to True to display stdout of push.
+        Returns:
+            bool: currently returns False if commit fails
+        """
 
         repo = Repo(self.repo_path_local)
 
+        # TODO #19 - how will this work with lots of other users.
         try:
             repo.config_reader().get_value("user", "name")
             repo.config_reader().get_value("user", "email")
@@ -306,39 +333,49 @@ class GitController:
                 )
 
         g = Github(self.github_username, self.github_token)
-        repo = g.get_repo(f"{ self.repo_domain_name() }/{ self.github_repo }")
-        repo.create_issue(
-            title=title,
-            body=body,
-            labels=labels,
-        )
+
+        try:
+            repo = g.get_repo(
+                f"{ self.repo_domain_name() }/{ self.github_repo }"
+            )
+            repo.create_issue(
+                title=title,
+                body=body,
+                labels=labels,
+            )
+        except GithubException as error:
+            raise ValueError(
+                f"Error with accessing repo, return value { error.data['message'] }"
+            )
 
         return True
 
-    def available_hazard_labels(
-        self, details: str = "full"
-    ) -> list[dict[str, str]] | list[str]:
+    def available_hazard_labels(self, details: str = "full") -> list:
+        """ """
         issues_yml: list[dict[str, str]]
-        issues_names_only: list[str] = []
+        issues_names_only: list = []
 
         if details != "full" and details != "name_only":
             raise ValueError(f"'{ details } is not a valid option")
 
-        with open(c.ISSUE_LABELS_PATH, "r") as file:
-            issues_yml = yaml.safe_load(file)
-
-        # for label in issues_yml:
-        #    print(label)
+        try:
+            with open(c.ISSUE_LABELS_PATH, "r") as file:
+                issues_yml = yaml.safe_load(file)
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Labels.yml does not exist at '{ c.ISSUE_LABELS_PATH }'"
+            )
 
         if details == "full":
             return issues_yml
         else:
             for label_definition in issues_yml:
                 issues_names_only.append(label_definition["name"].lower())
-            return issues_names_only  # TODO - need to test if works
+            return issues_names_only
 
     def verify_hazard_label(self, label: str) -> bool:
-        issues_yml: list[dict[str, str]]
+        """ """
+        issues_yml: list
 
         issues_yml = self.available_hazard_labels()
 
@@ -385,16 +422,21 @@ class GitController:
 
     def add_comment_to_hazard(
         self,
-        github_use_org: str = "",
-        github_repo: str = "",
-        hazard_number: str = "",
+        github_use_org: str = "",  # TODO - might need to implement
+        github_repo: str = "",  # TODO - might need to implement
+        hazard_number: int = 0,
         comment: str = "",
     ) -> bool:
         """ """
+        if hazard_number == 0:
+            raise ValueError(f"No Hazard Number has been provided")
+
         g = Github(self.github_username, self.github_token)
         repo = g.get_repo(f"{ self.repo_domain_name() }/{ self.github_repo }")
-        issue = repo.get_issue(number=hazard_number)
+        issue = repo.get_issue(number=int(hazard_number))
         issue.create_comment(comment)
+
+        return True
 
 
 if __name__ == "__main__":

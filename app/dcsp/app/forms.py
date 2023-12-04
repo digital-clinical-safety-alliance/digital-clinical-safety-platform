@@ -16,8 +16,8 @@ import app.functions.constants as c
 from app.functions.constants import GhCredentials
 
 sys.path.append(c.FUNCTIONS_APP)
-from docs_builder import Builder
-from git_control import GitController
+from app.functions.docs_builder import Builder
+from app.functions.git_control import GitController
 
 
 # TODO: need to set to 'required'
@@ -106,7 +106,7 @@ class InstallationForm(forms.Form):
         ),
     )
 
-    def clean(self):
+    def clean(self) -> dict:
         cleaned_data: Any = self.cleaned_data
         installation_type: str = cleaned_data["installation_type"]
         github_username: str = cleaned_data["github_username_SA"]
@@ -287,12 +287,13 @@ class MDEditForm(forms.Form):
             }
         ),
     )
+    # TODO #23 need to use md linter here
 
 
 class LogHazardForm(forms.Form):
     def __init__(self, *args, **kwargs) -> None:
         super(LogHazardForm, self).__init__(*args, **kwargs)
-        gc: GitController = GitController()
+        gc: GitController = GitController(env_location=settings.ENV_LOCATION)
         available_labels: list[dict[str, str]] | list[
             str
         ] = gc.available_hazard_labels("name_only")
