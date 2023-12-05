@@ -81,3 +81,5 @@ TEST_LINTER_FOLDER_BAD = {
         "placeholders_half_curley_numbers": "pass",
     },
 }
+
+PATH_BAD = "1234//1234faf345/"

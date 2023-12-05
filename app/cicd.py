@@ -11,7 +11,7 @@ RUN: list = []
 # RUN.append("type_checking_functions")
 RUN.append("type_checking_django")
 RUN.append("unit_testing_all_but_git")
-RUN.append("unit_testing_git_only")
+# RUN.append("unit_testing_git_only")
 
 outcome = {}
 all_pass = True
@@ -44,7 +44,7 @@ if "type_checking_django" in RUN:
     else:
         print(f" -Errors, exit code of: { process2.returncode}")
         outcome[
-            " Django hint typing"
+            "Django hint typing"
         ] = f"Fail - return code: { process2.returncode }"
 
 if "unit_testing_all_but_git" in RUN:
@@ -73,7 +73,12 @@ if "unit_testing_git_only" in RUN:
     print("----------------------------------")
 
     process4 = Popen(
-        ["python3", "manage.py", "test", "app.tests.test_git_control"],
+        [
+            "python3",
+            "manage.py",
+            "test",  # "--tag=sole",
+            "app.tests.test_git_control",
+        ],
         cwd="/dcsp/app/dcsp",
     )
     process4.wait()

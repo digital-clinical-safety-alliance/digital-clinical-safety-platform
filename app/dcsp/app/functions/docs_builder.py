@@ -8,9 +8,6 @@ Classes:
 """
 
 import os
-from pathlib import Path
-from os import PathLike
-from jinja2 import Environment, meta
 from fnmatch import fnmatch
 import re
 import yaml
@@ -36,15 +33,22 @@ class Builder:
             RuntimeError: if invalid characters are found in the placeholders
                         yaml path.
         """
+        docs: str = ""
+        template_dir: str = ""
+        placeholders_yml_path: str = ""
+        self.mkdocs_dir: str = ""
+        self.docs: str = ""
+        self.template_dir: str = ""
+        self.placeholders_yml_path: str = ""
 
         if not os.path.isdir(str(mkdocs_dir)):
             raise FileNotFoundError(
                 f"Invalid path '{ mkdocs_dir }' for mkdocs directory"  # type: ignore[str-bytes-safe]
             )
 
-        docs: str = f"{ mkdocs_dir }docs/"
-        template_dir: str = f"{ mkdocs_dir }templates/"
-        placeholders_yml_path: str = f"{ mkdocs_dir }docs/placeholders.yml"
+        docs = f"{ mkdocs_dir }docs/"
+        template_dir = f"{ mkdocs_dir }templates/"
+        placeholders_yml_path = f"{ mkdocs_dir }docs/placeholders.yml"
 
         if not os.path.isdir(docs):
             raise FileNotFoundError(
@@ -64,9 +68,9 @@ class Builder:
             )
 
         self.mkdocs_dir = str(mkdocs_dir)
-        self.docs: str = str(docs)
-        self.template_dir: str = str(template_dir)
-        self.placeholders_yml_path: str = str(placeholders_yml_path)
+        self.docs = str(docs)
+        self.template_dir = str(template_dir)
+        self.placeholders_yml_path = str(placeholders_yml_path)
         return None
 
     def get_templates(self) -> list[str]:
@@ -92,8 +96,7 @@ class Builder:
 
         if not templates:
             raise FileNotFoundError(
-                f'No templates folders found in "{ self.template_dir }" \
-                template directory'
+                f"No templates folders found in '{ self.template_dir }' template directory"
             )
 
         return sorted(templates, key=str.lower)
@@ -159,7 +162,6 @@ class Builder:
             FileNotFoundError: if no files found in the docs folder.
         """
         files_to_check: list[str] = []
-
         placeholders_sub: list[str] = []
         placeholders_raw: list[str] = []
         placeholders_clean: dict[str, str] = {}
@@ -168,6 +170,9 @@ class Builder:
         files: list[str] = []
         name: str = ""
         file: str = ""
+        f: TextIO
+        doc_Regex: Pattern[str]
+        p: str = ""
 
         # Already checked if self.docs is valid in __init__
         for path, _, files in os.walk(self.docs):
@@ -238,14 +243,13 @@ class Builder:
             FileNotFoundError: if placeholder yaml is not a valid file.
             ValueError: if error reading content of yaml file.
         """
-        # TODO may need to better initialise the dict[] here
         placeholders_extra: dict = {}
         return_dict: dict[str, str] = {}
-        # file
+        file: TextIO
 
         if not os.path.isfile(self.placeholders_yml_path):
             raise FileNotFoundError(
-                f"'{ self.placeholders_yml_path } is not a valid path"
+                f"'{ self.placeholders_yml_path }' is not a valid path"
             )
 
         with open(self.placeholders_yml_path, "r") as file:
@@ -254,7 +258,9 @@ class Builder:
         try:
             return_dict = placeholders_extra["extra"]
         except:
-            raise ValueError("Error with placeholders yaml file")
+            raise ValueError(
+                "Error with placeholders yaml file, likely 'extra' missing from file"
+            )
 
         return return_dict
 
@@ -276,21 +282,25 @@ class Builder:
         full_path: str = f"{self.mkdocs_dir}{folder_file_to_examine}"
         files_to_examine: list[str] = []
         file_path: str = ""
+        file_ptr: TextIO
+        content: str = ""
         linter_results: dict[str, dict[str, str]] = {}
         path: str = ""
         files: list[str] = []
-        name: str = ""
         file: str = ""
+        name: str = ""
         doc_Regex: Pattern[str]
         left_stake_single: list = []
         right_stake_single: list = []
+        left_stake_double: list = []
+        right_stake_double: list = []
         properly_formatted_placeholders: list = []
 
         if os.path.isfile(full_path):
             files_to_examine.append(full_path)
             linter_results[full_path] = {"overal": "pass"}
         elif os.path.isdir(full_path):
-            for path, subdir, files in os.walk(full_path):
+            for path, _, files in os.walk(full_path):
                 for name in files:
                     if fnmatch(name, "*.md"):
                         file_path = os.path.join(path, name)

@@ -19,6 +19,9 @@ from github import (
     Repository,
     NamedUser,
     AuthenticatedUser,
+    Organization,
+    PaginatedList,
+    Issue,
 )
 import pexpect
 import yaml
@@ -143,6 +146,7 @@ class GitController:
 
         return None
 
+    # TODO #28 - need to find a good way to see if github token and username pair is valid
     def check_github_credentials(self) -> dict[str, str | bool | None]:
         """Checking Github credentials
 
@@ -181,7 +185,6 @@ class GitController:
             self.github_organisation
         )
 
-        # TODO this is dependent on valid credentials
         repo_request = requests.get(
             f"https://api.github.com/repos/{ self.repo_domain_name() }/{ self.github_repo }",
             auth=(self.github_organisation, self.github_token),
@@ -259,6 +262,8 @@ class GitController:
         Returns:
             list[str]: a list of repositories. Returns empty list if unsuccessful in
                        getting
+        Raises:
+            ValueError: if unable to get user or organisation.
         """
         g: Github
         github_user: NamedUser.NamedUser | AuthenticatedUser.AuthenticatedUser
@@ -280,12 +285,22 @@ class GitController:
         return repos_found
 
     def current_repo_on_github(
-        self, github_use_org: str, github_repo: str
+        self, github_user_org: str, github_repo: str
     ) -> bool:
-        """ """
-        current_repos_on_github: list[str] = []
+        """Checks if supplied repository is on GitHub
 
-        current_repos_on_github = self.get_repos(github_use_org)
+        Checks if the supplied repository name is on GitHub, in the format
+        "github_user_org/github_repo".
+
+        Args:
+            github_user_org (str): the username or organisation that the
+                                   repository is stored under.
+            github_repo (str): the name of the GitHub repository.
+        Returns:
+            bool: True if is a current repository under the user/organisation
+                  or False if not.
+        """
+        current_repos_on_github: list[str] = self.get_repos(github_user_org)
 
         if github_repo in current_repos_on_github:
             return True
@@ -293,34 +308,57 @@ class GitController:
             return False
 
     def create_repo(self, github_use_org: str, github_repo: str) -> bool:
-        """ """
-        g: Github
-        # github_user
+        """Create a new repository on GitHub
 
-        if self.current_repo_on_github(github_use_org, github_repo):
-            return False
+        If does not already exist, this function will create a new repository
+        on GitHub.
+
+        Args:
+            github_use_org (str): username or organisation to create the new
+                                  repository under.
+            github_repo (str): name of new repository.
+        Returns:
+            bool: False if already exists. True if created.
+        Raises:
+            ValueError: if invalid credentials supplied to
+                        'current_repo_on_github'.
+        """
+        g: Github
+        github_get: Organization.Organization
+
+        try:
+            if self.current_repo_on_github(github_use_org, github_repo):
+                return False
+        except ValueError as error:
+            raise ValueError(f"{ error }")
 
         g = Github(self.github_username, self.github_token)
-        # try:
-        # github_user = g.get_user(github_use_org)
-        # except:
-        github_user = g.get_organization(github_use_org)
-
-        repo = github_user.create_repo(github_repo)
-
+        github_get = g.get_organization(github_use_org)
+        github_get.create_repo(github_repo)
         return True
 
     def delete_repo(self, github_use_org: str, github_repo: str) -> bool:
-        """ """
+        """Delete a repository on GitHub
+
+        If in existence, then deletes repository on GitHub.
+
+        Args:
+            github_use_org (str): username or organisation where repository
+                                  is stored.
+            github_repo (str): name of repository to delete.
+        Returns:
+            bool: False if does not exist. True if exists and deleted.
+        """
         g: Github
-        # github_user
+        github_get: Organization.Organization
+        repo: Repository.Repository
 
         if not self.current_repo_on_github(github_use_org, github_repo):
             return False
 
         g = Github(self.github_username, self.github_token)
-        github_user = g.get_organization(github_use_org)
-        repo = github_user.get_repo(github_repo)
+        github_get = g.get_organization(github_use_org)
+        repo = github_get.get_repo(github_repo)
         repo.delete()
         return True
 
@@ -489,13 +527,22 @@ class GitController:
 
         return False
 
-    def open_hazards(self) -> list[dict]:
-        """Returns a list of open hazards on GitHub"""
+    def open_hazards(self) -> list[dict[str, Any]]:
+        """Returns a list of open hazards on GitHub
+
+        Grabs open hazards (which are actually GitHub Issues) from GitHub
+
+        Returns:
+            list[dict[str, Any]]: list of dictionaries of open hazards.
+        Raises:
+            ValueError: if error with accessing the repository
+        """
         g: Github
-        open_hazards: list[dict] = []
+        open_hazards: list[dict[str, Any]] = []
         label_list: list = []
         issue: Any
-        open_issues: Any
+        open_issues: PaginatedList.PaginatedList
+        repo: Repository.Repository
 
         g = Github(self.github_username, self.github_token)
 
@@ -524,10 +571,17 @@ class GitController:
         return open_hazards
 
     def repo_domain_name(self) -> str:
-        """ """
+        """Domain name set
+
+        If organisational name is not set then use username is used as the
+        "domain" name for the repository.
+
+        Returns:
+            str: name of domain (organisation or username)
+        """
         repo_domain: str = ""
 
-        if self.github_organisation == None:
+        if self.github_organisation == "":
             repo_domain = self.github_username
         else:
             repo_domain = self.github_organisation
@@ -536,16 +590,32 @@ class GitController:
 
     def add_comment_to_hazard(
         self,
-        github_use_org: str = "",  # TODO - might need to implement
-        github_repo: str = "",  # TODO - might need to implement
         hazard_number: int = 0,
         comment: str = "",
-    ) -> bool:
-        """ """
-        issue: Any
+    ) -> None:
+        """Add a comment to a hazard
+
+        As a comment to an already open hazard (stored as an issue on GitHub).
+
+        Args:
+            hazard_number (int): hazard (issue) number to add comment to.
+            comment (str): comment to add to hazard.
+        Returns:
+            None
+        Raises:
+            ValueError: if no hazard number is provided.
+            ValueError: if no comment if provided.
+            ValueError: if issue with accessing the repository.
+        """
+        g: Github
+        repo: Repository.Repository
+        issue: Issue.Issue
 
         if hazard_number == 0:
-            raise ValueError(f"No Hazard Number has been provided")
+            raise ValueError("No Hazard Number has been provided")
+
+        if comment == "":
+            raise ValueError("No comment has been provided")
 
         g = Github(self.github_username, self.github_token)
 
@@ -553,7 +623,6 @@ class GitController:
             repo = g.get_repo(
                 f"{ self.repo_domain_name() }/{ self.github_repo }"
             )
-
         except GithubException as error:
             raise ValueError(
                 f"Error with accessing repo '{ self.repo_domain_name() }/{ self.github_repo }', return value '{ error.data['message'] }'"
@@ -561,5 +630,4 @@ class GitController:
         else:
             issue = repo.get_issue(number=int(hazard_number))
             issue.create_comment(comment)
-
-        return True
+        return

@@ -3,6 +3,21 @@
 This is part of a Django web server app that is used to create a static site in
 mkdocs. It utilises several other functions git, github, env manipulation and 
 mkdocs
+
+Functions:
+    index
+    edit_md
+    saved_md
+    new_md
+    log_hazard
+    hazard_comment
+    open_hazards
+    mkdoc_redirect
+    upload_to_github
+    std_context
+    start_afresh
+    custom_404
+    custom_405
 """
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpRequest
@@ -63,7 +78,6 @@ def index(request: HttpRequest) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
-
     Returns:
         HttpResponse: for loading the correct webpage
     """
@@ -92,7 +106,6 @@ def index(request: HttpRequest) -> HttpResponse:
             # TODO #27 - check condentials
             if form.is_valid():
                 env_m = ENVManipulator(settings.ENV_LOCATION)
-
                 env_m.add(
                     EnvKeys.GITHUB_USERNAME.value,
                     form.cleaned_data["github_username_SA"],
@@ -684,7 +697,6 @@ def custom_404(request: HttpRequest, exception) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
-
     Returns:
         HttpResponse: for loading the correct webpage
     """
@@ -699,7 +711,6 @@ def custom_405(request: HttpRequest, exception) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
-
     Returns:
         HttpResponse: for loading the correct webpage
     """

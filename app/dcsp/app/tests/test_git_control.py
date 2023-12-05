@@ -3,6 +3,7 @@
     Maybe used in async mode
 
 """
+# @tag("sole")
 
 from unittest import TestCase
 from django.test import tag
@@ -224,6 +225,15 @@ class GitControllerTest(TestCase):
             )
         )
 
+    def test_create_repo_organisation_bad(self):
+        gc = GitController(env_location=c.TESTING_ENV_PATH_GIT)
+        with self.assertRaises(ValueError) as error:
+            gc.create_repo(d.ORGANISATION_NAME_BAD, d.REPO_NAME_NEW)
+        self.assertEqual(
+            str(error.exception),
+            f"Error with getting user / organisastion '{ d.ORGANISATION_NAME_BAD }', returned - 'Not Found'",
+        )
+
     def test_delete_repo(self):
         gc = GitController(env_location=c.TESTING_ENV_PATH_GIT)
         if not gc.current_repo_on_github(
@@ -396,6 +406,15 @@ class GitControllerTest(TestCase):
         self.assertEqual(
             str(error.exception), "No Hazard Number has been provided"
         )
+
+    def test_add_comment_to_hazard_comment_missing(self):
+        gc = GitController(
+            github_repo=d.REPO_NAME_CURRENT,
+            env_location=c.TESTING_ENV_PATH_GIT,
+        )
+        with self.assertRaises(ValueError) as error:
+            gc.add_comment_to_hazard(hazard_number=1)
+        self.assertEqual(str(error.exception), "No comment has been provided")
 
     @classmethod
     def tearDownClass(cls):

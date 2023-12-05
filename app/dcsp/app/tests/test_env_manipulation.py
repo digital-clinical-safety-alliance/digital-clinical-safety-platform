@@ -11,7 +11,6 @@ import app.functions.constants as c
 
 sys.path.append(c.FUNCTIONS_APP)
 from app.functions.env_manipulation import ENVManipulator
-
 import app.tests.data_env_manipulation as d
 
 

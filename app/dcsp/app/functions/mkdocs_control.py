@@ -9,6 +9,7 @@ Classes:
 import psutil
 import time as t
 import os
+from typing import TextIO
 
 import app.functions.constants as c
 
@@ -19,8 +20,6 @@ class MkdocsControl:
 
         Args:
             cwd_sh (str): the current working directory for the shell script
-        Returns:
-            None
         """
         self.process_name: str = "mkdocs"
         self.process_arg1: str = "serve"
@@ -30,8 +29,6 @@ class MkdocsControl:
     def is_process_running(self) -> bool:
         """Checks if there is an instance of an mkdocs serve running
 
-        Args:
-            Nil
         Returns:
             bool: True is running, False if not running
         """
@@ -41,13 +38,6 @@ class MkdocsControl:
             if process.info["name"] == self.process_name:  # type: ignore[attr-defined]
                 return True
         return False
-        """child = pexpect.spawn("ps -aux")
-        readout = str(child.read())
-
-        if "mkdocs serve" in readout:
-            return True
-        else:
-            return False"""
 
     # TODO: need to have error managment in this function
     def start(self, wait: bool = False) -> bool:
@@ -61,18 +51,11 @@ class MkdocsControl:
                   time, False is returned
         """
         n: int = 0
-
-        """child = pexpect.run("mkdocs serve", cwd=self.cwd_sh)
-        # print(child.read())
-        output = str(child.readline())
-        while "\r\n" in output:
-            if "Serving on http://" in output:
-                break
-            output = str(child.readline())"""
+        fd: TextIO
 
         if not self.is_process_running():
-            # Needed to use shell script to stop blocking and
-            # the creation of zombies
+            # Needed to use shell script to stop blocking and the creation of
+            # zombies
             os.chdir(self.cwd_sh)
             fd = open("mkdocs_serve.sh", "w")
             fd.write("#!/bin/bash\n")

@@ -26,16 +26,28 @@ class BuilderTestDocsEmpty(TestCase):
         Builder()
 
     def test_init_bad_mkdocs_directory(self):
-        with self.assertRaises(FileNotFoundError):
-            Builder("22\//")
+        with self.assertRaises(FileNotFoundError) as error:
+            Builder(d.PATH_BAD)
+        self.assertEqual(
+            str(error.exception),
+            f"Invalid path '{ d.PATH_BAD }' for mkdocs directory",
+        )
 
     def test_init_no_docs_folder(self):
-        with self.assertRaises(FileNotFoundError):
+        with self.assertRaises(FileNotFoundError) as error:
             Builder(c.TESTING_MKDOCS_NO_DOCS_FOLDER)
+        self.assertEqual(
+            str(error.exception),
+            f"Invalid path '{ c.TESTING_MKDOCS_NO_DOCS_FOLDER }' for mkdocs directory",
+        )
 
     def test_init_no_templates_folder(self):
-        with self.assertRaises(FileNotFoundError):
+        with self.assertRaises(FileNotFoundError) as error:
             Builder(c.TESTING_MKDOCS_NO_TEMPLATES_FOLDER)
+        self.assertEqual(
+            str(error.exception),
+            f"Invalid path '{ c.TESTING_MKDOCS_NO_TEMPLATES_FOLDER }' for mkdocs directory",
+        )
 
     def test_get_templates(self):
         doc_build = Builder(c.TESTING_MKDOCS)
@@ -43,8 +55,12 @@ class BuilderTestDocsEmpty(TestCase):
 
     def test_get_templates_empty(self):
         doc_build = Builder(c.TESTING_MKDOCS_EMPTY_FOLDERS)
-        with self.assertRaises(FileNotFoundError):
+        with self.assertRaises(FileNotFoundError) as error:
             doc_build.get_templates()
+        self.assertEqual(
+            str(error.exception),
+            f"No templates folders found in '{ c.TESTING_MKDOCS_EMPTY_FOLDERS }templates/' template directory",
+        )
 
     def test_copy_templates(self):
         files_to_check = []
@@ -72,8 +88,12 @@ class BuilderTestDocsEmpty(TestCase):
 
     def test_read_placeholders_yaml_missing(self):
         doc_build = Builder(c.TESTING_MKDOCS)
-        with self.assertRaises(FileNotFoundError):
+        with self.assertRaises(FileNotFoundError) as error:
             doc_build.read_placeholders()
+        self.assertEqual(
+            str(error.exception),
+            f"'{ c.TESTING_MKDOCS }docs/placeholders.yml' is not a valid path",
+        )
 
 
 class BuilderTestDocsPresent(TestCase):
@@ -90,8 +110,12 @@ class BuilderTestDocsPresent(TestCase):
         doc_build = Builder(c.TESTING_MKDOCS)
         self.assertEqual(d.PLACEHOLDERS_EXPECTED, doc_build.get_placeholders())
         open(f"{ c.TESTING_MKDOCS }docs/placeholders.yml", "w").close()
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as error:
             doc_build.get_placeholders()
+        self.assertEqual(
+            str(error.exception),
+            "Error with placeholders yaml file, likely 'extra' missing from file",
+        )
 
     def test_get_placeholders_only_one_placeholder_in_yaml(self):
         doc_build = Builder(c.TESTING_MKDOCS)
@@ -103,8 +127,12 @@ class BuilderTestDocsPresent(TestCase):
 
     def test_get_placeholders_empty_docs_folder(self):
         doc_build = Builder(c.TESTING_MKDOCS_EMPTY_FOLDERS)
-        with self.assertRaises(FileNotFoundError):
+        with self.assertRaises(FileNotFoundError) as error:
             doc_build.get_placeholders()
+        self.assertEqual(
+            str(error.exception),
+            f"No files found in mkdocs '{ c.TESTING_MKDOCS_EMPTY_FOLDERS }docs/' folder",
+        )
 
     def test_save_placeholders(self):
         doc_build = Builder(c.TESTING_MKDOCS)

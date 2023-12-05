@@ -5,8 +5,7 @@ Better live env manipulation than standard python library.
 Classes:
     ENVManipulator
 """
-import os
-from dotenv import load_dotenv, set_key, find_dotenv, dotenv_values
+from dotenv import set_key, dotenv_values
 
 import app.functions.constants as c
 
@@ -36,7 +35,8 @@ class ENVManipulator:
         variable_set: bool = False
         env_variables = dotenv_values(self.env_path)  # TODO need type
         key: str = ""
-        # key, value
+        value2: str | None = ""
+        key2: str | None = ""
 
         for key in env_variables:
             if key == variable_to_delete:
@@ -44,16 +44,10 @@ class ENVManipulator:
 
         if variable_set == True:
             del env_variables[variable_to_delete]
-            # TODO: may be able to delete this
-            # os.environ.pop(variable_to_delete, None)
-            # Clears out contents
             open(self.env_path, "w").close()
 
-            for key, value in env_variables.items():
-                set_key(self.env_path, str(key), str(value))
-
-            # May be able to remove this.
-            # load_dotenv(self.env_path)
+            for key2, value2 in env_variables.items():
+                set_key(self.env_path, str(key2), str(value2))
 
         return variable_set
 
@@ -61,10 +55,7 @@ class ENVManipulator:
         """Remove all variables from env file
 
         Removes all the variables from the env file, keeping the file itself
-        howver.
-
-        Returns:
-            None
+        however.
         """
         open(self.env_path, "w").close()
         return
