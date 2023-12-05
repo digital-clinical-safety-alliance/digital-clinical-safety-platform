@@ -1,13 +1,17 @@
 import sys
 from subprocess import Popen, PIPE
+import time
+
+start_time = time.time()
+
 
 WIDTH_FINAL_RESULTS: int = 50
 
 RUN: list = []
-RUN.append("type_checking_functions")
-# RUN.append("type_checking_django")
+# RUN.append("type_checking_functions")
+RUN.append("type_checking_django")
 RUN.append("unit_testing_all_but_git")
-# RUN.append("unit_testing_git_only")
+RUN.append("unit_testing_git_only")
 
 outcome = {}
 all_pass = True
@@ -21,7 +25,7 @@ if "type_checking_functions" in RUN:
     process1.wait()
     if process1.returncode == 0:
         print("- No errors")
-        outcome[" Functions hint typing"] = "Pass"
+        outcome["Functions hint typing"] = "Pass"
     else:
         print(f" -Errors, exit code of: { process1.returncode}")
         outcome[
@@ -36,7 +40,7 @@ if "type_checking_django" in RUN:
     process2.wait()
     if process2.returncode == 0:
         print("- No errors")
-        outcome[" Django hint typing"] = "Pass"
+        outcome["Django hint typing"] = "Pass"
     else:
         print(f" -Errors, exit code of: { process2.returncode}")
         outcome[
@@ -55,11 +59,11 @@ if "unit_testing_all_but_git" in RUN:
     process3.wait()
     if process3.returncode == 0:
         print("- No errors")
-        outcome[" Unit testing"] = "Pass"
+        outcome["Unit testing all but git"] = "Pass"
     else:
         print(f" -Errors, exit code of: { process3.returncode}")
         outcome[
-            " Unit testing"
+            "Unit testing all but git"
         ] = f"Fail - return code: { process3.returncode }"
 
 
@@ -87,7 +91,9 @@ print(f"{''.ljust(WIDTH_FINAL_RESULTS, '-') }")
 for test, value in outcome.items():
     if value != "pass":
         all_pass = False
-    print(f"{ test.ljust(40, ' ') }{ value }")
+    print(f" { test.ljust(40, ' ') }{ value }")
+print("")
+print(f" Total run time: { round(time.time() - start_time) } seconds")
 print(f"{''.ljust(WIDTH_FINAL_RESULTS, '-') }")
 
 if all_pass:

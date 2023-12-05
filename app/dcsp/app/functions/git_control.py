@@ -1,22 +1,33 @@
-"""
-    If no organisation is provided, repos will be presumed to be stored under username
-    on Github
+"""Management of git and GitHub
+
+If no organisation is provided, repos will be presumed to be stored under username
+on Github
+
+Classes:
+    GitController
 
 """
 
 # TODO - need to check all function work with username and organisations as domain_name
 
-from dotenv import load_dotenv, set_key, find_dotenv, dotenv_values
+from dotenv import dotenv_values
 import sys
 from git import Repo
-from github import Github, Issue, Auth, GithubException
-import configparser
+from github import (
+    Github,
+    GithubException,
+    Repository,
+    NamedUser,
+    AuthenticatedUser,
+)
 import pexpect
 import yaml
 import requests
+from requests import Response
 import os
-from email.utils import parseaddr
+from typing import Any
 
+sys.path.append("/dcsp/app/dcsp/")  # TODO temp
 import app.functions.constants as c
 from app.functions.constants import GhCredentials
 from app.functions.email_functions import EmailFunctions
@@ -33,17 +44,50 @@ class GitController:
         repo_path_local: str = c.REPO_PATH_LOCAL,
         env_location: str = c.ENV_PATH,
     ) -> None:
-        """Initialising GitController class"""
+        """Initialising GitController class
+
+        Initialisation of the git and GitHub functionality.
+
+        Args:
+            github_username (str): the user's GitHub personal username.
+            email (str): the user's personal email address.
+            github_organisation (str): the organisation that the user wishes to
+                                       associate repositories with. If this an
+                                       empty string is supplied then username is
+                                       used as storage location for repositories.
+            github_repo (str): Name of the GitHub repository.
+            github_token (str): GitHub token.
+            repo_path_local (str): Local name of repository.
+            env_location (str): Location of .env file. Mainly changed for unit
+                                testing purposes.
+        Raises:
+            ValueError: if a empty string is supplied as the env_location.
+            ValueError: if env_location is an invalid file path.
+            ValueError: if no GitHub username is supplied as an argument or in
+                        the .env file.
+            ValueError: if no email is supplied as an argument or in the .env
+                        file.
+            ValueError: if invalid syntax of email (does not check to see if a
+                        current and working email address).
+            ValueError: if github_repo is set to an empty string.
+            ValueError: if no github_token is supplied as an argument or in
+                        the .env file.
+            ValueError: if repo_path_local is set to an empty string.
+            FileNotFoundError: if repo_path_local points to a invalid or non-
+                               existing directory.
+        """
         self.github_username: str = ""
         self.email: str = ""
         self.github_organisation: str = ""
         self.github_token: str = ""
 
         if env_location == "":
-            raise ValueError(f".env location is invalid")
+            raise ValueError(f".env location is set to empty string")
 
         if not os.path.isfile(env_location):
-            raise ValueError(f"Path for .env file does not exist")
+            raise ValueError(
+                f"'{ env_location }' path for .env file does not exist"
+            )
 
         dot_values = dotenv_values(env_location)
 
@@ -51,7 +95,7 @@ class GitController:
             self.github_username = str(dot_values.get("GITHUB_USERNAME") or "")
             if self.github_username == "":
                 raise ValueError(
-                    f"Github username is not set either as an arguement or in .env"
+                    f"'{ c.EnvKeys.GITHUB_USERNAME.value }' has not been set as an argument or in .env"
                 )
         else:
             self.github_username = github_username
@@ -60,25 +104,19 @@ class GitController:
             self.email = str(dot_values.get("EMAIL") or "")
             if self.email == "":
                 raise ValueError(
-                    f"'Email' has not been set as an argument or in .env"
+                    f"'{ c.EnvKeys.EMAIL.value }' has not been set as an argument or in .env"
                 )
         else:
             self.email = email
 
         email_function = EmailFunctions()
         if not email_function.valid_syntax(self.email):
-            raise ValueError(f"Email address '{ self.email } is invalid")
+            raise ValueError(f"Email address '{ self.email }' is invalid")
 
         if github_organisation == "":
             self.github_organisation = str(
                 dot_values.get("GITHUB_ORGANISATION" or "")
             )
-            if self.github_organisation == "":
-                raise ValueError(
-                    f"'Organisation' has not been set as an argument or in .env"
-                )
-        else:
-            self.github_organisation = str(github_organisation)
 
         if github_repo == "":
             raise ValueError(f"'github_repo' has not been set")
@@ -89,15 +127,19 @@ class GitController:
             self.github_token = str(dot_values.get("GITHUB_TOKEN") or "")
             if self.github_token == None or self.github_token == "":
                 raise ValueError(
-                    f"'Github token' is not set either as an arguement or in .env"
+                    f"'{ c.EnvKeys.GITHUB_TOKEN.value }' has not been set as an argument or in .env"
                 )
         else:
             self.github_token = github_token
 
-        if repo_path_local == None or repo_path_local == "":
+        if repo_path_local == "":
             raise ValueError(f"'repo_path_local' has not been set")
         else:
             self.repo_path_local = repo_path_local
+            if not os.path.isdir(repo_path_local):
+                raise FileNotFoundError(
+                    f"'{ repo_path_local }' is not a valid path for 'repo_path_local'"
+                )
 
         return None
 
@@ -117,9 +159,9 @@ class GitController:
         repo_exists: bool = False
         permission: str | None = None
         results: dict[str, str | bool | None] = {}
-        # username_request
-        # organisation_request
-        # repo_request
+        username_request: Response
+        repo_request: Response
+        repo: Repository.Repository
 
         username_request = requests.get(
             f"https://api.github.com/users/{ self.github_username }",
@@ -175,9 +217,20 @@ class GitController:
         return results
 
     def organisation_exists(self, organisation: str) -> bool:
-        """ """
-        # organisation_request
-        # github_organisation_exists
+        """Checks if the GitHub organisation exists
+
+        Checks to see if the provided organisation name exists. This utilises
+        authentification, so good credentitals are needed.
+
+        Args:
+            organisation (str): name of GitHub organisation to test.
+        Returns:
+            bool: True if exists, False if does not.
+        Raises:
+            ValueError: if bad return code from GET request
+        """
+        organisation_request: Response
+        github_organisation_exists: bool = False
 
         organisation_request = requests.get(
             f"https://api.github.com/users/{ organisation }",
@@ -196,18 +249,32 @@ class GitController:
         return github_organisation_exists
 
     def get_repos(self, github_user_org: str) -> list[str]:
-        """ """
+        """Returns a list of repositories for a user or organisation
+
+        Gets a list of repositories under a specified user or organisation
+
+        Args:
+            github_user_org (str): the username or organisation to look for the
+                                   repositories under.
+        Returns:
+            list[str]: a list of repositories. Returns empty list if unsuccessful in
+                       getting
+        """
+        g: Github
+        github_user: NamedUser.NamedUser | AuthenticatedUser.AuthenticatedUser
         repos_found: list[str] = []
+        repo: Repository.Repository
 
         g = Github(self.github_username, self.github_token)
 
         try:
-            github_ctrl = g.get_user(github_user_org)
+            github_user = g.get_user(github_user_org)
         except GithubException as error:
-            # print(f"- Fail, repo was '{ error.data['message'] }'")
-            pass
+            raise ValueError(
+                f"Error with getting user / organisastion '{ github_user_org }', returned - '{ error.data['message'] }'"
+            )
         else:
-            for repo in github_ctrl.get_repos():
+            for repo in github_user.get_repos():
                 repos_found.append(repo.name)
 
         return repos_found
@@ -228,32 +295,32 @@ class GitController:
     def create_repo(self, github_use_org: str, github_repo: str) -> bool:
         """ """
         g: Github
-        # github_ctrl
+        # github_user
 
         if self.current_repo_on_github(github_use_org, github_repo):
             return False
 
         g = Github(self.github_username, self.github_token)
         # try:
-        # github_ctrl = g.get_user(github_use_org)
+        # github_user = g.get_user(github_use_org)
         # except:
-        github_ctrl = g.get_organization(github_use_org)
+        github_user = g.get_organization(github_use_org)
 
-        repo = github_ctrl.create_repo(github_repo)
+        repo = github_user.create_repo(github_repo)
 
         return True
 
     def delete_repo(self, github_use_org: str, github_repo: str) -> bool:
         """ """
         g: Github
-        # github_ctrl
+        # github_user
 
         if not self.current_repo_on_github(github_use_org, github_repo):
             return False
 
         g = Github(self.github_username, self.github_token)
-        github_ctrl = g.get_organization(github_use_org)
-        repo = github_ctrl.get_repo(github_repo)
+        github_user = g.get_organization(github_use_org)
+        repo = github_user.get_repo(github_repo)
         repo.delete()
         return True
 
@@ -322,14 +389,28 @@ class GitController:
             child.wait()
         return True
 
-    def log_hazard(self, title: str, body: str, labels: list[str]) -> bool:
+    def log_hazard(self, title: str, body: str, labels: list[str]) -> None:
+        """Uses GitHub issues to log a new hazard
+
+        Hazards are logged as issues on GitHub
+
+        Args:
+            title (str): Title for the issue.
+            body (str): Body for the issue.
+            labels (list[str]): a list of labels for the issue.
+        Returns:
+            None
+        Raises:
+            ValueError: if a hazard label is not valid
+            ValueError: if issue with accessing the repo
+        """
         g: Github
-        # repo
+        repo: Repository.Repository
 
         for label in labels:
             if not self.verify_hazard_label(label):
                 raise ValueError(
-                    f"'{ label } is not a valid hazard label. Please review label.yml for available values."
+                    f"'{ label }' is not a valid hazard label. Please review label.yml for available values."
                 )
 
         g = Github(self.github_username, self.github_token)
@@ -345,18 +426,33 @@ class GitController:
             )
         except GithubException as error:
             raise ValueError(
-                f"Error with accessing repo, return value { error.data['message'] }"
+                f"Error with accessing repo '{ self.repo_domain_name() }/{ self.github_repo }', return value '{ error.data['message'] }'"
             )
 
-        return True
+        return
 
     def available_hazard_labels(self, details: str = "full") -> list:
-        """ """
+        """Provides a list of available hazard labels
+
+        Reads from the labels yaml file and returns a list of valid hazard labels
+
+        Args:
+            details (str): full = all details of all hazard labels. name_only =
+                           names only of all hazard labels.
+        Returns:
+            list: either a list[dict[str,str]] if "full" details are requested or
+                  else a list[str] if names_only requested.
+        Raises:
+            ValueError: if details argument is not "full" or "name_only"
+            FileNotFoundError: if a bad file path is given for the labels yaml.
+        """
         issues_yml: list[dict[str, str]]
-        issues_names_only: list = []
+        issues_names_only: list[str] = []
 
         if details != "full" and details != "name_only":
-            raise ValueError(f"'{ details } is not a valid option")
+            raise ValueError(
+                f"'{ details }' is not a valid option for return values of hazard labels"
+            )
 
         try:
             with open(c.ISSUE_LABELS_PATH, "r") as file:
@@ -374,26 +470,44 @@ class GitController:
             return issues_names_only
 
     def verify_hazard_label(self, label: str) -> bool:
-        """ """
-        issues_yml: list
+        """Checks if a label name is valid
 
-        issues_yml = self.available_hazard_labels()
+        Checking against all known valid hazard labels, checks if label name
+        supplied is valid.
 
-        for label_definition in issues_yml:
-            if label.lower() in label_definition["name"].lower():
+        Args:
+            label (str): label to be examined.
+        Returns:
+            bool: True if a valid label, False if not.
+        """
+        issues_yml: list = self.available_hazard_labels("name_only")
+        label_name: str = ""
+
+        for label_name in issues_yml:
+            if label.lower() in label_name.lower():
                 return True
 
         return False
 
     def open_hazards(self) -> list[dict]:
-        """ """
+        """Returns a list of open hazards on GitHub"""
         g: Github
         open_hazards: list[dict] = []
         label_list: list = []
+        issue: Any
+        open_issues: Any
 
         g = Github(self.github_username, self.github_token)
-        repo = g.get_repo(f"{ self.repo_domain_name() }/{ self.github_repo }")
-        open_issues = repo.get_issues(state="open")
+
+        try:
+            repo = g.get_repo(
+                f"{ self.repo_domain_name() }/{ self.github_repo }"
+            )
+            open_issues = repo.get_issues(state="open")
+        except GithubException as error:
+            raise ValueError(
+                f"Error with accessing repo '{ self.repo_domain_name() }/{ self.github_repo }', return value '{ error.data['message'] }'"
+            )
 
         for issue in open_issues:
             label_list.clear()
@@ -428,49 +542,24 @@ class GitController:
         comment: str = "",
     ) -> bool:
         """ """
+        issue: Any
+
         if hazard_number == 0:
             raise ValueError(f"No Hazard Number has been provided")
 
         g = Github(self.github_username, self.github_token)
-        repo = g.get_repo(f"{ self.repo_domain_name() }/{ self.github_repo }")
-        issue = repo.get_issue(number=int(hazard_number))
-        issue.create_comment(comment)
+
+        try:
+            repo = g.get_repo(
+                f"{ self.repo_domain_name() }/{ self.github_repo }"
+            )
+
+        except GithubException as error:
+            raise ValueError(
+                f"Error with accessing repo '{ self.repo_domain_name() }/{ self.github_repo }', return value '{ error.data['message'] }'"
+            )
+        else:
+            issue = repo.get_issue(number=int(hazard_number))
+            issue.create_comment(comment)
 
         return True
-
-
-if __name__ == "__main__":
-    print("Starting...")
-    # gc = GitController()
-    gc = GitController(
-        github_username="CotswoldsMaker",
-        github_organisation="clinicians-who-code",
-        github_repo="clinical-safety-hazard-documentation",
-    )
-    """gc = GitController(
-        github_username="CotswoldsMaker",
-        github_repo="QuickSpiritum",
-    )"""
-    # print(gc.check_github_credentials())
-
-    """print(
-        gc.current_repo_on_github(
-            "clinicians-who-code", "clinical-safety-hazard-documentation"
-        )
-    )"""
-    # print(gc.commit_and_push("A commit with a new function"))
-    # print(gc.get_repos("clinicians-who-code"))
-    # gc.log_hazard("Test 30/11/23", "Body of test 30/11/23", ["hazard"])
-    """labels = gc.available_hazard_labels()
-    for label in labels:
-        print(label)"""
-    # print(gc.verify_hazard_label("hazard"))
-    """open_hazards = gc.open_hazards()
-    for hazard in open_hazards:
-        print(hazard)"""
-    # print(gc.create_repo("clinicians-who-code", "abc13456"))
-    #  print(gc.delete_repo("clinicians-who-code", "abc1"))
-    # gc.open_hazards()
-    gc.add_comment_to_hazard(
-        hazard_number=13, comment="a test comment 30/11/23"
-    )

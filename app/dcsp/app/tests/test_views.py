@@ -250,12 +250,10 @@ class LogHazardTest(TestCase):
         pass  # TODO - needs finishing
 
     def test_get_correct_template(self):
-        # previous_env_location = settings.ENV_LOCATION
-        shutil.copyfile(c.TESTING_ENV_PATH_GIT_FULL, c.TESTING_ENV_PATH_DJANGO)
+        shutil.copyfile(c.TESTING_ENV_PATH_GIT, c.TESTING_ENV_PATH_DJANGO)
         response = self.client.get("/log_hazard")
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "log_hazard.html")
-        # settings.ENV_LOCATION = previous_env_location
 
     def test_post(self):
         pass

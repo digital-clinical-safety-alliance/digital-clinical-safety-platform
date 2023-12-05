@@ -89,6 +89,7 @@ def index(request: HttpRequest) -> HttpResponse:
 
         elif request.method == "POST":
             form = InstallationForm(request.POST)
+            # TODO #27 - check condentials
             if form.is_valid():
                 env_m = ENVManipulator(settings.ENV_LOCATION)
 
@@ -390,23 +391,26 @@ def log_hazard(request: HttpRequest) -> HttpResponse:
             hazard_labels = form.cleaned_data["labels"]
             gc = GitController()
 
-            if gc.log_hazard(hazard_title, hazard_body, hazard_labels):
+            gc.log_hazard(hazard_title, hazard_body, hazard_labels)
+            try:
+                gc.log_hazard(hazard_title, hazard_body, hazard_labels)
+            except Exception as error:
+                messages.error(
+                    request,
+                    f"Error returned from logging hazard - '{ error }'",
+                )
+
+                context = {"form": LogHazardForm(initial=request.POST)}
+
+                return render(
+                    request, "log_hazard.html", context | std_context()
+                )
+            else:
                 messages.success(
                     request,
                     f"Hazard has been uploaded to GitHub",
                 )
                 context = {"form": LogHazardForm()}
-                return render(
-                    request, "log_hazard.html", context | std_context()
-                )
-            else:
-                messages.error(
-                    request,
-                    f"Error with hazard upload to GitHub",
-                )
-
-                context = {"form": LogHazardForm(initial=request.POST)}
-
                 return render(
                     request, "log_hazard.html", context | std_context()
                 )

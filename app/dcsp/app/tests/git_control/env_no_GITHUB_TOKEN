@@ -1,5 +1,5 @@
 GITHUB_USERNAME='some test data'
-EMAIL='some test data'
+EMAIL='john.doe@domain.com'
 GITHUB_ORGANISATION='some test data'
 GITHUB_REPO='some test data'
 GITHUB_TOKEN=''

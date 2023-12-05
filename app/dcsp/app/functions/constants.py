@@ -59,7 +59,7 @@ TESTING_MKDOCS_LINTER: str = f"{ TESTS_LOCATION }test_docs/mkdocs_linter/"
 TESTING_ENV_PATH_DJANGO: str = f"{ TESTS_LOCATION }test_django/.env"
 
 # git and Github
-REPO_NAME: str = "clinical-safety-hazard-documentation"
+REPO_NAME: str = "digital-clinical-safety-platform"
 ISSUE_LABELS_PATH: str = "/dcsp/app/dcsp/app/functions/labels.yml"
 REPO_PATH_LOCAL: str = "/dcsp"
 
@@ -112,5 +112,5 @@ An analysis of the Causes of the Hazard
 """
 
 # Testing git and GitHub
-TESTING_ENV_PATH_GIT: str = f"{ TESTS_LOCATION }git_control/"
-TESTING_ENV_PATH_GIT_FULL: str = f"{ TESTS_LOCATION }git_control/.env"
+TESTING_ENV_PATH_GIT_DIR_ONLY: str = f"{ TESTS_LOCATION }git_control/"
+TESTING_ENV_PATH_GIT: str = f"{ TESTS_LOCATION }git_control/.env"
