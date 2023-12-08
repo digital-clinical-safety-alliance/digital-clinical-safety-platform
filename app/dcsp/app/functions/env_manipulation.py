@@ -85,5 +85,30 @@ class ENVManipulator:
             str: value of the variable. This will return empty string ("")
                  if the variable has not been set.
         """
-        dot_values = dotenv_values(self.env_path)
+        dot_values: dict[str, str | None] = dotenv_values(self.env_path)
         return str(dot_values.get(key_to_read) or "")
+
+    def read_all(self) -> dict[str, str]:
+        """Reads all variables from env file
+
+        Reads all variable from an env file and returns with keys in alphabetical
+        order.
+
+        Returns:
+            dict[str, str]: returns all variables in the env file. This will
+                            return empty string ("") if the variable has not been
+                            set.
+        """
+        dot_values_raw: dict[str, str | None] = dotenv_values(self.env_path)
+        dot_values_clean: dict[str, str] = {}
+        key: str = ""
+        value: str | None = ""
+        sorted_dict: dict[str, str]
+
+        for key, value in dot_values_raw.items():
+            dot_values_clean[key] = str(value or "")
+
+        keys_list = list(dot_values_clean.keys())
+        keys_list.sort(key=str.lower)
+        sorted_dict = {i: dot_values_clean[i] for i in keys_list}
+        return sorted_dict

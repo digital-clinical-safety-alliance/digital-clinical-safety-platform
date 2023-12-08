@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block main %}
+  <div class="col-md-6 mx-auto">
+    <div class="{{FORM_ELEMENTS_MAX_WIDTH}}">
+      <h1>
+        Please log your hazard here
+      </h1>
+    <div class="text-secondary mb-2">
+      Enter details of the hazard here. On pressing submit, these will be added to Github to then
+      be actioned.
+    </div>
+
+    {% include "error_summary.html" %}
+
+    <form action="/log_hazard" method="post">
+        {% csrf_token %}
+      
+        {% for field in form %}
+        <div class="nhsuk-form-group">
+          <label class="nhsuk-label" for="id_{{ field.name }}">
+            {{ field.label }}
+          </label>
+          {{ field }}
+        </div>
+        {% endfor %}
+        
+        <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
+          Submit
+        </button>
+        
+      </form>
+    </div>
+  </div>
+{% endblock %}

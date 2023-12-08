@@ -52,3 +52,13 @@ class ENVManipulatorTest(TestCase):
         set_key(c.TESTING_ENV_PATH_MKDOCS, "key1", d.VALUE1)
         em = ENVManipulator(c.TESTING_ENV_PATH_MKDOCS)
         self.assertEqual(d.VALUE1, em.read("key1"))
+
+    def test_read_all(self):
+        # Clears out the contents
+        open(c.TESTING_ENV_PATH_MKDOCS, "w").close()
+        # Adds out of order to check return string is in alphabetical order
+        set_key(c.TESTING_ENV_PATH_MKDOCS, "key1", d.VALUE1)
+        set_key(c.TESTING_ENV_PATH_MKDOCS, "key3", d.VALUE3)
+        set_key(c.TESTING_ENV_PATH_MKDOCS, "key2", d.VALUE2)
+        em = ENVManipulator(c.TESTING_ENV_PATH_MKDOCS)
+        self.assertEqual(em.read_all(), d.READ_ALL_RETURN)

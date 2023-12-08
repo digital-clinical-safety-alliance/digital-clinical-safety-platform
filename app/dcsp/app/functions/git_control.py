@@ -427,7 +427,7 @@ class GitController:
             child.wait()
         return True
 
-    def log_hazard(self, title: str, body: str, labels: list[str]) -> None:
+    def hazard_log(self, title: str, body: str, labels: list[str]) -> None:
         """Uses GitHub issues to log a new hazard
 
         Hazards are logged as issues on GitHub
@@ -527,7 +527,7 @@ class GitController:
 
         return False
 
-    def open_hazards(self) -> list[dict[str, Any]]:
+    def hazards_open(self) -> list[dict[str, Any]]:
         """Returns a list of open hazards on GitHub
 
         Grabs open hazards (which are actually GitHub Issues) from GitHub
@@ -538,7 +538,7 @@ class GitController:
             ValueError: if error with accessing the repository
         """
         g: Github
-        open_hazards: list[dict[str, Any]] = []
+        hazards_open: list[dict[str, Any]] = []
         label_list: list = []
         issue: Any
         open_issues: PaginatedList.PaginatedList
@@ -560,7 +560,7 @@ class GitController:
             label_list.clear()
             for label in issue.labels:
                 label_list.append(label.name)
-            open_hazards.append(
+            hazards_open.append(
                 {
                     "number": issue.number,
                     "title": issue.title,
@@ -568,7 +568,7 @@ class GitController:
                     "labels": label_list.copy(),
                 }
             )
-        return open_hazards
+        return hazards_open
 
     def repo_domain_name(self) -> str:
         """Domain name set

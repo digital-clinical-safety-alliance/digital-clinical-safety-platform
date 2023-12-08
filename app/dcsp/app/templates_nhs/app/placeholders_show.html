@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block main %}
+<legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l">
+  <h1 class="nhsuk-fieldset__heading">
+    Please enter placeholders
+  </h1>
+</legend>
+
+{% include "error_summary.html" %}
+
+<form action="/" method="post">
+    {% csrf_token %}
+
+    {% for field in form %}
+    <div class="nhsuk-form-group">
+      <label class="nhsuk-label" for="id_{{ field.name }}">
+        <a name="{{ field.label }}"></a>{{ field.label }} ({{ field.name }})
+      </label>
+      {{ field }}
+    </div>
+    {% endfor %}
+
+    <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
+      Submit
+    </button>
+    
+  </form>
+
+  
+    
+{% endblock %}

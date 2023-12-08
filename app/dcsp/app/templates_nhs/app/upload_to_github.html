@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block main %}
+<legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l" style="width:100%">
+    <h1 class="nhsuk-fieldset__heading" style="width:100%">
+      Upload to Github
+    </h1>
+</legend>
+
+<div class="nhsuk-hint" id="contact-hint">
+  Please enter a comment and then press submit to upload to github
+</div>
+
+<form action="/upload_to_github" method="post">
+    {% csrf_token %}
+
+    {% for field in form %}
+      {% if field.errors %}
+        <div class="nhsuk-form-group nhsuk-form-group--error">
+        {% endif %}
+          <div class="nhsuk-form-group">
+            <label class="nhsuk-label" for="id_{{ field.name }}" id="id_label_{{ field.name }}">
+              <a name="{{ field.label }}"></a>{{ field.label | safe }}
+            </label>
+            {{ field }}
+          </div>
+        {% if field.errors %}
+        </div>
+      {% endif %}
+    {% endfor %}
+
+    <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
+        SUBMIT
+    </button>
+</form>
+{% endblock %}

@@ -262,34 +262,35 @@ class GitControllerTest(TestCase):
     def test_commit_and_push_already_committed(self):
         pass
 
-    def test_log_hazard(self):
+    def test_hazard_log(self):
         gc = GitController(
             github_repo=d.REPO_NAME_CURRENT,
             env_location=c.TESTING_ENV_PATH_GIT,
         )
-        gc.log_hazard("title", "body", ["hazard"])
+        gc.hazard_log("title", "body", ["hazard"])
+        # TODO - should really check hazard was created
         close_all_issues()
 
-    def test_log_hazard_label_bad(self):
+    def test_hazard_log_label_bad(self):
         gc = GitController(
             github_repo=d.REPO_NAME_CURRENT,
             env_location=c.TESTING_ENV_PATH_GIT,
         )
         with self.assertRaises(ValueError) as error:
-            gc.log_hazard("title", "body", [d.LABEL_NAME_BAD])
+            gc.hazard_log("title", "body", [d.LABEL_NAME_BAD])
 
         self.assertEqual(
             str(error.exception),
             f"'{ d.LABEL_NAME_BAD}' is not a valid hazard label. Please review label.yml for available values.",
         )
 
-    def test_log_hazard_repo_bad(self):
+    def test_hazard_log_repo_bad(self):
         gc = GitController(
             github_repo=d.REPO_BAD_NAME,
             env_location=c.TESTING_ENV_PATH_GIT,
         )
         with self.assertRaises(ValueError) as error:
-            gc.log_hazard("title", "body", ["hazard"])
+            gc.hazard_log("title", "body", ["hazard"])
 
         dot_values = dotenv_values(c.TESTING_ENV_PATH_GIT)
         self.assertEqual(
@@ -347,27 +348,27 @@ class GitControllerTest(TestCase):
         gc = GitController(env_location=c.TESTING_ENV_PATH_GIT)
         self.assertFalse(gc.verify_hazard_label("hazard2"))
 
-    def test_open_hazards(self):
+    def test_hazards_open(self):
         gc = GitController(
             github_repo=d.REPO_NAME_CURRENT,
             env_location=c.TESTING_ENV_PATH_GIT,
         )
-        gc.log_hazard("title", "body", ["hazard"])
+        gc.hazard_log("title", "body", ["hazard"])
 
-        open_hazard = gc.open_hazards()[0]
+        open_hazard = gc.hazards_open()[0]
         self.assertTrue(open_hazard["title"], "title")
         self.assertTrue(open_hazard["body"], "body")
         self.assertTrue(open_hazard["labels"], {"hazard"})
         close_all_issues()
 
-    def test_open_hazards_repo_bad(self):
+    def test_hazards_open_repo_bad(self):
         gc = GitController(
             github_repo=d.REPO_BAD_NAME,
             env_location=c.TESTING_ENV_PATH_GIT,
         )
 
         with self.assertRaises(ValueError) as error:
-            gc.log_hazard("title", "body", ["hazard"])
+            gc.hazard_log("title", "body", ["hazard"])
 
         dot_values = dotenv_values(c.TESTING_ENV_PATH_GIT)
         self.assertEqual(
@@ -388,9 +389,9 @@ class GitControllerTest(TestCase):
             github_repo=d.REPO_NAME_CURRENT,
             env_location=c.TESTING_ENV_PATH_GIT,
         )
-        gc.log_hazard("title", "body", ["hazard"])
+        gc.hazard_log("title", "body", ["hazard"])
 
-        hazard_number = gc.open_hazards()[0]["number"]
+        hazard_number = gc.hazards_open()[0]["number"]
         gc.add_comment_to_hazard(
             hazard_number=hazard_number, comment="a comment"
         )

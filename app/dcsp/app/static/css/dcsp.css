@@ -1,127 +1,54 @@
-.title-div{
-  font-size: 30px;
-  font-weight: bold;
-  padding: 0px
-}
-
-.formWrapper {
-  margin: 0px;
-}
-
-.row {
-  display: flex;
-  flex-direction: row;
-}
-
-.columnL {
-  display: flex;
-  flex-direction: column;
-  flex-basis: 100%;
-  flex: 1;
-  text-align: left;
-  padding-right: 5px;
-  padding-bottom: 10px;
-}
-
-.columnR {
-  display: flex;
-  flex-direction: column;
-  flex-basis: 100%;
-  flex: 1;
-  padding-bottom: 10px;
-}
-
-.barColumnL {
-  display: flex;
-  flex-direction: column;
-  flex-basis: 100%;
-  flex: 1;
-  text-align: right;
-  padding-right: 5px;
-  padding-bottom: 0px;
-}
-
-.barColumnR {
-  display: flex;
-  flex-direction: column;
-  flex-basis: 100%;
-  flex: 2;
-  padding-bottom: 0px;
-}
-
-.requestsSelected{
-  font-size: 20px;
-  text-align: center;
-  padding-bottom: 10px;
-}
-
-label {
-  font-size: 20px;
-}
-
-.inputLarge {
-  zoom: 1.5;
-  max-width: 300px;
-}
-
-.high {
-  min-height: 50px;
-}
-
-.radioTitle {
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.my-class {
-  /* Mobile - Desktop */
-  padding: 10px;
-}
-
-.templateSelect-div-padding {
-  text-align: right;
-  padding: 10px;
-}
-
-.subtitleBar {
-
-}
-
-.templateSelect {
-  zoom: 1.5;
-  min-width: 100px;
-  max-width: 300px;
-}
-
-/* These are enforced when screen is larger */
-@media only screen and (min-width: 600px) {
-  /* Tablet - Desktop */
-  /* It will overwrite the other less specific classes padding */
-  .templateSelect-div-padding {
+.main_container {
     padding: 20px;
   }
-  .title-div {
-    font-size: 48px;
-  }
+
+.pad_10 {
+    padding: 10px;
 }
 
+.max-w-800 {
+    max-width: 800px;
+}
 
+.max-w-700 {
+    max-width: 700px;
+}
+
+.max-w-600 {
+    max-width: 600px;
+}
+
+.max-w-400 {
+    max-width: 400px;
+}
+
+.max-w-200 {
+    max-width: 200px;
+}
+
+.max-w-100 {
+    max-width: 100px;
+}
+
+.max-w-50 {
+    max-width: 50px;
+}
 
 /* For the loading animation */
 .loading-container {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1;
-}
-
-.loader {
-  width: 120px;
-  height: 120px;
-}
-
-/* Hide the loader when the page is loaded */
-body.loaded .loading-container {
-  display: none;
-}
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+  }
+  
+  .loader {
+    width: 120px;
+    height: 120px;
+  }
+  
+  /* Hide the loader when the page is loaded */
+  body.loaded .loading-container {
+    display: none;
+  }

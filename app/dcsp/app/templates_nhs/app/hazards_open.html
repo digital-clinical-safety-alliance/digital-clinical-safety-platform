@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block main %}
+<legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l">
+  <h1 class="nhsuk-fieldset__heading">
+    Open hazards
+  </h1>
+</legend>
+
+{% for hazard in hazards_open %}
+  <div class="nhsuk-form-group">
+    {% for key, value in hazard.items %}
+      <label class="nhsuk-label" for="id_{{ field.name }}">
+        {{ key|title }}
+      </label>
+      {{ value }}
+    {% endfor %}
+    </br>
+    {% for key, value in hazard.items %}
+      {% if key == "number" %}
+        <a href="/hazard_comment/{{ value }}">Add comment to hazard</a>
+      {% endif %}
+    {% endfor %}  
+  </div>
+{% endfor %}
+
+<!--<form action="/log_hazard" method="post">
+    {% csrf_token %}
+    <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
+      Submit
+    </button>
+  </form>-->
+
+{% endblock %}

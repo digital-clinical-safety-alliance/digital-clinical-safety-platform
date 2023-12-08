@@ -1,359 +1,170 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Build consistent, accessible user interfaces. Learn from the research and experience of other NHS digital teams." />
-
-    <title>DCSP</title>
-
-    <!-- used compiled NHS components from: https://github.com/nhsuk/nhsuk-frontend/blob/main/docs/installation/installing-compiled.md-->
-
-    <!-- Styles -->
-    <link rel="stylesheet" href="/static/css/nhsuk-6.1.2.min.css">
-    
-    <!-- Styles -->
+<head>
+    <title>Digital Clinical Safety Plateform</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="/static/bootstrap-5.3.2-dist/css/bootstrap.css">
     <link rel="stylesheet" href="/static/css/dcsp.css">
 
-    <!-- Scripts -->
-    <script src="/static/js/nhsuk-6.1.2.min.js" defer></script>
 
-    <link rel="stylesheet" href="https://service-manual.nhs.uk/css/main.css">
-
-    <script src="https://service-manual.nhs.uk/js/main.min.js" defer></script>
-
-    <!-- Cookie consent -->
-    <script src="https://service-manual.nhs.uk/js/cookies.min.js" data-policy-url="/cookie-policy" defer></script>
-
-    <!-- Adobe Analytics -->
-    
-    <!-- Data Layer -->
-    <script>
-    window.digitalData = {"page":{"pageInfo":{"pageName":"nhs:manual:design-system"},"category":{"primaryCategory":"design-system"}}};
-    </script>
-
-    <script src="https://assets.adobedtm.com/launch-ENe7f6cdd7cc05409b86547d9153429788.min.js" type="text/plain" data-cookieconsent="statistics" async></script>
-    
-    
-    <!--<script>
-      document.addEventListener('DOMContentLoaded', function() {
-        // Your function or code here
-        update_web_view();
-      });
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script>
-      function update_web_view() {
-        var text_md = document.getElementById("id_text_md");
-        var web_view = document.getElementById("id_web_view");
-        event = new Event('change');
-        web_view.innerHTML = marked.parse(text_md.value);
-        web_view.dispatchEvent(event);
-
-        matchHeight();
-      };
-  
-    // Function to match the height of a textarea and a div
-    function matchHeight() {
-        var div = document.getElementById('id_web_view');
-        var textarea = document.getElementById('id_text_md');
-
-        // Set the height of the div and textarea to auto to reset their heights
-        div.style.height = 'auto';
-        textarea.style.height = 'auto';
-
-        // Get the updated heights after resetting
-        var divHeight = div.scrollHeight;
-        var textareaHeight = textarea.scrollHeight;
-
-        // Set the height of both elements to the maximum of their heights
-        var maxHeight = Math.max(divHeight, textareaHeight);
-        div.style.height = maxHeight + 'px';
-        textarea.style.height = maxHeight + 'px'; 
-      }
-
-      //window.onload = function() {
-      //  update_web_view();
-        //var div = document.getElementById('id_web_view');
-        //div.style.hidden = false;
-        //var textarea = document.getElementById('id_text_md');
-        //textarea.style.hidden = false;
-      //}
-    </script>-->
-
-
-    <!-- Verify domain with Google -->
-    <meta name="google-site-verification" content="Prj4LS7KX0amTkqVrOlnEyldVIjzJqbnXgPL1zbHocM" />
-
-    <link href="https://www.nhs.uk/" rel="preconnect">
-    <link href="https://assets.nhs.uk/" rel="preconnect" crossorigin>
-
-    <!-- Favicons -->
     <link rel="shortcut icon" href="/static/assets/favicons/favicon.ico" type="image/x-icon">
     <link rel="apple-touch-icon" href="/static/assets/favicons/favicon.ico">
     <link rel="mask-icon" href="/static/assets/favicons/favicon.ico" color="#005eb8">
     <link rel="icon" href="/static/assets/favicons/favicon-192x192.png">
-    <meta name="msapplication-TileImage" content="/static/assets/favicons/mediumtile-144x144.png">
-    <meta name="msapplication-TileColor" content="#005eb8">
-    <meta name="msapplication-square70x70logo" content="/static/assets/favicons/smalltile-70x70.png">
-    <meta name="msapplication-square150x150logo" content="/static/assets/favicons/mediumtile-150x150.png">
-    <meta name="msapplication-wide310x150logo" content="/static/assets/favicons/widetile-310x150.png">
-    <meta name="msapplication-square310x310logo" content="/static/assets/favicons/largetile-310x310.png">
+</head>
+<body class="bg-info bg-gradient bg-opacity-25">
 
-    <meta property="og:url" content="https://service-manual.nhs.uk"/>
-    <meta property="og:site_name" content="nhs.uk"/>
-    <meta property="og:title" content="Design system - NHS digital service manual"/>
-    <meta property="og:description" content="Build consistent, accessible user interfaces. Learn from the research and experience of other NHS digital teams."/>
-    <meta property="og:type" content="website"/>
-    <meta property="og:locale" content="en_GB"/>
-    <meta property="og:image" content="https://service-manual.nhs.uk/assets/open-graph_design_system.png" />
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@nhsuk">
-    <meta name="twitter:creator" content="@nhsuk">
-    <meta name="twitter:image:alt" content="nhs.uk">
-
-  </head>
-
-  <body>
-    <script>document.body.className = ((document.body.className) ? document.body.className + ' js-enabled' : 'js-enabled');</script>
-
-    <a class="nhsuk-skip-link" href="#maincontent">Skip to main content</a>
-      <header class="nhsuk-header" role="banner">
-        <div class="nhsuk-width-container nhsuk-header__container app-width-container">
-          <div class="nhsuk-header__logo"><a class="nhsuk-header__link nhsuk-header__link--service " href="/" aria-label="NHS digital service manual homepage">
-            <img src="/static/assets/favicons/favicon.ico" alt="DCSP icon" style="width:50px;height:50px;">
-              <span class="nhsuk-header__service-name">
-                <span class="nhsuk-header__service-name"></span>
-                Digital Clinical Safety Platform
-              </span>
-            </a>
-        </div>
-
-    <div class="nhsuk-header__content" id="content-header">
-
-      <div class="nhsuk-header__menu">
-        <button class="nhsuk-header__menu-toggle" id="toggle-menu" aria-controls="header-navigation" aria-expanded="false">Menu</button>
-      </div>
-        <button class="nhsuk-header__search-toggle" id="toggle-search" aria-controls="search" aria-label="Open search">
-          <svg class="nhsuk-icon nhsuk-icon__search" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" height="40" width="100">
-            <path d="M19.71 18.29l-4.11-4.1a7 7 0 1 0-1.41 1.41l4.1 4.11a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42zM5 10a5 5 0 1 1 5 5 5 5 0 0 1-5-5z"></path>
-          </svg>
-          {{ test }}
-          <span class="nhsuk-u-visually-hidden">Search</span>
-        </button>
-        <div class="nhsuk-header__search-wrap" id="wrap-search">
-          <form class="nhsuk-header__search-form" id="search" action="/search/" method="get" role="search">
-            <label class="nhsuk-u-visually-hidden" for="search-field">Search the NHS website</label>
-            <div class="autocomplete-container" id="autocomplete-container"></div>
-            <input class="nhsuk-search__input" id="search-field" name="search-field" type="search" placeholder="Search" autocomplete="off">
-
-            <button class="nhsuk-search__submit" type="submit">
-              <svg class="nhsuk-icon nhsuk-icon__search" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" width="27" height="27">
-                <path d="M19.71 18.29l-4.11-4.1a7 7 0 1 0-1.41 1.41l4.1 4.11a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42zM5 10a5 5 0 1 1 5 5 5 5 0 0 1-5-5z"></path>
-              </svg>
-              <span class="nhsuk-u-visually-hidden">Search</span>
-            </button>
-            <button class="nhsuk-search__close" id="close-search">
-              <svg class="nhsuk-icon nhsuk-icon__close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" width="27" height="27">
-                <path d="M13.41 12l5.3-5.29a1 1 0 1 0-1.42-1.42L12 10.59l-5.29-5.3a1 1 0 0 0-1.42 1.42l5.3 5.29-5.3 5.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l5.29-5.3 5.29 5.3a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42z"></path>
-              </svg>
-              <span class="nhsuk-u-visually-hidden">Close search</span>
-            </button>
-          </form>
-        </div>
-      </div>
+  <!-- Loading animation -->
+  <div class="loading-container">
+    <div class="loader">
+      <object type="image/svg+xml" data="/static/assets/gifs/Loading SD.svg">
+        <img src="/static/assets/gifs/Loading SD.svg" />
+      </object>
     </div>
+  </div>
 
-      <nav class="nhsuk-header__navigation app-header__navigation" id="header-navigation" role="navigation" aria-label="Primary navigation" aria-labelledby="label-navigation">
-        <div class="nhsuk-width-container app-width-container">
-          <p class="nhsuk-header__navigation-title"><span id="label-navigation">Menu</span>
-            <button class="nhsuk-header__navigation-close" id="close-menu">
-              <svg class="nhsuk-icon nhsuk-icon__close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M13.41 12l5.3-5.29a1 1 0 1 0-1.42-1.42L12 10.59l-5.29-5.3a1 1 0 0 0-1.42 1.42l5.3 5.29-5.3 5.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l5.29-5.3 5.29 5.3a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42z"></path>
-              </svg>
-              <span class="nhsuk-u-visually-hidden">Close menu</span>
-            </button>
-          </p>
-          <ul class="nhsuk-header__navigation-list">
-            <li class="nhsuk-header__navigation-item nhsuk-header__navigation-item--for-mobile">
-              <a class="nhsuk-header__navigation-link" href="/">
-                Home
-                <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" width="27" height="27">
-                  <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
-                </svg>
+  <nav class="navbar navbar-expand-lg bg-primary bg-gradient border border-black">
+    <div class="container-fluid">
+      <a class="navbar-brand pad_10" href="/">
+        <img src="/static/assets/favicons/favicon.ico" alt="DCSP icon" style="width:50px;height:50px;">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            {% if mkdoc_running %}
+              <a class="nav-link" href="/mkdoc_redirect/home" >
+                MKDOC
               </a>
-            </li>
-            
-            <li class="nhsuk-header__navigation-item">
-              {% if mkdoc_running %}
-                <a class="nhsuk-header__navigation-link" href="/mkdoc_redirect/home" >
-                  MKDOC
-                  <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"  width="34" height="34">
-                    <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
-                  </svg>
-                </a>
-              {% else %}
-                <div class="nhsuk-header__navigation-link" style="text-decoration: line-through">MKDOC</div>
-              {% endif %}
-            </li>
-            
-            <li class="nhsuk-header__navigation-item">
-              {% if docs_available %}
-              <a class="nhsuk-header__navigation-link" href="/edit_md" >
+            {% else %}
+              <div class="nav-link disabled">
+                MKDOC
+              </div>
+            {% endif %}
+          </li>
+          <li class="nav-item">
+            {% if mkdoc_running %}
+              <a class="nav-link" href="/md_edit">
                 Edit documents
-                <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"  width="34" height="34">
-                  <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
-                </svg>
               </a>
             {% else %}
-              <div class="nhsuk-header__navigation-link" style="text-decoration: line-through">Edit documents</div>
+              <div class="nav-link disabled">
+                Edit documents
+              </div>
             {% endif %}
-            </li>
-
-            {% if docs_available %}
-              <a class="nhsuk-header__navigation-link" href="/log_hazard" >
+          </li>
+          <li class="nav-item">
+            {% if mkdoc_running %}
+              <a class="nav-link" href="/hazard_log">
                 Log hazard
-                <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"  width="34" height="34">
-                  <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
-                </svg>
               </a>
             {% else %}
-              <div class="nhsuk-header__navigation-link" style="text-decoration: line-through">Log hazard</div>
+              <div class="nav-link disabled">
+                Log hazard
+              </div>
             {% endif %}
-            </li>
-            
-            {% if docs_available %}
-              <a class="nhsuk-header__navigation-link" href="/open_hazards" >
+          </li>
+          <li class="nav-item">
+            {% if mkdoc_running %}
+              <a class="nav-link" href="/hazards_open">
                 Open hazards
-                <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"  width="34" height="34">
-                  <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
-                </svg>
               </a>
             {% else %}
-              <div class="nhsuk-header__navigation-link" style="text-decoration: line-through">Open Hazards</div>
+              <div class="nav-link disabled">
+                Open hazards
+              </div>
             {% endif %}
-            
-
-            {% if docs_available %}
-              <a class="nhsuk-header__navigation-link" href="/upload_to_github" >
+          </li>
+          <li class="nav-item">
+            {% if mkdoc_running %}
+              <a class="nav-link" href="/upload_to_github">
                 Upload to Github
-                <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"  width="34" height="34">
-                  <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
-                </svg>
               </a>
             {% else %}
-              <div class="nhsuk-header__navigation-link" style="text-decoration: line-through">Upload to Github</div>
+              <div class="nav-link disabled">
+                Upload to Github
+              </div>
             {% endif %}
- 
-          </ul>
-        </div>
-      </nav>
-    </header>
-
-    
-    <div class="nhsuk-width-container app-width-container">
-      <main class="nhsuk-main-wrapper app-main-wrapper" id="maincontent" role="main">
-        <div class="nhsuk-grid-row">
-          <div class="nhsuk-grid-column-full app-component-reading-width">
-            <div id="mainBody">
-              <!-- Loading animation -->
-              <div class="loading-container">
-                <div class="loader">
-                  <object type="image/svg+xml" data="/static/assets/gifs/Loading SD.svg">
-                    <img src="/static/assets/gifs/Loading SD.svg" />
-                  </object>
-                  <!---<img src="/static/assets/gifs/Loading SD.svg" alt="Loading gif">-->
-                </div>
-              </div>
-
-              <div class="fade-out-element">
-                {% if messages %}
-                  <div style="background-color: #78BE20; padding:10px">
-                    <ul style="max-width: 100%">
-                      {% for message in messages %}
-                        <div class="nhsuk-fieldset__heading" style="width:100%">
-                          <strong><li>{{ message }}</li></strong>
-                        </div>
-                      {% endfor %}
-                    </ul>
-                  </div>
-                  <div style="height:20px"></div>
-                {% endif %}
-
-                  {% block main %}{% endblock %}
-                  {% if START_AFRESH %}
-                    Developer: <a href="/start_afresh">Start afresh!</a>
-                  {% endif %}
-              </div>
-              
-
-
-              <script>
-                var element = document.querySelector('.fade-out-element'); 
-                function fadeOut(el) {
-                  var opacity = 1; // Initial opacity
-                  var interval = setInterval(function() {
-                      if (opacity > 0) {
-                        opacity -= 0.1;
-                        el.style.opacity = opacity;
-                      } else {
-                        clearInterval(interval); // Stop the interval when opacity reaches 0
-                        //el.style.display = 'none'; // Hide the element
-                      }
-                  }, 50);
-                }
-              </script>
-
-              <script>
-                document.body.classList.add('loaded');
-                window.onbeforeunload = function(e){
-                  document.querySelector('.loading-container').style.display = 'block'
-                  fadeOut(element);
-                }
-              </script>
-
-            </div>
-          </div>
-        </div>
-      </main>
+          </li>
+        </ul>
+      </div>
     </div>
-
-    
-
-    <footer role="contentinfo">
-      <div class="nhsuk-footer" id="nhsuk-footer">
-        <div class="nhsuk-width-container app-width-container">
-          <h2 class="nhsuk-u-visually-hidden">Support links</h2>
-          <ul class="nhsuk-footer__list app-footer__list">
-            <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="/accessibility-statement">Accessibility statement</a></li>
-            <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="/cookie-policy">Cookie policy</a></li>
-            <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="/get-in-touch">Get in touch</a></li>
-            <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="/service-manual-team">Service manual team</a></li>
-            <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="/site-map">Site map</a></li>
-            <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="/terms-and-conditions">Terms and conditions</a></li>
-            <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="/whats-new">What's new</a></li>
-            <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="/your-privacy">Your privacy</a></li>
-          </ul>
-          <p class="nhsuk-footer__copyright">&copy; Crown copyright</p>
+  </nav>
+  
+  <div class="fade-out-element"> 
+    <div class="main_container">
+      
+      <div class="col-md-6 mx-auto">
+        <div class="{{FORM_ELEMENTS_MAX_WIDTH}}">
+          {% if messages %}
+            <div class="p-3 mb-3 text-bg-warning rounded-3 {{ FORM_ELEMENTS_MAX_WIDTH }}">
+              <ul style="max-width: 100%">
+                {% for message in messages %}
+                  <div style="width:100%">
+                    <strong><li>{{ message }}</li></strong>
+                  </div>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
         </div>
       </div>
-      <div class="app-ogl-footer">
-        <div class="nhsuk-width-container app-width-container">
-          <p class="app-ogl-footer--text">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 483.2 195.7" height="17" width="41" focusable="false" >
-              <path fill="currentColor" d="M421.5 142.8V.1l-50.7 32.3v161.1h112.4v-50.7zm-122.3-9.6A47.12 47.12 0 0 1 221 97.8c0-26 21.1-47.1 47.1-47.1 16.7 0 31.4 8.7 39.7 21.8l42.7-27.2A97.63 97.63 0 0 0 268.1 0c-36.5 0-68.3 20.1-85.1 49.7A98 98 0 0 0 97.8 0C43.9 0 0 43.9 0 97.8s43.9 97.8 97.8 97.8c36.5 0 68.3-20.1 85.1-49.7a97.76 97.76 0 0 0 149.6 25.4l19.4 22.2h3v-87.8h-80l24.3 27.5zM97.8 145c-26 0-47.1-21.1-47.1-47.1s21.1-47.1 47.1-47.1 47.2 21 47.2 47S123.8 145 97.8 145"></path>
-            </svg>
-            All content is available under the <a class="nhsuk-footer__list-item-link" href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" rel="license">Open Government Licence v3.0</a>, except where otherwise stated.
-          </p>
-        </div>
-      </div>
-    </footer>
 
 
+      {% block main %}{% endblock %}
+
+
+      {% if START_AFRESH %}
+        Developer: <a href="/start_afresh">Start afresh!</a>
+      {% endif %}
+      
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      Extras
+    </div>
+    <div class="card-body">
+      <h5 class="card-title">Watch this place</h5>
+      <p><a href="/" class="card-link">Placeholder 1</a></p>
+      <p><a href="/" class="card-link">Placeholder 2</a></p>
+      <p><a href="/" class="card-link">Placeholder 3</a></p>
+      
+    </div>
+  </div>
+
+  <script>
+    var element = document.querySelector('.fade-out-element'); 
+    function fadeOut(el) {
+      var opacity = 1; // Initial opacity
+      var interval = setInterval(function() {
+          if (opacity > 0) {
+            opacity -= 0.1;
+            el.style.opacity = opacity;
+          } else {
+            clearInterval(interval); // Stop the interval when opacity reaches 0
+            //el.style.display = 'none'; // Hide the element
+          }
+      }, 50);
+    }
+  </script>
+
+  <script>
+    document.body.classList.add('loaded');
+    window.onbeforeunload = function(e){
+      document.querySelector('.loading-container').style.display = 'block'
+      fadeOut(element);
+    }
+  </script>   
     
+  <!-- Bootstrap JavaScript -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+  <script src="/static/bootstrap-5.3.2-dist/js/bootstrap.js"></script>
+
   </body>
 </html>

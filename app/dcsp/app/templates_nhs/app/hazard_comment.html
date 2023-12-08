@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block main %}
+<!--<script>
+  function update_web_view() {
+    var comment = document.getElementById("id_comment");
+
+    comment.style.height = 'auto';
+
+    var commentHeight = comment.scrollHeight;
+    comment.style.height = commentHeight + 'px'; 
+    console.log("hello");
+  };
+</script>-->
+
+<script>
+  function update_web_view() {
+    var textbox = document.getElementById('id_comment');
+    var currentHeight = textbox.style.height
+    // Reset the height to the default value (to handle text removal)
+    
+    console.log('Current height: ' + currentHeight)
+    console.log('Potential new height:' + textbox.scrollHeight + 'px')
+    if (currentHeight != textbox.scrollHeight + 'px'){
+      textbox.style.height = 'auto';
+      textbox.style.height = textbox.scrollHeight + 'px';
+    }
+    // Set the height to the scrollHeight, which is the content height
+    
+  }
+</script>
+
+<legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l">
+  <h1 class="nhsuk-fieldset__heading">
+    Comment on hazard
+  </h1>
+</legend>
+<div class="nhsuk-hint" id="contact-hint">
+  Comment on hazard below and then submit
+</div>
+
+{% include "error_summary.html" %}
+
+<form action="/hazard_comment/{{ hazard_number }}" method="post">
+    {% csrf_token %}
+
+      <div class="nhsuk-form-group">
+        {% for key, value in open_hazard.items %}
+          <label class="nhsuk-label" for="id_{{ field.name }}">
+            {{ key|title }}
+          </label>
+          {{ value }}
+        {% endfor %}
+        </br>
+        {% for key, value in hazard.items %}
+          {% if key == "number" %}
+            <a href="/hazard_comment/{{ value }}">Add comment to hazard</a>
+          {% endif %}
+        {% endfor %}  
+      </div>
+
+    
+    {% for field in form %}
+    <div class="nhsuk-form-group">
+      <label class="nhsuk-label" for="id_{{ field.name }}">
+        {{ field.label }}
+      </label>
+      {{ field }}
+    </div>
+    {% endfor %}
+    
+    <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
+      Submit
+    </button>
+    
+  </form>
+
+  <script>
+    // Need this function call here to stop page jittering
+    update_web_view();
+  </script>
+{% endblock %}

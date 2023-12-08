@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block main %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<script>
+  function update_web_view() {
+    var md_text = document.getElementById("id_md_text");
+    var web_view = document.getElementById("id_web_view");
+    event = new Event('change');
+    web_view.innerHTML = marked.parse(md_text.value);
+    web_view.dispatchEvent(event);
+
+    web_view.style.height = 'auto';
+    md_text.style.height = 'auto';
+
+    var web_viewHeight = web_view.scrollHeight;
+    var md_textHeight = md_text.scrollHeight;
+
+    var maxHeight = Math.max(web_viewHeight, md_textHeight);
+    web_view.style.height = maxHeight + 'px';
+    md_text.style.height = maxHeight + 'px'; 
+  };
+</script>
+
+
+<legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l">
+  <h1 class="nhsuk-fieldset__heading">
+    Markdown edit
+  </h1>
+</legend>
+<div class="nhsuk-hint" id="contact-hint">
+  Please note: you cannot add placeholders in the meta field (eg between the '---' markers)
+</div>
+<div class="nhsuk-hint" id="contact-hint">
+  Add a new page <a href="/md_new">here</a>
+</div>
+
+{% include "error_summary.html" %}
+
+<form action="/md_edit" method="post">
+  {% csrf_token %}
+  <div class="nhsuk-form-group">
+    {{ MDFileSelectForm }}
+  </div>
+</form>
+
+<form action="/md_saved" method="post">
+  {% csrf_token %}
+
+  <input type="hidden" id="id_document_name" value="{{ document_name }}">
+
+  <div class='formWrapper'>
+    <div class='row'>
+      <div class='columnL'>
+        <div class="nhsuk-form-group">
+          <label class="nhsuk-label" for="id_md_text">
+            <b>Markdown</b>
+          </label>
+          {{ md_text }}
+        </div>
+      </div>
+      <div class='columnR'>
+        <div class="nhsuk-form-group">
+          <label class="nhsuk-label" for="id_web_view">
+            <b>Web view</b>
+          </label>
+          <div class="nhsuk-textarea" style="background-color:white;" id="id_web_view">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
+    Save
+  </button>
+    
+</form>
+
+  <script>
+    // Need this function call here to stop page jittering
+    update_web_view();
+  </script>
+    
+{% endblock %}

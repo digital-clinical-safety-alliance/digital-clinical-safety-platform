@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="col-md-6 mx-auto">
+  <div class="{{FORM_ELEMENTS_MAX_WIDTH}}">
+    <h1 class="nhsuk-fieldset__heading">
+      Open hazards
+    </h1>
+
+
+    {% for hazard in hazards_open %}
+      <div class="mb-3">
+        {% for key, value in hazard.items %}
+          <label class="form-label" for="id_{{ field.name }}">
+            <strong>{{ key|title }}:</strong>
+          </label>
+          <div class="text-break">
+            {{ value }}
+          </div>
+          </br>
+        {% endfor %}
+        
+        {% for key, value in hazard.items %}
+          {% if key == "number" %}
+            <a href="/hazard_comment/{{ value }}">Add comment to hazard</a>
+          {% endif %}
+        {% endfor %}  
+      </div>
+    {% endfor %}
+
+    <!--<form action="/log_hazard" method="post">
+        {% csrf_token %}
+        <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
+          Submit
+        </button>
+      </form>-->
+    </div>
+  </div>
+{% endblock %}

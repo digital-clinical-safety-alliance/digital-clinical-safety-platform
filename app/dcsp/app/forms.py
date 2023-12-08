@@ -40,7 +40,7 @@ class InstallationForm(forms.Form):
         choices=CHOICES,
         widget=forms.Select(
             attrs={
-                "class": "nhsuk-select",
+                "class": "form-select w-auto",
                 "onChange": "change_visibility()",
             }
         ),
@@ -51,7 +51,7 @@ class InstallationForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "class": "nhsuk-input nhsuk-input--width-30",
+                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
             }
         ),
     )
@@ -61,7 +61,7 @@ class InstallationForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "class": "nhsuk-input nhsuk-input--width-30",
+                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
             }
         ),
     )
@@ -71,7 +71,7 @@ class InstallationForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "class": "nhsuk-input nhsuk-input--width-30",
+                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
             }
         ),
     )
@@ -81,7 +81,7 @@ class InstallationForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "class": "nhsuk-input nhsuk-input--width-30",
+                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
             }
         ),
     )
@@ -91,7 +91,7 @@ class InstallationForm(forms.Form):
         required=False,
         widget=forms.PasswordInput(
             attrs={
-                "class": "nhsuk-input nhsuk-input--width-30",
+                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
             }
         ),
     )
@@ -101,7 +101,7 @@ class InstallationForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "class": "nhsuk-input nhsuk-input--width-30",
+                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
             }
         ),
     )
@@ -164,6 +164,13 @@ class InstallationForm(forms.Form):
         if installation_type == "I":
             if " " in code_location:
                 self.add_error("code_location_I", "Invalid path")
+                self.fields["code_location_I"].widget.attrs[
+                    "class"
+                ] = f"form-control is-invalid { c.FORM_ELEMENTS_MAX_WIDTH }"
+            else:
+                self.fields["code_location_I"].widget.attrs[
+                    "class"
+                ] = f"form-control is-valid { c.FORM_ELEMENTS_MAX_WIDTH }"
 
         return cleaned_data
 
@@ -188,7 +195,7 @@ class TemplateSelectForm(forms.Form):
 
         self.fields["template_choice"] = forms.ChoiceField(
             choices=CHOICES,
-            widget=forms.Select(attrs={"class": "nhsuk-select"}),
+            widget=forms.Select(attrs={"class": "form-select w-auto"}),
         )
 
 
@@ -206,9 +213,7 @@ class PlaceholdersForm(forms.Form):
             self.fields[placeholder] = forms.CharField(
                 required=False,
                 initial=value,
-                widget=forms.TextInput(
-                    attrs={"class": "nhsuk-input nhsuk-input--width-30"}
-                ),
+                widget=forms.TextInput(attrs={"class": "form-control"}),
             )
 
     def clean(self) -> dict:
@@ -228,9 +233,9 @@ class PlaceholdersForm(forms.Form):
         return cleaned_data
 
 
-class MDFileSelect(forms.Form):
+class MDFileSelectForm(forms.Form):
     def __init__(self, *args, **kwargs) -> None:
-        super(MDFileSelect, self).__init__(*args, **kwargs)
+        super(MDFileSelectForm, self).__init__(*args, **kwargs)
         choices_list: list = []
         name_with_path: str = ""
         md_files_shortened: list = []
@@ -263,7 +268,10 @@ class MDFileSelect(forms.Form):
         self.fields["mark_down_file"] = forms.ChoiceField(
             choices=CHOICES,
             widget=forms.Select(
-                attrs={"class": "nhsuk-select", "onChange": "form.submit()"}
+                attrs={
+                    "class": "form-select w-auto",
+                    "onChange": "form.submit()",
+                }
             ),
         )
 
@@ -276,13 +284,13 @@ class MDEditForm(forms.Form):
         widget=forms.HiddenInput(attrs={}),
     )
 
-    text_md = forms.CharField(
+    md_text = forms.CharField(
         label="",
         required=False,
         widget=forms.Textarea(
             attrs={
                 "style": "width:100%; overflow:hidden;",
-                "class": "nhsuk-textarea",
+                "class": "form-control",
                 "onkeyup": "update_web_view()",
             }
         ),
@@ -307,7 +315,7 @@ class LogHazardForm(forms.Form):
         self.fields["title"] = forms.CharField(
             widget=forms.TextInput(
                 attrs={
-                    "class": "nhsuk-input nhsuk-input--width-30",
+                    "class": "form-control",
                 }
             ),
         )
@@ -315,7 +323,7 @@ class LogHazardForm(forms.Form):
         self.fields["body"] = forms.CharField(
             widget=forms.Textarea(
                 attrs={
-                    "class": "nhsuk-input nhsuk-input--width-30",
+                    "class": "form-control",
                     "style": "height: 150px",
                 }
             ),
@@ -326,7 +334,7 @@ class LogHazardForm(forms.Form):
             choices=CHOICES,
             widget=forms.SelectMultiple(
                 attrs={
-                    "class": "nhsuk-select",
+                    "class": "form-select w-auto",
                     "style": "height: 150px",
                 }
             ),
@@ -337,7 +345,7 @@ class HazardCommentForm(forms.Form):
     comment = forms.CharField(
         widget=forms.Textarea(
             attrs={
-                "class": "nhsuk-input nhsuk-u-width-full",
+                "class": "form-control",
                 "style": "height: 500px",
                 "onkeyup": "update_web_view()",
             }
@@ -345,11 +353,11 @@ class HazardCommentForm(forms.Form):
     )
 
 
-class UploadToGithub(forms.Form):
+class UploadToGithubForm(forms.Form):
     comment = forms.CharField(
         widget=forms.Textarea(
             attrs={
-                "class": "nhsuk-input nhsuk-input--width-30",
+                "class": "form-control",
                 "style": "height: 150px",
             }
         ),

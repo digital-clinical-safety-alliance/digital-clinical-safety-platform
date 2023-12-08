@@ -1,112 +1,124 @@
 {% extends "base.html" %}
 
 {% block main %}
-<legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l">
-  <h1 class="nhsuk-fieldset__heading">
-    Initial Setup
-  </h1>
-</legend>
-<details class="nhsuk-details nhsuk-expander">
-  <summary class="nhsuk-details__summary">
-    <span class="nhsuk-details__summary-text">
-      How does this all work?
-    </span>
-  </summary>
-  <div class="nhsuk-details__text">
-    <p>The Clinical Safety Hazard Documentation (DCSP) app has been designed to 
-      improved and simplifier the process of documentating the safe design and 
-      implementation of digital health systems.</p>
-    <p>DCSP uses a <a href="https://en.wikipedia.org/wiki/Django_(web_framework)">Django</a>
-      (python based) web app (the one you are using now) to collect 
-      details to initialise your
-      clinical safety documents.
-      Once setup, you will be able to view the documents
-      in an <a href="https://www.mkdocs.org/">mkdoc server</a>. These documents are then available
-      as a static site on Github.</p>
-    <p> What you see on the <b>mkdocs server screen</b> the will
-      be what is displayed on Github. If you need to update placeholders or the prose of
-      the safety documents that can be done within the Django part of DCSP. Please see 
-      below details for installation type:
-    </p>
-    <h3>Stand alone</h2>
-    <p>This will create a safety documents only setup. This will link to Github directly.
-      You will be able to undertake normal Github operations (eg updating your online documents
-      or raising hazards), from the Django app.
-    </p>
-    <h3>Integrated</h2>
-    <p>This will add the safety documentations to a pre-existing repository. Useful if you want
-      to integrate your safety documentation directly in with your source code. You can also
-      use DCSP to pull docstrings from your code for documentation. <font color="#A9A9A9">
-      Future feature, hazard logging directly in code.</font>
-    </p>
-  </div>
-</details>
+  <div class="col-md-6 mx-auto">
+    <div class="{{FORM_ELEMENTS_MAX_WIDTH}}">
+      <h1>
+        Initial Setup
+      </h1>
 
-
-<script>
-  function change_visibility() {
-    var allElements = document.querySelectorAll('[id]');
-    var installation_type = document.getElementById("id_installation_type").value;
-
-    for (var i = 0; i < allElements.length; i++) {
-        var element = allElements[i];
-        
-        if (element.id.endsWith("_SA") || element.id.endsWith("_I")) {
-            element.style.display = "none";
-            element.required = false;
-        }
-    }
-
-    if (installation_type === 'SA') {
-        for (var i = 0; i < allElements.length; i++) {
-            var element = allElements[i];
-            
-            if (element.id.endsWith("_SA")) {
-                element.style.display = "block";
-                element.required = true;
-            }
-        }
-    } 
-    else if (installation_type === 'I') {
-        for (var i = 0; i < allElements.length; i++) {
-            var element = allElements[i];
-            
-            if (element.id.endsWith("_I")) {
-                element.style.display = "block";
-                element.required = true;
-            }
-        }
-    } 
-  };
-</script>
-
-{% include "error_summary.html" %}
-
-<form action="/" method="post">
-    {% csrf_token %}
-
-    {% for field in form %}
-      {% if field.errors %}
-        <div class="nhsuk-form-group nhsuk-form-group--error">
-        {% endif %}
-          <div class="nhsuk-form-group">
-            <label class="nhsuk-label" for="id_{{ field.name }}" id="id_label_{{ field.name }}">
-              <a name="{{ field.label }}"></a>{{ field.label | safe }}
-            </label>
-            {{ field }}
+      <div class="accordion max-w-600 mb-3" id="accordionHowWorks">
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+              How does this all work?
+            </button>
+          </h2>
+          <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionHowWorks">
+            <div class="accordion-body">
+              <p><strong>The Clinical Safety Hazard Documentation (DCSP) app </strong>has been designed to 
+                improved and simplifier the process of documentating the safe design and 
+                implementation of digital health systems.</p>
+              <p>DCSP uses a <a href="https://en.wikipedia.org/wiki/Django_(web_framework)">Django</a>
+                (python based) web app (the one you are using now) to collect 
+                details to initialise your
+                clinical safety documents.
+                Once setup, you will be able to view the documents
+                in an <a href="https://www.mkdocs.org/">mkdoc server</a>. These documents are then available
+                as a static site on Github.</p>
+              <p> What you see on the <b>mkdocs server screen</b> the will
+                be what is displayed on Github. If you need to update placeholders or the prose of
+                the safety documents that can be done within the Django part of DCSP. Please see 
+                below details for installation type:
+              </p>
+              <h4>Stand alone</h4>
+              <p>This will create a safety documents only setup. This will link to Github directly.
+                You will be able to undertake normal Github operations (eg updating your online documents
+                or raising hazards), from the Django app.
+              </p>
+              <h4>Integrated</h4>
+              <p>This will add the safety documentations to a pre-existing repository. Useful if you want
+                to integrate your safety documentation directly in with your source code. You can also
+                use DCSP to pull docstrings from your code for documentation. <font color="#A9A9A9">
+                Future feature, hazard logging directly in code.</font>
+              </p>
+            </div>
           </div>
-        {% if field.errors %}
         </div>
-      {% endif %}
-    {% endfor %}
+      </div>
 
-    <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
-      Submit
-    </button>
-  </form>
+      <script>
+        function change_visibility() {
+          var allElements = document.querySelectorAll('[id]');
+          var installation_type = document.getElementById("id_installation_type").value;
 
-  <script>
-    change_visibility();
-  </script>
+          for (var i = 0; i < allElements.length; i++) {
+              var element = allElements[i];
+              
+              if (element.id.endsWith("_SA") || element.id.endsWith("_I")) {
+                  element.style.display = "none";
+                  element.required = false;
+              }
+          }
+
+          if (installation_type === 'SA') {
+              for (var i = 0; i < allElements.length; i++) {
+                  var element = allElements[i];
+                  
+                  if (element.id.endsWith("_SA")) {
+                      element.style.display = "block";
+                      element.required = true;
+                  }
+              }
+          } 
+          else if (installation_type === 'I') {
+              for (var i = 0; i < allElements.length; i++) {
+                  var element = allElements[i];
+                  
+                  if (element.id.endsWith("_I")) {
+                      element.style.display = "block";
+                      element.required = true;
+                  }
+              }
+          } 
+        };
+      </script>
+
+      {% include "error_summary.html" %}
+
+      <form action="/" method="post">
+        {% csrf_token %}
+
+        {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label" for="id_{{ field.name }}" id="id_label_{{ field.name }}">
+              {{ field.label | safe }}
+            </label>
+            {% if not field.errors %}
+              {{ field }}
+            {% else %}
+              {{ field }}
+              {% for error in field.errors %}
+                <div id="id_{{ field.name }}" class="invalid-feedback">
+                  {{ error|escape }}
+                </div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        {% endfor %}
+
+        <div align="right">
+          <button class="btn btn-primary ml-auto" type="submit">
+            Submit
+          </button>
+        </div>
+
+      </form>
+
+      <script>
+        change_visibility();
+      </script>
+    </div>
+  </div>
     
 {% endblock %}

@@ -6,14 +6,15 @@ mkdocs
 
 Functions:
     index
-    edit_md
-    saved_md
-    new_md
-    log_hazard
+    md_edit
+    md_saved
+    md_new
+    hazard_log
     hazard_comment
-    open_hazards
+    hazards_open
     mkdoc_redirect
     upload_to_github
+    setup_step
     std_context
     start_afresh
     custom_404
@@ -29,7 +30,9 @@ import sys
 from fnmatch import fnmatch
 from dotenv import find_dotenv, dotenv_values
 import shutil
-from typing import Any
+from typing import Any, TextIO
+
+# from collections.abc import Buffer
 
 import app.functions.constants as c
 from app.functions.constants import EnvKeys
@@ -46,9 +49,9 @@ from .forms import (
     TemplateSelectForm,
     PlaceholdersForm,
     MDEditForm,
-    MDFileSelect,
+    MDFileSelectForm,
     LogHazardForm,
-    UploadToGithub,
+    UploadToGithubForm,
     HazardCommentForm,
 )
 
@@ -59,7 +62,7 @@ def index(request: HttpRequest) -> HttpResponse:
     Acting as a single page application, this function undertakes several
     steps to set up the mkdocs static site. The state of the installation is
     stored in an .env file as 'setup_step'. There are 4 steps in the
-    installation process (labelled steps None, 1, 2 and 3):
+    installation process (labelled steps None, 1, 2 and 3).
 
     - None: Initial step for the installation process. No value stored for the
     step_step in the .env file. During this step the user is asked if they want
@@ -83,17 +86,21 @@ def index(request: HttpRequest) -> HttpResponse:
     """
     context: dict[str, Any] = {}
     placeholders: dict[str, str] = {}
-    setup_step: str | None = None
+    p: str = ""
+    setup_step: int = 0
     template_choice: str = ""
-    # form
+    form: InstallationForm | TemplateSelectForm | PlaceholdersForm
+    env_m: ENVManipulator
+    mkdocs: MkdocsControl
+    doc_build: Builder
 
     if not (request.method == "POST" or request.method == "GET"):
         return render(request, "405.html", std_context(), status=405)
 
-    em = ENVManipulator(settings.ENV_LOCATION)
-    setup_step = em.read("setup_step")
+    env_m = ENVManipulator(settings.ENV_LOCATION)
+    setup_step = setup_step_get()
 
-    if not setup_step:
+    if setup_step == 0:
         if request.method == "GET":
             context = {"form": InstallationForm()}
 
@@ -103,9 +110,8 @@ def index(request: HttpRequest) -> HttpResponse:
 
         elif request.method == "POST":
             form = InstallationForm(request.POST)
-            # TODO #27 - check condentials
+            # TODO #27 - check condentials (happening in forms soon)
             if form.is_valid():
-                env_m = ENVManipulator(settings.ENV_LOCATION)
                 env_m.add(
                     EnvKeys.GITHUB_USERNAME.value,
                     form.cleaned_data["github_username_SA"],
@@ -144,7 +150,7 @@ def index(request: HttpRequest) -> HttpResponse:
                     context | std_context(),
                 )
 
-    elif setup_step == "1":
+    elif setup_step == 1:
         if request.method == "GET":
             context = {"form": TemplateSelectForm()}
 
@@ -155,7 +161,6 @@ def index(request: HttpRequest) -> HttpResponse:
         elif request.method == "POST":
             form = TemplateSelectForm(request.POST)  # type: ignore[assignment]
             if form.is_valid():
-                env_m = ENVManipulator(settings.ENV_LOCATION)
                 env_m.add("setup_step", "2")
                 template_choice = form.cleaned_data["template_choice"]
 
@@ -179,7 +184,7 @@ def index(request: HttpRequest) -> HttpResponse:
                     request, "template_select.html", context | std_context()
                 )
 
-    elif setup_step == "2" or setup_step == "3":
+    elif setup_step >= 2:
         if request.method == "GET":
             context = {"form": PlaceholdersForm()}
 
@@ -190,7 +195,6 @@ def index(request: HttpRequest) -> HttpResponse:
         elif request.method == "POST":
             form = PlaceholdersForm(data=request.POST)  # type: ignore[assignment]
             if form.is_valid():
-                env_m = ENVManipulator(settings.ENV_LOCATION)
                 env_m.add("setup_step", "3")
 
                 doc_build = Builder(settings.MKDOCS_LOCATION)
@@ -224,7 +228,7 @@ def index(request: HttpRequest) -> HttpResponse:
     return render(request, "500.html", std_context(), status=500)
 
 
-def edit_md(request: HttpRequest) -> HttpResponse:
+def md_edit(request: HttpRequest) -> HttpResponse:
     """Function for editing of markdown files in the static site
 
     A webpage to allow the user to edit the markdown files used in the
@@ -232,181 +236,185 @@ def edit_md(request: HttpRequest) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
-
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    context: dict[str, Any] = {}
-    files_md: str = ""
-    loop_exit: bool = False
+    setup_step: int = 0
     files: list[str] = []
     name: str = ""
-    em: ENVManipulator
+    md_file: str = ""
+    loop_exit: bool = False
+    form: MDFileSelectForm
+    context: dict[str, Any] = {}
+    form_fields: dict[str, str] = {}
 
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", status=405)
 
-    em = ENVManipulator(settings.ENV_LOCATION)
-    setup_step = em.read("setup_step")
+    setup_step = setup_step_get()
 
-    if setup_step != "2" and setup_step != "3":
+    if setup_step < 2:
         return redirect("/")
 
     if request.method == "GET":
         if not os.path.isdir(settings.MKDOCS_DOCS_LOCATION):
             return render(request, "500.html", std_context(), status=500)
 
-        # TODO: can we somehow remove p and v here?
-        for p, v, files in os.walk(settings.MKDOCS_DOCS_LOCATION):
+        for _, __, files in os.walk(settings.MKDOCS_DOCS_LOCATION):
             for name in files:
                 if fnmatch(name, "*.md"):
-                    files_md = name
+                    md_file = name
                     loop_exit = True
                     break
             if loop_exit:
                 break
 
     elif request.method == "POST":
-        form = MDFileSelect(data=request.POST)
+        form = MDFileSelectForm(data=request.POST)
         if form.is_valid():
-            files_md = form.cleaned_data["mark_down_file"]
+            md_file = form.cleaned_data["mark_down_file"]
         else:
             context = {"form": form}
-            return render(request, "edit_md.html", context | std_context())
+            return render(request, "md_edit.html", context | std_context())
 
-    with open(f"{ settings.MKDOCS_DOCS_LOCATION }{ files_md }", "r") as file:
-        form_fields = {"text_md": file.read(), "document_name": files_md}
+    with open(f"{ settings.MKDOCS_DOCS_LOCATION }{ md_file }", "r") as file:
+        form_fields = {"md_text": file.read(), "document_name": md_file}
 
     context = {
-        "MDFileSelect": MDFileSelect(initial={"mark_down_file": files_md}),
-        "text_md": MDEditForm(initial=form_fields),
-        "document_name": files_md,
+        "MDFileSelectForm": MDFileSelectForm(
+            initial={"mark_down_file": md_file}
+        ),
+        "md_text": MDEditForm(initial=form_fields),
+        "document_name": md_file,
     }
 
-    return render(request, "edit_md.html", context | std_context())
+    return render(request, "md_edit.html", context | std_context())
 
 
-def saved_md(request: HttpRequest) -> HttpResponse:
-    """Title
+def md_saved(request: HttpRequest) -> HttpResponse:
+    """Saves the markdown file
 
-    Description
+    If no issues are found after running the markdown file through a linter
+    then the file is saved.
 
     Args:
         request (HttpRequest): request from user
-
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    context: dict = {}
-    text_md_returned: str = ""
-    file_md_returned: str = ""
+    setup_step: int = 0
+    form: MDEditForm
+    md_file_returned: str = ""
+    md_text_returned: str = ""
     file_path: str = ""
-    em: ENVManipulator
+    file: TextIO
+    context: dict[str, Any] = {}
 
     if request.method == "GET":
-        return redirect("/edit_md")
+        return redirect("/md_edit")
 
     if not request.method == "POST":
         return render(request, "405.html", std_context(), status=405)
 
-    em = ENVManipulator(settings.ENV_LOCATION)
-    setup_step = em.read("setup_step")
+    setup_step = setup_step_get()
 
-    # TODO need to safety return a number from .env or appropriately handle the error
-    if int(setup_step) < 2:
+    if setup_step < 2:
         return redirect("/")
 
     form = MDEditForm(request.POST)
     if form.is_valid():
-        file_md_returned = form.cleaned_data["document_name"]
-        text_md_returned = form.cleaned_data["text_md"]
+        md_file_returned = form.cleaned_data["document_name"]
+        md_text_returned = form.cleaned_data["md_text"]
 
-        file_path = f"{ settings.MKDOCS_DOCS_LOCATION }{ file_md_returned }"
+        file_path = f"{ settings.MKDOCS_DOCS_LOCATION }{ md_file_returned }"
 
         if not os.path.isfile(file_path):
             return render(
                 request, "500.html", context | std_context(), status=500
             )
 
-        f = open(file_path, "w")
-        f.write(text_md_returned)
-        f.close()
+        file = open(file_path, "w")
+        file.write(md_text_returned)
+        file.close()
 
         messages.success(
             request,
-            f'Mark down file "{ file_md_returned }" has been successfully saved',
+            f'Mark down file "{ md_file_returned }" has been successfully saved',
         )
         context = {
-            "MDFileSelect": MDFileSelect(
-                initial={"mark_down_file": file_md_returned}
+            "MDFileSelectForm": MDFileSelectForm(
+                initial={"mark_down_file": md_file_returned}
             ),
-            "text_md": MDEditForm(initial=request.POST),
-            "document_name": file_md_returned,
+            "md_text": MDEditForm(initial=request.POST),
+            "document_name": md_file_returned,
         }
-        return render(request, "edit_md.html", context | std_context())
+        return render(request, "md_edit.html", context | std_context())
     else:
         context = {"form": form}
-        return render(request, "edit_md.html", context | std_context())
+        return render(request, "md_edit.html", context | std_context())
 
     # For mypy
     return render(request, "500.html", status=500)
 
 
-def new_md(request: HttpRequest) -> HttpResponse:
-    """Title
+def md_new(request: HttpRequest) -> HttpResponse:
+    """Not complete - to create a new markdown file
 
-    Description
+    This will allow the user to create a new markdown file with subdirectories
+    if required.
 
     Args:
         request (HttpRequest): request from user
-
     Returns:
         HttpResponse: for loading the correct webpage
     """
+    context: dict[str, Any] = {}
 
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", std_context(), status=405)
 
     if request.method == "GET":
         context = {"form": LogHazardForm()}
-        return render(request, "new_md.html", context | std_context())
+        return render(request, "md_new.html", context | std_context())
 
     # For mypy
     return render(request, "500.html", status=500)
 
 
-def log_hazard(request: HttpRequest) -> HttpResponse:
-    """Title
+def hazard_log(request: HttpRequest) -> HttpResponse:
+    """Logs hazards as issues on GitHub
 
-    Description
+    Creates a hazard as an issue on GitHub
 
     Args:
         request (HttpRequest): request from user
-
     Returns:
         HttpResponse: for loading the correct webpage
     """
     context: dict[str, Any] = {}
     gc: GitController
+    form: LogHazardForm
+    hazard: dict[str, Any] = {}
 
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", std_context(), status=405)
 
     if request.method == "GET":
         context = {"form": LogHazardForm()}
-        return render(request, "log_hazard.html", context | std_context())
+        return render(request, "hazard_log.html", context | std_context())
 
     if request.method == "POST":
         form = LogHazardForm(request.POST)
         if form.is_valid():
-            hazard_title = form.cleaned_data["title"]
-            hazard_body = form.cleaned_data["body"]
-            hazard_labels = form.cleaned_data["labels"]
+            hazard["title"] = form.cleaned_data["title"]
+            hazard["body"] = form.cleaned_data["body"]
+            hazard["labels"] = form.cleaned_data["labels"]
             gc = GitController()
 
-            gc.log_hazard(hazard_title, hazard_body, hazard_labels)
             try:
-                gc.log_hazard(hazard_title, hazard_body, hazard_labels)
+                gc.hazard_log(
+                    hazard["title"], hazard["body"], hazard["labels"]
+                )
             except Exception as error:
                 messages.error(
                     request,
@@ -416,7 +424,7 @@ def log_hazard(request: HttpRequest) -> HttpResponse:
                 context = {"form": LogHazardForm(initial=request.POST)}
 
                 return render(
-                    request, "log_hazard.html", context | std_context()
+                    request, "hazard_log.html", context | std_context()
                 )
             else:
                 messages.success(
@@ -425,46 +433,63 @@ def log_hazard(request: HttpRequest) -> HttpResponse:
                 )
                 context = {"form": LogHazardForm()}
                 return render(
-                    request, "log_hazard.html", context | std_context()
+                    request, "hazard_log.html", context | std_context()
                 )
         else:
             context = {"form": form}
-            return render(request, "log_hazard.html", context | std_context())
+            return render(request, "hazard_log.html", context | std_context())
 
     # Should never really get here, but added for mypy
     return render(request, "500.html", std_context(), status=500)
 
 
 def hazard_comment(request: HttpRequest, hazard_number: "str") -> HttpResponse:
-    """Title
+    """Adds a comment to an issue
 
-    Description
+    If an issue is available, will add a comment on GitHub
 
     Args:
         request (HttpRequest): request from user
-
     Returns:
         HttpResponse: for loading the correct webpage
     """
-
-    context: dict[str, Any] = {}
     gc: GitController
-    open_hazard: dict = {}
+    hazards_open_full: list[dict[str, Any]] = []
+    hazard: dict[str, Any] = {}
+    hazard_open: dict = {}
+    form: HazardCommentForm
+    context: dict[str, Any] = {}
 
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", std_context(), status=405)
 
+    try:
+        int(hazard_number)
+    except ValueError:
+        messages.error(
+            request,
+            f"hazard_number '{hazard_number }' is not valid",
+        )
+        return render(request, "400.html", std_context(), status=400)
+
     if request.method == "GET":
         gc = GitController()
-        open_hazards_full = gc.open_hazards()
+        hazards_open_full = gc.hazards_open()
 
-        for hazard in open_hazards_full:
+        for hazard in hazards_open_full:
             if hazard["number"] == int(hazard_number):
-                open_hazard = hazard.copy()
+                hazard_open = hazard.copy()
                 break
 
+        if not hazard_open:
+            messages.error(
+                request,
+                f"hazard_number '{hazard_number }' is not valid",
+            )
+            return render(request, "400.html", std_context(), status=400)
+
         context = {
-            "open_hazard": open_hazard,
+            "hazard_open": hazard_open,
             "form": HazardCommentForm(
                 initial={"comment": c.TEMPLATE_HAZARD_COMMENT}
             ),
@@ -500,21 +525,19 @@ def hazard_comment(request: HttpRequest, hazard_number: "str") -> HttpResponse:
 
 
 # TODO - testing needed
-def open_hazards(request: HttpRequest) -> HttpResponse:
+def hazards_open(request: HttpRequest) -> HttpResponse:
     """Title
 
     Description
 
     Args:
         request (HttpRequest): request from user
-
     Returns:
         HttpResponse: for loading the correct webpage
     """
-
     context: dict[str, Any] = {}
     gc: GitController
-    open_hazards: list[dict] = []
+    hazards_open: list[dict] = []
 
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", std_context(), status=405)
@@ -522,10 +545,10 @@ def open_hazards(request: HttpRequest) -> HttpResponse:
     if request.method == "GET":
         # TODO need to check github credentials are valid
         gc = GitController()
-        open_hazards = gc.open_hazards()
-        context = {"open_hazards": open_hazards}
+        hazards_open = gc.hazards_open()
+        context = {"hazards_open": hazards_open}
 
-        return render(request, "open_hazards.html", context | std_context())
+        return render(request, "hazards_open.html", context | std_context())
 
     if request.method == "POST":
         return HttpResponse("POST handling not yet built")
@@ -541,11 +564,9 @@ def mkdoc_redirect(request: HttpRequest, path: str) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
-
     Returns:
         HttpResponse: for loading the correct webpage
     """
-
     mkdocs: MkdocsControl
 
     if not request.method == "GET":
@@ -573,26 +594,25 @@ def upload_to_github(request: HttpRequest) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
-
     Returns:
         HttpResponse: for loading the correct webpage
     """
-
     context: dict[str, Any] = {}
     gc: GitController
+    form: UploadToGithubForm
 
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", std_context(), status=405)
 
     if request.method == "GET":
-        context = {"form": UploadToGithub()}
+        context = {"form": UploadToGithubForm()}
 
         return render(
             request, "upload_to_github.html", context | std_context()
         )
 
     if request.method == "POST":
-        form = UploadToGithub(request.POST)
+        form = UploadToGithubForm(request.POST)
         if form.is_valid():
             comment = form.cleaned_data["comment"]
             gc = GitController()
@@ -602,7 +622,7 @@ def upload_to_github(request: HttpRequest) -> HttpResponse:
                 request,
                 f"Uploaded to Github with a comment of '{ comment }'",
             )
-            context = {"form": UploadToGithub()}
+            context = {"form": UploadToGithubForm()}
             return render(
                 request, "upload_to_github.html", context | std_context()
             )
@@ -620,6 +640,31 @@ def upload_to_github(request: HttpRequest) -> HttpResponse:
 # -----
 
 
+# TODO needs testing
+def setup_step_get(env_location: str = settings.ENV_LOCATION) -> int:
+    """Pulls 'setup_step" from .env and converts to int
+
+    Extracts the setup step from the local environment file and returns this as
+    an integer
+
+    Args:
+        env_location (str): location of the environmental variables file.
+    Returns:
+        int: value of setup_step, sets to zero (0) if variable is set to empty
+             string or does not exist in the env file.
+    """
+    env_m: ENVManipulator = ENVManipulator(env_location)
+    setup_step: str | None = env_m.read("setup_step")
+    return_value: int = 0
+
+    if setup_step == None or setup_step == "":
+        return_value = 0
+    else:
+        return_value = int(setup_step)  # type: ignore[arg-type]
+
+    return return_value
+
+
 def std_context() -> dict[str, Any]:
     """Title
 
@@ -627,7 +672,6 @@ def std_context() -> dict[str, Any]:
 
     Args:
         none
-
     Returns:
         dict[str,Any]: context that is comment across the different views
     """
@@ -635,21 +679,22 @@ def std_context() -> dict[str, Any]:
     std_context_dict: dict[str, Any] = {}
     mkdoc_running: bool = False
     docs_available: bool = False
-    # mkdocs
+    mkdocs: MkdocsControl
+    setup_step: int = 0
 
     mkdocs = MkdocsControl()
     mkdoc_running = mkdocs.is_process_running()
 
-    em = ENVManipulator(settings.ENV_LOCATION)
-    setup_step = em.read("setup_step")
+    setup_step = setup_step_get()
 
-    if setup_step == "2" or setup_step == "3":
+    if setup_step >= 2:
         docs_available = True
 
     std_context_dict = {
         "START_AFRESH": settings.START_AFRESH,
         "mkdoc_running": mkdoc_running,
         "docs_available": docs_available,
+        "FORM_ELEMENTS_MAX_WIDTH": c.FORM_ELEMENTS_MAX_WIDTH,
     }
 
     return std_context_dict
@@ -662,7 +707,6 @@ def start_afresh(request: HttpRequest) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
-
     Returns:
         HttpResponse: for loading the correct webpage
     """

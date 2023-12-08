@@ -19,8 +19,9 @@ from app.forms import (
     InstallationForm,
     TemplateSelectForm,
     PlaceholdersForm,
-    MDFileSelect,
+    MDFileSelectForm,
     MDEditForm,
+    UploadToGithubForm,
 )
 
 
@@ -63,22 +64,22 @@ class PlaceholdersFormTest(TestCase):
         doc_build.empty_docs_folder()
 
 
-class MDFileSelectTest(TestCase):
+class MDFileSelectFormTest(TestCase):
     def setUp(self):
         doc_build = Builder(c.TESTING_MKDOCS)
         doc_build.copy_templates("test_templates")
 
     def test_good_data(self):
-        form = MDFileSelect(data=d.MD_FILE_SELECT_GOOD_DATA)
+        form = MDFileSelectForm(data=d.MD_FILE_SELECT_GOOD_DATA)
         self.assertTrue(form.is_valid())
 
     def test_bad_data(self):
-        form = MDFileSelect(initial=d.MD_FILE_SELECT_BAD_DATA)
+        form = MDFileSelectForm(initial=d.MD_FILE_SELECT_BAD_DATA)
         self.assertFalse(form.is_valid())
 
     """def test_bad_path(self):
         with self.assertRaises(FileNotFoundError):
-            MDFileSelect(
+            MDFileSelectForm(
                 mkdocs_path="/sss",
                 initial=d.MD_FILE_SELECT_BAD_DATA,
             )"""

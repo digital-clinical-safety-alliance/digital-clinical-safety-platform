@@ -1,14 +1,18 @@
 INSTALLATION_POST_GOOD_DATA = {
     "installation_type": "SA",
     "github_username_SA": "a username",
+    "email_SA": "john.doe@domain.com",
     "github_token_SA": "a token",
+    "github_organisation_SA": "an organisation",
     "github_repo_SA": "www.somesite.com",
 }
 
 INSTALLATION_POST_BAD_DATA = {
     "installation_type": "SA",
     "github_username_SA": "a username",
+    "email_SA": "john.doe@domain.com",
     "github_token_SA": "a token",
+    "github_organisation_SA": "an organisation",
     "github_repo_SA": "www.somesite .com",
 }
 
@@ -26,19 +30,19 @@ PLACEHOLDERS_GOOD_DATA = {
     "todays_date": "01/01/2025",
 }
 
-EDIT_MD_GOOD_DATA = {"text_md": "Some test data here {{ name_of_app }}"}
+MD_EDIT_GOOD_DATA = {"md_text": "Some test data here {{ name_of_app }}"}
 
-SAVED_MD_GOOD_DATA = {
+MD_SAVED_GOOD_DATA = {
     "document_name": "test_template1.md",
-    "text_md": "Some test data here {{ name_of_app }}",
+    "md_text": "Some test data here {{ name_of_app }}",
 }
 
-SAVED_MD_BAD_FILENAME = {
+MD_SAVED_BAD_FILENAME = {
     "document_name": "wrong_filename.md",
-    "text_md": "Some test data here {{ name_of_app }}",
+    "md_text": "Some test data here {{ name_of_app }}",
 }
 
-SAVED_MD_TEMPLATE_FILE_PATH = (
+MD_SAVED_TEMPLATE_FILE_PATH = (
     "/dcsp/app/dcsp/app/tests/test_docs/mkdocs/docs/test_template1.md"
 )
 
@@ -66,4 +70,9 @@ STD_CONTEXT_SETUP_3 = {
     "docs_available": True,
 }
 
-START_AFRESH_SETUP_3 = "GITHUB_USERNAME='a username'\nEMAIL=''\nGITHUB_ORGANISATION=''\nGITHUB_REPO='www.somesite.com'\nGITHUB_TOKEN='a token'\nsetup_step='3'\n"
+START_AFRESH_SETUP_3 = "GITHUB_USERNAME='a username'\nEMAIL='john.doe@domain.com'\nGITHUB_ORGANISATION='an organisation'\nGITHUB_REPO='www.somesite.com'\nGITHUB_TOKEN='a token'\nsetup_step='3'\n"
+
+ISSUE_NUMBER_CURRENT = 6
+ISSUE_NUMBER_NONEXISTENT = 1
+
+HAZARD_COMMENT_DATA = {"comment": "comment"}
