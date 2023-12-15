@@ -46,6 +46,7 @@ class MkdocsControl:
         Args:
             wait (bool): set to True to wait for the mkdocs instance to start before
                   exiting the method.
+
         Returns:
             bool: when wait = True, if mkdocs does not start up in alloated
                   time, False is returned.
@@ -78,6 +79,7 @@ class MkdocsControl:
         Args:
             wait (bool): set to True to wait for the mkdocs instance to stop before
                   exiting the method.
+
         Returns:
             bool: when wait = True, if mkdocs does not stop in alloated
                   time, False is returned

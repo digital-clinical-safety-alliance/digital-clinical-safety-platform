@@ -4,7 +4,7 @@ This module carries out all of the functionality needed to create and manipulate
 markdown and yaml files for use in mkdocs, a static web site generator.
 
 Classes:
-    Builder
+    Builder: builds up the documents
 """
 
 import os
@@ -26,6 +26,7 @@ class Builder:
 
         Args:
             mkdocs_dir (str): the location of the mkdocs main folder.
+
         Raises:
             FileNotFoundError: if 'docs' folder not found in mkdocs main folder.
             FileNotFoundError: if 'templates' fodler not found in mkdocs main
@@ -81,6 +82,7 @@ class Builder:
 
         Returns:
             list[str]: a list of templates in alphabetical order.
+
         Raises:
             FileNotFoundError: if no template subfolder found in templates main
                                folder.
@@ -109,8 +111,10 @@ class Builder:
 
         Args:
             template_chosen (str): the template to copy across.
+
         Returns:
             None
+
         Raises:
             FileNotFoundError: if template folder does not exist.
         """
@@ -158,6 +162,7 @@ class Builder:
                           value set to an empty string if no previously stored
                           placeholders, or updated to stored values if they are
                           available. Uses ninja2 formating, eg {{ placeholder }}.
+
         Raises:
             FileNotFoundError: if no files found in the docs folder.
         """
@@ -222,6 +227,7 @@ class Builder:
         Args:
             placeholders (dict[str,str]): dictionary of placeholders. Key is name
                                           of placeholder and value is the value.
+
         Returns:
             None
         """
@@ -239,6 +245,7 @@ class Builder:
 
         Returns:
             dict[str,str]: placeholder names and value pairs.
+
         Raises:
             FileNotFoundError: if placeholder yaml is not a valid file.
             ValueError: if error reading content of yaml file.
@@ -275,9 +282,11 @@ class Builder:
         Args:
             folder_file_to_examine (str): a file or a folder contain files to be
                                           linted.
+
         Returns:
             dict[str, dict[str, str]]: contains outcomes for the individual tests
                                        along with an overal outcome.
+
         Raises:
             ValueError: if an invalid file and folder string given.
         """

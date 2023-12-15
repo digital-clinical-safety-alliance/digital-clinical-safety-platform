@@ -62,6 +62,7 @@ class GitController:
             repo_path_local (str): Local name of repository.
             env_location (str): Location of .env file. Mainly changed for unit
                                 testing purposes.
+
         Raises:
             ValueError: if a empty string is supplied as the env_location.
             ValueError: if env_location is an invalid file path.
@@ -156,8 +157,10 @@ class GitController:
         """Checking Github credentials
 
         If no organisation is provided, then username will be used for repo storage location
+
         Args:
             none taken
+
         Returns:
             dict: a dictionary with 4 values covering the validity of the credentials supplied
                   in the initialisation of the GitController class
@@ -244,8 +247,10 @@ class GitController:
 
         Args:
             organisation (str): name of GitHub organisation to test.
+
         Returns:
             bool: True if exists, False if does not.
+
         Raises:
             ValueError: if bad return code from GET request
         """
@@ -282,9 +287,11 @@ class GitController:
         Args:
             github_user_org (str): the username or organisation to look for the
                                    repositories under.
+
         Returns:
             list[str]: a list of repositories. Returns empty list if unsuccessful in
-                       getting
+                       getting.
+
         Raises:
             ValueError: if unable to get user or organisation.
         """
@@ -319,6 +326,7 @@ class GitController:
             github_user_org (str): the username or organisation that the
                                    repository is stored under.
             github_repo (str): the name of the GitHub repository.
+
         Returns:
             bool: True if is a current repository under the user/organisation
                   or False if not.
@@ -341,8 +349,10 @@ class GitController:
             github_use_org (str): username or organisation to create the new
                                   repository under.
             github_repo (str): name of new repository.
+
         Returns:
             bool: False if already exists. True if created.
+
         Raises:
             ValueError: if invalid credentials supplied to
                         'current_repo_on_github'.
@@ -370,6 +380,7 @@ class GitController:
             github_use_org (str): username or organisation where repository
                                   is stored.
             github_repo (str): name of repository to delete.
+
         Returns:
             bool: False if does not exist. True if exists and deleted.
         """
@@ -404,6 +415,7 @@ class GitController:
         Args:
             commit_message (str): message for the commit
             verbose (bool): set to True to display stdout of push.
+
         Returns:
             bool: currently returns False if commit fails
         """
@@ -460,8 +472,10 @@ class GitController:
             title (str): Title for the issue.
             body (str): Body for the issue.
             labels (list[str]): a list of labels for the issue.
+
         Returns:
             None
+
         Raises:
             ValueError: if a hazard label is not valid
             ValueError: if issue with accessing the repo
@@ -501,9 +515,11 @@ class GitController:
         Args:
             details (str): full = all details of all hazard labels. name_only =
                            names only of all hazard labels.
+
         Returns:
             list: either a list[dict[str,str]] if "full" details are requested or
                   else a list[str] if names_only requested.
+
         Raises:
             ValueError: if details argument is not "full" or "name_only"
             FileNotFoundError: if a bad file path is given for the labels yaml.
@@ -539,6 +555,7 @@ class GitController:
 
         Args:
             label (str): label to be examined.
+
         Returns:
             bool: True if a valid label, False if not.
         """
@@ -558,6 +575,7 @@ class GitController:
 
         Returns:
             list[dict[str, Any]]: list of dictionaries of open hazards.
+
         Raises:
             ValueError: if error with accessing the repository
         """
@@ -624,8 +642,10 @@ class GitController:
         Args:
             hazard_number (int): hazard (issue) number to add comment to.
             comment (str): comment to add to hazard.
+
         Returns:
             None
+
         Raises:
             ValueError: if no hazard number is provided.
             ValueError: if no comment if provided.
