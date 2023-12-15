@@ -1,18 +1,18 @@
 """Form management for the Django dynamic site app
 
 Classes:
-    InstallationForm
-    TemplateSelectForm
-    PlaceholdersForm
-    MDFileSelectForm
-    MDEditForm
-    LogHazardForm
-    HazardCommentForm
-    UploadToGithubForm
+    InstallationForm: placeholder
+    TemplateSelectForm: placeholder
+    PlaceholdersForm: placeholder
+    MDFileSelectForm: placeholder
+    MDEditForm: placeholder
+    LogHazardForm: placeholder
+    HazardCommentForm: placeholder
+    UploadToGithubForm: placeholder
 
 Functions:
-    validation_response
-    md_files
+    validation_response: placeholder
+    md_files: placeholder
 """
 
 from django import forms
@@ -96,7 +96,8 @@ class InstallationForm(forms.Form):
     DCSP.
 
     Methods:
-        clean
+        clean: placeholder
+
     Fields:
         installation_type: Selection of installation type (stand alone or
                            integrated).
@@ -201,6 +202,7 @@ class InstallationForm(forms.Form):
 
         Returns:
             dict: of clean data.
+
         Invalids:
             email: if wrong syntax.
             github_username_SA: if username does not exist.
@@ -347,7 +349,8 @@ class PlaceholdersForm(forms.Form):
     value for.
 
     Methods:
-        clean
+        clean: placeholder
+
     Fields:
         [Automatically created]
     """
@@ -400,7 +403,6 @@ class MDFileSelectForm(forms.Form):
 
     Provides a selection of markdown files that can be edited. These are shown
     within their respective subfolders.
-
     """
 
     def __init__(self, *args, **kwargs) -> None:

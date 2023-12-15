@@ -158,9 +158,6 @@ class GitController:
 
         If no organisation is provided, then username will be used for repo storage location
 
-        Args:
-            none taken
-
         Returns:
             dict: a dictionary with 4 values covering the validity of the credentials supplied
                   in the initialisation of the GitController class

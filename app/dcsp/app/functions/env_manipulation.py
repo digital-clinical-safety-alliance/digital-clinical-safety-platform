@@ -3,7 +3,7 @@
 Better live env manipulation than standard python library.
 
 Classes:
-    ENVManipulator
+    ENVManipulator: placeholder
 """
 from dotenv import set_key, dotenv_values
 
@@ -15,6 +15,7 @@ class ENVManipulator:
         """Initialise the env path
 
         Initialise the env path
+
         Args:
             env_path (str): location of the env file. Sets to c.ENV_PATH if not
                             sets.
@@ -28,7 +29,8 @@ class ENVManipulator:
         Removes the variable from the env file.
 
         Args:
-            variable_to_delete (str): as name
+            variable_to_delete (str): as name.
+
         Returns:
             bool: True if was present and deleted, False if was never present.
         """
@@ -68,6 +70,7 @@ class ENVManipulator:
         Args:
             variable (str): name of variable.
             value (str): value to set.
+
         Returns:
             None
         """
@@ -81,6 +84,7 @@ class ENVManipulator:
 
         Args:
             key_to_read (str): the variable to read.
+
         Returns:
             str: value of the variable. This will return empty string ("")
                  if the variable has not been set.

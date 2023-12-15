@@ -4,7 +4,7 @@ This module needs building out further, but at the moment can test if the syntax
 of a given email address is correct.
 
 Classes:
-    EmailFunctions
+    EmailFunctions: placeholder
 """
 import re
 
@@ -29,9 +29,10 @@ class EmailFunctions:
         process the email
 
         Args:
-            email (str): the email address to be assesed
+            email (str): the email address to be assesed.
+
         Returns:
-            bool: True if a valid email, otherwise False
+            bool: True if a valid email, otherwise False.
         """
         if re.fullmatch(self._valid_email_regex, email):
             return True

@@ -690,9 +690,6 @@ def std_context() -> dict[str, Any]:
 
     Description
 
-    Args:
-        none
-
     Returns:
         dict[str,Any]: context that is comment across the different views
     """
