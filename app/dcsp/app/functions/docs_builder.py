@@ -318,59 +318,6 @@ class Builder:
             content = file_ptr.read()
 
             linter_results[file] = self.linter_sub(content)
-
-            """# Finding number of SINGLE curley brackets
-            doc_Regex = re.compile(r"\{")
-            left_stake_single = doc_Regex.findall(content)
-            doc_Regex = re.compile(r"\}")
-            right_stake_single = doc_Regex.findall(content)
-
-            if len(left_stake_single) == len(right_stake_single):
-                linter_results[file]["equal_brackets"] = "pass"
-            else:
-                linter_results[file]["equal_brackets"] = "fail"
-                linter_results[file]["overal"] = "fail"
-
-            # Finding number of DOUBLE curley brackets
-            doc_Regex = re.compile(r"\{\{")
-            left_stake_double = doc_Regex.findall(content)
-            doc_Regex = re.compile(r"\}\}")
-            right_stake_double = doc_Regex.findall(content)
-
-            if len(left_stake_double) == len(right_stake_double):
-                linter_results[file]["equal_double_brackets"] = "pass"
-            else:
-                linter_results[file]["equal_double_brackets"] = "fail"
-                linter_results[file]["overal"] = "fail"
-
-            # Check for no placholders in front matter (metadata)
-            doc_Regex = re.compile(r"---.*?---", flags=re.S)
-            front_matter = doc_Regex.findall(content)
-            doc_Regex = re.compile(r"\{\{.*?\}\}", flags=re.S)
-            front_matter_placeholders = doc_Regex.findall(front_matter[0])
-
-            if not len(front_matter_placeholders):
-                linter_results[file]["placeholder_in_front_matter"] = "pass"
-            else:
-                linter_results[file]["placeholder_in_front_matter"] = "fail"
-                linter_results[file]["overal"] = "fail"
-
-            # Make sure number of {{ placeholders }} is exactly half of left or
-            # right curley brackets
-            doc_Regex = re.compile(r"\{\{.*?\}\}", flags=re.S)
-            properly_formatted_placeholders = doc_Regex.findall(content)
-
-            if (len(left_stake_single) == len(right_stake_single)) and len(
-                left_stake_single
-            ) == (len(properly_formatted_placeholders) * 2):
-                linter_results[file][
-                    "placeholders_half_curley_numbers"
-                ] = "pass"
-            else:
-                linter_results[file][
-                    "placeholders_half_curley_numbers"
-                ] = "fail"
-                linter_results[file]["overal"] = "fail" """
         return linter_results
 
     def linter_text(self, text: str) -> dict[str, str]:

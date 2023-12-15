@@ -1,0 +1,75 @@
+site_name: Digital Clinical Saefty Platform
+site_description: Hazard logging system
+site_author: Digital Clinical Safety Alliance
+site_url: http://0.0.0.0:9000
+
+plugins:
+  - mkdocstrings:
+      watch:
+      - ../app/dcsp/app
+      handlers:
+        python:
+          paths: [../app/dcsp/app, /dcsp/app/dcsp/app]
+
+theme:
+  name: material
+  logo: assets/favicon.ico
+  favicon: assets/favicon.ico
+  custom_dir: overrides
+
+  features:
+    - navigation.instant
+    # uncomment the below two lines for Tabbed navigation (along the header bar)
+    # - navigation.tabs
+    # - navigation.tabs.sticky
+    - navigation.tracking
+    - navigation.top
+    - navigation.expand
+    # - toc.integrate
+
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  font:
+    code: Roboto Mono
+
+extra:
+  generator: false
+
+dev_addr: 0.0.0.0:9000
+
+
+# Copyright information which is shown in the footer
+copyright: Clinicians-who-code
+
+# these lines configure the 'GitHub repo' widget on the top right
+# uncomment to enable
+repo_url: https://github.com/digital-clinical-safety-alliance/digital-clinical-safety-platform
+repo_name: digital-clinical-safety-platform
+edit_uri: blob/main/clinical-safety-management-file
+
+# additional markdown features
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.superfences
+  - toc:
+      permalink: true

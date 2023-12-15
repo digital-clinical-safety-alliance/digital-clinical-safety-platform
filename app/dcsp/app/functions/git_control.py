@@ -4,7 +4,7 @@ If no organisation is provided, repos will be presumed to be stored under userna
 on Github
 
 Classes:
-    GitController
+    GitController: handle git and GitHub functionality
 """
 
 # TODO - need to check all function work with username and organisations as domain_name

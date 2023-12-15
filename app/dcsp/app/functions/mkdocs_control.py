@@ -3,7 +3,7 @@
 Starts, stops and assesses state of mkdocs serve
 
 Classes:
-    MkdocsControl
+    MkdocsControl: manage mkdocs server
 """
 
 import psutil
