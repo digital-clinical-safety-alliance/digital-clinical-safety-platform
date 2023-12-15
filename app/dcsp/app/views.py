@@ -5,20 +5,20 @@ mkdocs. It utilises several other functions git, github, env manipulation and
 mkdocs
 
 Functions:
-    index
-    md_edit
-    md_saved
-    md_new
-    hazard_log
-    hazard_comment
-    hazards_open
-    mkdoc_redirect
-    upload_to_github
-    setup_step
-    std_context
-    start_afresh
-    custom_404
-    custom_405
+    index: placeholder
+    md_edit: placeholder
+    md_saved: placeholder
+    md_new: placeholder
+    hazard_log: placeholder
+    hazard_comment: placeholder
+    hazards_open: placeholder
+    mkdoc_redirect: placeholder
+    upload_to_github: placeholder
+    setup_step: placeholder
+    std_context: placeholder
+    start_afresh: placeholder
+    custom_404: placeholder
+    custom_405: placeholder
 """
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpRequest
@@ -81,6 +81,7 @@ def index(request: HttpRequest) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
+
     Returns:
         HttpResponse: for loading the correct webpage
     """
@@ -236,6 +237,7 @@ def md_edit(request: HttpRequest) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
+
     Returns:
         HttpResponse: for loading the correct webpage
     """
@@ -299,6 +301,7 @@ def md_saved(request: HttpRequest) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
+
     Returns:
         HttpResponse: for loading the correct webpage
     """
@@ -397,6 +400,7 @@ def hazard_log(request: HttpRequest) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
+
     Returns:
         HttpResponse: for loading the correct webpage
     """
@@ -459,6 +463,7 @@ def hazard_comment(request: HttpRequest, hazard_number: "str") -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
+
     Returns:
         HttpResponse: for loading the correct webpage
     """
@@ -544,6 +549,7 @@ def hazards_open(request: HttpRequest) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
+
     Returns:
         HttpResponse: for loading the correct webpage
     """
@@ -606,6 +612,7 @@ def upload_to_github(request: HttpRequest) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
+
     Returns:
         HttpResponse: for loading the correct webpage
     """
@@ -661,6 +668,7 @@ def setup_step_get(env_location: str = settings.ENV_LOCATION) -> int:
 
     Args:
         env_location (str): location of the environmental variables file.
+
     Returns:
         int: value of setup_step, sets to zero (0) if variable is set to empty
              string or does not exist in the env file.
@@ -684,6 +692,7 @@ def std_context() -> dict[str, Any]:
 
     Args:
         none
+
     Returns:
         dict[str,Any]: context that is comment across the different views
     """
@@ -719,6 +728,7 @@ def start_afresh(request: HttpRequest) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
+
     Returns:
         HttpResponse: for loading the correct webpage
     """
@@ -753,6 +763,7 @@ def custom_404(request: HttpRequest, exception) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
+
     Returns:
         HttpResponse: for loading the correct webpage
     """
@@ -767,6 +778,7 @@ def custom_405(request: HttpRequest, exception) -> HttpResponse:
 
     Args:
         request (HttpRequest): request from user
+
     Returns:
         HttpResponse: for loading the correct webpage
     """
