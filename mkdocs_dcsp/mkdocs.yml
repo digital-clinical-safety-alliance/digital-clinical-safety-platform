@@ -24,9 +24,9 @@ plugins:
 
 theme:
   name: material
-  logo: assets/favicon.ico
-  favicon: assets/favicon.ico
-  custom_dir: overrides
+  #logo: assets/favicon.ico
+  #favicon: assets/favicon.ico
+  #custom_dir: overrides
 
   features:
     - navigation.instant
