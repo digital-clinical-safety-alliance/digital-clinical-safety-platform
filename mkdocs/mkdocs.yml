@@ -6,6 +6,8 @@ site_url: http://0.0.0.0:9000
 plugins:
   - macros
   - mkdocstrings:
+      watch:
+      - ../app/dcsp/app
       handlers:
         python:
           paths: [../app/dcsp/app, /dcsp/app/dcsp/app]
@@ -148,14 +150,5 @@ markdown_extensions:
   #     link: https://twitter.com/exampleorgstwitter
   #   - icon: fontawesome/brands/github
   #     link: https://github.com/exampleorgsgithub
-
-
-
-
-
-
-
-
-
 
 INHERIT: ./docs/placeholders.yml

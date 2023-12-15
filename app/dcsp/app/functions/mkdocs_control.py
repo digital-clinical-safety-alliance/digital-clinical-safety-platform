@@ -48,7 +48,7 @@ class MkdocsControl:
                   exiting the method.
         Returns:
             bool: when wait = True, if mkdocs does not start up in alloated
-                  time, False is returned
+                  time, False is returned.
         """
         n: int = 0
         file: TextIO
