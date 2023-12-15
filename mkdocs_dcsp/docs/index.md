@@ -6,9 +6,6 @@ technologies
 
 ## Table Of Contents
 
-1. [DCB0129](DCB0129/index.md)
-2. [Source code](code/index.md)
-3. [Acknowledgements](acknowledgements.md)
-4. [Developers](developers.md)
-
-{{ test_placeholder }}
+1. [Source code](code/index.md)
+2. [Acknowledgements](acknowledgements.md)
+3. [Developers](developers.md)
