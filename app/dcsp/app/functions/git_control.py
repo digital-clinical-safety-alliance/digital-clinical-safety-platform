@@ -5,7 +5,6 @@ on Github
 
 Classes:
     GitController
-
 """
 
 # TODO - need to check all function work with username and organisations as domain_name
@@ -26,7 +25,7 @@ from github import (
 import pexpect
 import yaml
 import requests
-from requests import Response
+from requests import Response, exceptions
 import os
 from typing import Any
 
@@ -120,9 +119,15 @@ class GitController:
             self.github_organisation = str(
                 dot_values.get("GITHUB_ORGANISATION" or "")
             )
+        else:
+            self.github_organisation = github_organisation
 
         if github_repo == "":
-            raise ValueError(f"'github_repo' has not been set")
+            self.github_repo = str(dot_values.get("GITHUB_REPO") or "")
+            if self.github_repo == "":
+                raise ValueError(
+                    f"'{ c.EnvKeys.GITHUB_REPO.value }' has not been set as an argument or in .env"
+                )
         else:
             self.github_repo = github_repo
 
@@ -143,10 +148,10 @@ class GitController:
                 raise FileNotFoundError(
                     f"'{ repo_path_local }' is not a valid path for 'repo_path_local'"
                 )
-
         return None
 
     # TODO #28 - need to find a good way to see if github token and username pair is valid
+    # TODO #29 - need to handle 404, 500, Timeout and connection errors
     def check_github_credentials(self) -> dict[str, str | bool | None]:
         """Checking Github credentials
 
@@ -167,10 +172,16 @@ class GitController:
         repo_request: Response
         repo: Repository.Repository
 
-        username_request = requests.get(
-            f"https://api.github.com/users/{ self.github_username }",
-            auth=(self.github_username, self.github_token),
-        )
+        # TODO will need to manage other errors like time outs and rate limiters
+        try:
+            username_request = requests.get(
+                f"https://api.github.com/users/{ self.github_username }",
+                auth=(self.github_username, self.github_token),
+            )
+        except requests.exceptions.ConnectionError:
+            raise requests.exceptions.ConnectionError(
+                f"No connection available to GitHub API"
+            )
 
         if username_request.status_code == 200:
             github_username_exists = True
@@ -185,14 +196,20 @@ class GitController:
             self.github_organisation
         )
 
-        repo_request = requests.get(
-            f"https://api.github.com/repos/{ self.repo_domain_name() }/{ self.github_repo }",
-            auth=(self.github_organisation, self.github_token),
-        )
+        try:
+            repo_request = requests.get(
+                f"https://api.github.com/repos/{ self.repo_domain_name() }/{ self.github_repo }",
+                auth=(self.github_organisation, self.github_token),
+            )
+        except requests.exceptions.ConnectionError:
+            raise requests.exceptions.ConnectionError(
+                f"No connection available to GitHub API"
+            )
 
         if repo_request.status_code == 200:
             repo_exists = True
 
+            # patch
             g = Github(self.github_username, self.github_token)
             repo = g.get_repo(
                 f"{ self.repo_domain_name() }/{ self.github_repo }"
@@ -235,10 +252,16 @@ class GitController:
         organisation_request: Response
         github_organisation_exists: bool = False
 
-        organisation_request = requests.get(
-            f"https://api.github.com/users/{ organisation }",
-            auth=(self.github_organisation, self.github_token),
-        )
+        # TODO will need to manage other errors like time outs and rate limiters
+        try:
+            organisation_request = requests.get(
+                f"https://api.github.com/users/{ organisation }",
+                auth=(self.github_organisation, self.github_token),
+            )
+        except requests.exceptions.ConnectionError:
+            raise requests.exceptions.ConnectionError(
+                f"No connection available to GitHub API"
+            )
 
         if organisation_request.status_code == 200:
             github_organisation_exists = True
@@ -301,7 +324,8 @@ class GitController:
                   or False if not.
         """
         current_repos_on_github: list[str] = self.get_repos(github_user_org)
-
+        # print("")
+        # print(str(current_repos_on_github))
         if github_repo in current_repos_on_github:
             return True
         else:

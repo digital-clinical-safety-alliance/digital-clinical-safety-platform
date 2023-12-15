@@ -4,14 +4,17 @@ import time
 
 start_time = time.time()
 
+sys.path.append("/dcsp/app/dcsp")
 
-WIDTH_FINAL_RESULTS: int = 50
+WIDTH_FINAL_RESULTS: int = 70
 
 RUN: list = []
 # RUN.append("type_checking_functions")
 RUN.append("type_checking_django")
 RUN.append("unit_testing_all_but_git")
 # RUN.append("unit_testing_git_only")
+# RUN.append("single")
+single_file = "app.tests.test_forms"
 
 outcome = {}
 all_pass = True
@@ -53,7 +56,13 @@ if "unit_testing_all_but_git" in RUN:
     print("--------------------------")
 
     process3 = Popen(
-        ["python3", "manage.py", "test", "--exclude-tag=git"],
+        [
+            "python3",
+            "manage.py",
+            "test",
+            "--settings=dcsp.settings_tests",
+            "--exclude-tag=git",
+        ],
         cwd="/dcsp/app/dcsp/",
     )
     process3.wait()
@@ -76,8 +85,9 @@ if "unit_testing_git_only" in RUN:
         [
             "python3",
             "manage.py",
-            "test",  # "--tag=sole",
+            "test",
             "app.tests.test_git_control",
+            "--settings=dcsp.settings_tests",
         ],
         cwd="/dcsp/app/dcsp",
     )
@@ -91,12 +101,38 @@ if "unit_testing_git_only" in RUN:
             "Unit testing git and GitHub only"
         ] = f"Fail - return code: { process4.returncode }"
 
+if "single" in RUN:
+    print("----------------------------------")
+    print(" Unit testing of single test file ")
+    print("----------------------------------")
+
+    process5 = Popen(
+        [
+            "python3",
+            "manage.py",
+            "test",
+            single_file,
+            "--settings=dcsp.settings_tests",
+            # "--tag=run",
+        ],
+        cwd="/dcsp/app/dcsp",
+    )
+    process5.wait()
+    if process5.returncode == 0:
+        print("- No errors")
+        outcome[f"Single file test { single_file }"] = "Pass"
+    else:
+        print(f" -Errors, exit code of: { process5.returncode}")
+        outcome[
+            f"Single file test { single_file }"
+        ] = f"Fail - return code: { process5.returncode }"
+
 
 print(f"{''.ljust(WIDTH_FINAL_RESULTS, '-') }")
 for test, value in outcome.items():
     if value != "pass":
         all_pass = False
-    print(f" { test.ljust(40, ' ') }{ value }")
+    print(f" { test.ljust(60, ' ') }{ value }")
 print("")
 print(f" Total run time: { round(time.time() - start_time) } seconds")
 print(f"{''.ljust(WIDTH_FINAL_RESULTS, '-') }")

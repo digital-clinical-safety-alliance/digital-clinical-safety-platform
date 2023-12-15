@@ -63,6 +63,9 @@ REPO_NAME: str = "digital-clinical-safety-platform"
 ISSUE_LABELS_PATH: str = "/dcsp/app/dcsp/app/functions/labels.yml"
 REPO_PATH_LOCAL: str = "/dcsp"
 
+TESTING_GITHUB_REPO = "test-repo-exists"
+TESTING_CURRENT_ISSUE = 220
+
 
 class GhCredentials(Enum):
     USER = "user"

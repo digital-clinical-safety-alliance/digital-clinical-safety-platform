@@ -1,19 +1,42 @@
-INSTALLATION_POST_GOOD_DATA = {
+import app.functions.constants as c
+
+INSTALLATION_POST_STAND_ALONE_DATA_GOOD = {
     "installation_type": "SA",
     "github_username_SA": "a username",
     "email_SA": "john.doe@domain.com",
     "github_token_SA": "a token",
     "github_organisation_SA": "an organisation",
     "github_repo_SA": "www.somesite.com",
+    "code_location_I": "",
 }
-
-INSTALLATION_POST_BAD_DATA = {
+INSTALLATION_POST_STAND_ALONE_DATA_BAD = {
     "installation_type": "SA",
     "github_username_SA": "a username",
     "email_SA": "john.doe@domain.com",
     "github_token_SA": "a token",
     "github_organisation_SA": "an organisation",
-    "github_repo_SA": "www.somesite .com",
+    "github_repo_SA": "a_bad[space] website.com",
+    "code_location_I": "",
+}
+
+INSTALLATION_POST_INTEGRATED_DATA_GOOD = {
+    "installation_type": "I",
+    "github_username_SA": "",
+    "email_SA": "",
+    "github_token_SA": "",
+    "github_organisation_SA": "",
+    "github_repo_SA": "",
+    "code_location_I": "/a_directory/",
+}
+
+INSTALLATION_POST_INTEGRATED_DATA_BAD = {
+    "installation_type": "I",
+    "github_username_SA": "",
+    "email_SA": "",
+    "github_token_SA": "",
+    "github_organisation_SA": "",
+    "github_repo_SA": "",
+    "code_location_I": "/a_directory[space] /",
 }
 
 TEMPLATE_GOOD_DATA = {"template_choice": "test_templates"}
@@ -50,24 +73,28 @@ STD_CONTEXT_SETUP_NONE = {
     "START_AFRESH": True,
     "mkdoc_running": False,
     "docs_available": False,
+    "FORM_ELEMENTS_MAX_WIDTH": c.FORM_ELEMENTS_MAX_WIDTH,
 }
 
 STD_CONTEXT_SETUP_1 = {
     "START_AFRESH": True,
     "mkdoc_running": False,
     "docs_available": False,
+    "FORM_ELEMENTS_MAX_WIDTH": c.FORM_ELEMENTS_MAX_WIDTH,
 }
 
 STD_CONTEXT_SETUP_2 = {
     "START_AFRESH": True,
     "mkdoc_running": False,
     "docs_available": True,
+    "FORM_ELEMENTS_MAX_WIDTH": c.FORM_ELEMENTS_MAX_WIDTH,
 }
 
 STD_CONTEXT_SETUP_3 = {
     "START_AFRESH": True,
     "mkdoc_running": True,
     "docs_available": True,
+    "FORM_ELEMENTS_MAX_WIDTH": c.FORM_ELEMENTS_MAX_WIDTH,
 }
 
 START_AFRESH_SETUP_3 = "GITHUB_USERNAME='a username'\nEMAIL='john.doe@domain.com'\nGITHUB_ORGANISATION='an organisation'\nGITHUB_REPO='www.somesite.com'\nGITHUB_TOKEN='a token'\nsetup_step='3'\n"

@@ -94,10 +94,8 @@
             <label class="form-label" for="id_{{ field.name }}" id="id_label_{{ field.name }}">
               {{ field.label | safe }}
             </label>
-            {% if not field.errors %}
-              {{ field }}
-            {% else %}
-              {{ field }}
+            {{ field }}
+            {% if field.errors %}
               {% for error in field.errors %}
                 <div id="id_{{ field.name }}" class="invalid-feedback">
                   {{ error|escape }}

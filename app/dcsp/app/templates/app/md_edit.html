@@ -59,12 +59,15 @@
     <input type="hidden" id="id_document_name" value="{{ document_name }}">
     <div class="row align-items-start">
       <div class="col">
-        <div class="mb-3">
-          <label class="form-label" for="id_md_text">
-            <b>Markdown</b>
-          </label>
-          {{ md_text }}
-        </div>
+        {{form.document_name}}
+
+          <div class="mb-3">
+            <label class="form-label" for="id_{{ field.name }}" id="id_label_{{ field.name }}">
+              <strong>{{ form.md_text.label | safe }}</strong>
+            </label>
+            {{ form.md_text }}
+          </div>
+
       </div>
       <div class="col">
         <div class="mb-3">

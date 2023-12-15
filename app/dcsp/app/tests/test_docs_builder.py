@@ -150,22 +150,22 @@ class BuilderTestDocsPresent(TestCase):
 
     def test_linter_single_file(self):
         doc_build = Builder(c.TESTING_MKDOCS_LINTER)
-        results = doc_build.linter("good_files/good_file1.md")
+        results = doc_build.linter_files("good_files/good_file1.md")
         self.assertEqual(results, d.TEST_LINTER_SINGLE_FILE)
 
     def test_linter_folder(self):
         doc_build = Builder(c.TESTING_MKDOCS_LINTER)
-        results = doc_build.linter("good_files")
+        results = doc_build.linter_files("good_files")
         self.assertEqual(results, d.TEST_LINTER_FOLDER)
 
     def test_linter_single_file_bad(self):
         doc_build = Builder(c.TESTING_MKDOCS_LINTER)
-        results = doc_build.linter("bad_files/bad_file1.md")
+        results = doc_build.linter_files("bad_files/bad_file1.md")
         self.assertEqual(results, d.TEST_LINTER_SINGLE_FILE_BAD)
 
     def test_linter_folder_bad(self):
         doc_build = Builder(c.TESTING_MKDOCS_LINTER)
-        results = doc_build.linter("bad_files")
+        results = doc_build.linter_files("bad_files")
         self.assertEqual(results, d.TEST_LINTER_FOLDER_BAD)
 
     def tearDown(self):

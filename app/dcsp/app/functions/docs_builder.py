@@ -264,7 +264,9 @@ class Builder:
 
         return return_dict
 
-    def linter(self, folder_file_to_examine: str) -> dict[str, dict[str, str]]:
+    def linter_files(
+        self, folder_file_to_examine: str
+    ) -> dict[str, dict[str, str]]:
         """Check through markdown  file(s) to valid placeholder syntax
 
         Using regex, checks supplied markdown file, or folder of files for errors
@@ -315,7 +317,9 @@ class Builder:
             file_ptr = open(file, "r")
             content = file_ptr.read()
 
-            # Finding number of SINGLE curley brackets
+            linter_results[file] = self.linter_sub(content)
+
+            """# Finding number of SINGLE curley brackets
             doc_Regex = re.compile(r"\{")
             left_stake_single = doc_Regex.findall(content)
             doc_Regex = re.compile(r"\}")
@@ -366,6 +370,65 @@ class Builder:
                 linter_results[file][
                     "placeholders_half_curley_numbers"
                 ] = "fail"
-                linter_results[file]["overal"] = "fail"
+                linter_results[file]["overal"] = "fail" """
+        return linter_results
+
+    def linter_text(self, text: str) -> dict[str, str]:
+        return self.linter_sub(text)
+
+    def linter_sub(self, content) -> dict[str, str]:
+        """ """
+        front_matter_placeholders: list[str] = []
+        linter_results: dict[str, str] = {"overal": "pass"}
+        # Finding number of SINGLE curley brackets
+        doc_Regex = re.compile(r"\{")
+        left_stake_single = doc_Regex.findall(content)
+        doc_Regex = re.compile(r"\}")
+        right_stake_single = doc_Regex.findall(content)
+
+        # Checking for equal numbers of left and right curley brackets
+        if len(left_stake_single) == len(right_stake_single):
+            linter_results["equal_brackets"] = "pass"
+        else:
+            linter_results["equal_brackets"] = "fail"
+            linter_results["overal"] = "fail"
+
+        # Finding number of DOUBLE curley brackets
+        doc_Regex = re.compile(r"\{\{")
+        left_stake_double = doc_Regex.findall(content)
+        doc_Regex = re.compile(r"\}\}")
+        right_stake_double = doc_Regex.findall(content)
+
+        if len(left_stake_double) == len(right_stake_double):
+            linter_results["equal_double_brackets"] = "pass"
+        else:
+            linter_results["equal_double_brackets"] = "fail"
+            linter_results["overal"] = "fail"
+
+        # Check for no placholders in front matter (metadata)
+        doc_Regex = re.compile(r"---.*?---", flags=re.S)
+        front_matter = doc_Regex.findall(content)
+        doc_Regex = re.compile(r"\{\{.*?\}\}", flags=re.S)
+        if len(front_matter) > 0:
+            front_matter_placeholders = doc_Regex.findall(front_matter[0])
+
+        if not len(front_matter_placeholders):
+            linter_results["placeholder_in_front_matter"] = "pass"
+        else:
+            linter_results["placeholder_in_front_matter"] = "fail"
+            linter_results["overal"] = "fail"
+
+        # Make sure number of {{ placeholders }} is exactly half of left or
+        # right curley brackets
+        doc_Regex = re.compile(r"\{\{.*?\}\}", flags=re.S)
+        properly_formatted_placeholders = doc_Regex.findall(content)
+
+        if (len(left_stake_single) == len(right_stake_single)) and len(
+            left_stake_single
+        ) == (len(properly_formatted_placeholders) * 2):
+            linter_results["placeholders_half_curley_numbers"] = "pass"
+        else:
+            linter_results["placeholders_half_curley_numbers"] = "fail"
+            linter_results["overal"] = "fail"
 
         return linter_results

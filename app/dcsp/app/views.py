@@ -284,7 +284,7 @@ def md_edit(request: HttpRequest) -> HttpResponse:
         "MDFileSelectForm": MDFileSelectForm(
             initial={"mark_down_file": md_file}
         ),
-        "md_text": MDEditForm(initial=form_fields),
+        "form": MDEditForm(initial=form_fields),
         "document_name": md_file,
     }
 
@@ -317,7 +317,6 @@ def md_saved(request: HttpRequest) -> HttpResponse:
         return render(request, "405.html", std_context(), status=405)
 
     setup_step = setup_step_get()
-
     if setup_step < 2:
         return redirect("/")
 
@@ -345,12 +344,22 @@ def md_saved(request: HttpRequest) -> HttpResponse:
             "MDFileSelectForm": MDFileSelectForm(
                 initial={"mark_down_file": md_file_returned}
             ),
-            "md_text": MDEditForm(initial=request.POST),
+            "form": MDEditForm(initial=request.POST),
             "document_name": md_file_returned,
         }
         return render(request, "md_edit.html", context | std_context())
     else:
-        context = {"form": form}
+        try:
+            md_file_returned = form.cleaned_data["document_name"]
+        except:
+            return render(request, "500.html", status=500)
+        context = {
+            "MDFileSelectForm": MDFileSelectForm(
+                initial={"mark_down_file": md_file_returned}
+            ),
+            "form": form,
+            "document_name": md_file_returned,
+        }
         return render(request, "md_edit.html", context | std_context())
 
     # For mypy
@@ -473,7 +482,10 @@ def hazard_comment(request: HttpRequest, hazard_number: "str") -> HttpResponse:
         return render(request, "400.html", std_context(), status=400)
 
     if request.method == "GET":
-        gc = GitController()
+        gc = GitController(
+            github_repo=settings.GITHUB_REPO,
+            env_location=settings.ENV_LOCATION,
+        )
         hazards_open_full = gc.hazards_open()
 
         for hazard in hazards_open_full:

@@ -14,13 +14,22 @@
         {% csrf_token %}
 
         {% for field in form %}
-        <div class="mb-3">
-          <label class="form-label" for="id_{{ field.name }}">
-            <a name="{{ field.label }}"></a>{{ field.label }} ({{ field.name }})
-          </label>
-          {{ field }}
-        </div>
+          <div class="mb-3">
+            <label class="form-label" for="id_{{ field.name }}" id="id_label_{{ field.name }}">
+              {{ field.label | safe }}
+            </label>
+            {{ field }}
+            {% if field.errors %}
+              {% for error in field.errors %}
+                <div id="id_{{ field.name }}" class="invalid-feedback">
+                  {{ error|escape }}
+                </div>
+              {% endfor %}
+            {% endif %}
+          </div>
         {% endfor %}
+
+
 
         <button class="btn btn-primary" type="submit" style="float: right;">
           Submit

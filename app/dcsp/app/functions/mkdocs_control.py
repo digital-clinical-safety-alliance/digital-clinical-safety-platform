@@ -51,22 +51,23 @@ class MkdocsControl:
                   time, False is returned
         """
         n: int = 0
-        fd: TextIO
+        file: TextIO
 
         if not self.is_process_running():
             # Needed to use shell script to stop blocking and the creation of
             # zombies
             os.chdir(self.cwd_sh)
-            fd = open("mkdocs_serve.sh", "w")
-            fd.write("#!/bin/bash\n")
-            fd.write("mkdocs serve > /dev/null 2>&1 &")
-            fd.close()
+            file = open("mkdocs_serve.sh", "w")
+            file.write("#!/bin/bash\n")
+            file.write("mkdocs serve > /dev/null 2>&1 &")
+            file.close()
             os.system("sh mkdocs_serve.sh")
 
             if wait:
                 while not self.is_process_running():
                     t.sleep(c.TIME_INTERVAL)
                     n += 1
+                    print(f"waiting { n }")
                     if n > c.MAX_WAIT:
                         return False
         return True

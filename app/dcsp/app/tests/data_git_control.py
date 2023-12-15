@@ -1,5 +1,8 @@
 """Data for testing git and Github functionality"""
 
+import app.functions.constants as c
+from unittest.mock import call
+
 CREDENTIALS_CHECK_REPO_EXISTS = {
     "github_username_exists": True,
     "github_organisation_exists": True,
@@ -29,8 +32,8 @@ CREDENTIALS_CHECK_ORGANISATION_BAD = {
     "permission": None,
 }
 
-ORGANISATION_NAME_GOOD = "DCSP-sandbox"
-ORGANISATION_NAME_BAD = "1233234123asdfasd234523"
+ORGANISATION_NAME_GOOD = "good_repo_name"
+ORGANISATION_NAME_BAD = "bad_repo_name"
 REPO_NAME_CURRENT = "test-repo-exists"
 REPO_NAME_NEW = "test-repo-new"
 REPO_BAD_NAME = "bad_name_repo"
@@ -158,3 +161,69 @@ VALUE_BAD = "234123421430909898hhjk324"
 EMAIL_BAD = "bad email address"
 
 LABEL_NAME_BAD = "wrong label name"
+
+git_contoller_args = {
+    "github_username": "Bob",
+    "email": "bob@domain.com",
+    "github_organisation": "org",
+    "github_repo": "a_repo",
+    "github_token": "a_token",
+    "repo_path_local": c.REPO_PATH_LOCAL,
+    "env_location": c.ENV_PATH,
+}
+
+CHECK_CREDENTIALS_GET_CALLS = [
+    call(
+        f"https://api.github.com/users/{ git_contoller_args['github_username'] }",
+        auth=(
+            git_contoller_args["github_username"],
+            git_contoller_args["github_token"],
+        ),
+    ),
+    call(
+        f"https://api.github.com/users/{ git_contoller_args['github_organisation'] }",
+        auth=(
+            git_contoller_args["github_organisation"],
+            git_contoller_args["github_token"],
+        ),
+    ),
+    call(
+        f"https://api.github.com/repos/{ git_contoller_args['github_organisation'] }/{ git_contoller_args['github_repo'] }",
+        auth=(
+            git_contoller_args["github_organisation"],
+            git_contoller_args["github_token"],
+        ),
+    ),
+]
+
+
+"""urls = [
+    "users",
+    "users/" + git_contoller_args["github_organisation"],
+    f"repos/{git_contoller_args['github_organisation']}/{git_contoller_args['github_repo']}",
+]
+
+CHECK_CREDENTIALS_CALLS = [
+    call(
+        f"https://api.github.com/{url}",
+        auth=(
+            git_contoller_args["github_organisation"]
+            if "repos" in url
+            else git_contoller_args["github_username"],
+            git_contoller_args["github_token"],
+        ),
+    )
+    for url in urls
+]"""
+
+
+CHECK_CREDENTIALS_GITHUB_CALL = (
+    git_contoller_args["github_username"],
+    git_contoller_args["github_token"],
+)
+
+
+CHECK_CREDENTIALS_REPO_CALL = f"{ git_contoller_args['github_organisation'] }/{ git_contoller_args['github_repo'] }"
+
+
+GET_REPOS = ["repo_1", "repo_2"]

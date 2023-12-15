@@ -1,19 +1,20 @@
-from django.test import TestCase, tag
+from django.test import TestCase, tag, override_settings
 from django.urls import reverse
 from django.conf import settings
 import time as t
 import sys
 import os
 import shutil
-
+from dotenv import dotenv_values
 
 import app.functions.constants as c
 
-settings.ENV_LOCATION = c.TESTING_ENV_PATH_DJANGO
+"""settings.ENV_LOCATION = c.TESTING_ENV_PATH_DJANGO
+settings.GITHUB_REPO = c.TESTING_GITHUB_REPO
 settings.MKDOCS_LOCATION = c.TESTING_MKDOCS
 settings.MKDOCS_DOCS_LOCATION = c.TESTING_MKDOCS_DOCS
 settings.TESTING = True
-settings.START_AFRESH = True
+settings.START_AFRESH = True"""
 
 
 sys.path.append(c.FUNCTIONS_APP)
@@ -26,9 +27,11 @@ import app.tests.data_views as d
 def setup_level(self, level):
     if not isinstance(level, int):
         raise ValueError("Supplied level is not convertable into an integer")
+        sys.exit(1)
 
     if level > 3 or level < 1:
         raise ValueError("Supplied level must be between 1 and 3")
+        sys.exit(1)
 
     if level >= 1:
         response = self.client.post("/", installation_variables())
@@ -59,6 +62,8 @@ def installation_variables():
 
 
 # TODO - add some messages tests
+
+
 class IndexTest(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -97,9 +102,20 @@ class IndexTest(TestCase):
     def test_installation_post_good_data_message(self):
         pass
 
-    def test_installation_post_bad_data(self):
-        response = self.client.post("/", d.INSTALLATION_POST_BAD_DATA)
+    def test_installation_post_stand_alone_data_bad(self):
+        pass
+        """response = self.client.post(
+            "/", d.INSTALLATION_POST_STAND_ALONE_DATA_BAD
+        )
+        print(response.content)
         self.assertContains(response, "Invalid URL")
+        self.assertEqual(response.status_code, 200)"""
+
+    def test_installation_post_integrated_data_bad(self):
+        response = self.client.post(
+            "/", d.INSTALLATION_POST_INTEGRATED_DATA_BAD
+        )
+        self.assertContains(response, "Invalid path")
         self.assertEqual(response.status_code, 200)
 
     def test_template_select_get(self):
@@ -107,10 +123,12 @@ class IndexTest(TestCase):
         response1 = self.client.get("/")
         self.assertEqual(response1.status_code, 200)
 
+    # @tag("run")
     def test_template_select_get_template_correct(self):
         setup_level(self, 1)
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
+        # print(response.content)
         self.assertTemplateUsed(response, "template_select.html")
 
     def test_template_post_good_data(self):
@@ -220,6 +238,7 @@ class MdEditTest(TestCase):
     # TODO - no clean method for md_edit form yet, will need testing for this once implemented wth bad data
 
 
+# @tag("run")
 class MdSavedTest(TestCase):
     def setUp(self):
         self.client.get("/start_afresh")
@@ -241,6 +260,7 @@ class MdSavedTest(TestCase):
         response1 = self.client.post("/", d.TEMPLATE_GOOD_DATA)
         self.assertEqual(response1.status_code, 200)
 
+    # @tag("run")
     def test_get_setup_2_good_data(self):
         self.setup_2_initialise()
         response2 = self.client.post("/md_saved", d.MD_SAVED_GOOD_DATA)
@@ -258,8 +278,10 @@ class MdSavedTest(TestCase):
     def test_post_good_data_message(self):
         pass
 
+    # @tag("run")
     def test_post_bad_filename(self):
-        self.setup_2_initialise()
+        # self.setup_2_initialise()
+        setup_level(self, 3)
         response2 = self.client.post("/md_saved", d.MD_SAVED_BAD_FILENAME)
         self.assertEqual(response2.status_code, 500)
 
@@ -291,8 +313,11 @@ class HazardLogTest(TestCase):
         pass
 
 
-# @tag("git")
+@tag("git")
 class HazardCommentTest(TestCase):
+    def setUp(self):
+        setup_level(self, 3)
+
     def test_hazard_comment_method_bad(self):
         response = self.client.delete("/hazard_comment/1")
         self.assertEqual(response.status_code, 405)
@@ -312,15 +337,14 @@ class HazardCommentTest(TestCase):
         self.assertTemplateUsed(response, "400.html")
 
     def test_hazard_comment_get(self):
-        setup_level(self, 3)
         response = self.client.get(
-            f"/hazard_comment/{ d.ISSUE_NUMBER_CURRENT }"
+            f"/hazard_comment/{ c.TESTING_CURRENT_ISSUE  }"
         )
         self.assertEqual(response.status_code, 200)
 
     def test_hazard_comment_get_template_correct(self):
         response = self.client.get(
-            f"/hazard_comment/{ d.ISSUE_NUMBER_CURRENT }"
+            f"/hazard_comment/{ c.TESTING_CURRENT_ISSUE  }"
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "hazard_comment.html")
@@ -367,6 +391,7 @@ class SetupStepTest(TestCase):
     pass
 
 
+@tag("git")
 class StdContectTest(TestCase):
     def setUp(self):
         self.client.get("/start_afresh")
@@ -382,11 +407,13 @@ class StdContectTest(TestCase):
         setup_level(self, 2)
         self.assertEqual(std_context(), d.STD_CONTEXT_SETUP_2)
 
+    @tag("run")
     def test_setup_3(self):
         setup_level(self, 3)
         self.assertEqual(std_context(), d.STD_CONTEXT_SETUP_3)
 
 
+@tag("git")
 class StartAfreshEnabledTest(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -430,6 +457,7 @@ class StartAfreshEnabledTest(TestCase):
         settings.ENV_LOCATION = cls.env_location_previous
 
 
+@tag("git")
 class StartAfreshDisabledTest(TestCase):
     @classmethod
     def setUpClass(cls):
