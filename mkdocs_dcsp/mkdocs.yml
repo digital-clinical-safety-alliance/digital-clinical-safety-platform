@@ -3,13 +3,24 @@ site_description: Hazard logging system
 site_author: Digital Clinical Safety Alliance
 site_url: http://0.0.0.0:9000
 
+
 plugins:
+  - search
   - mkdocstrings:
-      watch:
-      - ../app/dcsp/app
+      default_handler: python
       handlers:
         python:
+          rendering:
+            show_source: true
           paths: [../app/dcsp/app, /dcsp/app/dcsp/app]
+      watch:
+        - ../app/dcsp/app
+  #- mkdocstrings:
+  #    watch:
+  #    - ../app/dcsp/app
+  #    handlers:
+  #      python:
+  #        paths: [../app/dcsp/app, /dcsp/app/dcsp/app]
 
 theme:
   name: material
