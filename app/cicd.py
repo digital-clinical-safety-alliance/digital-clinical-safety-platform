@@ -1,4 +1,5 @@
 import sys
+import os
 from subprocess import Popen, PIPE
 import time
 
@@ -18,6 +19,11 @@ single_file = "app.tests.test_forms"
 
 outcome = {}
 all_pass = True
+
+process = Popen(
+    ["python3", "manage.py", "runserver", "0.0.0.0:8000"],
+    cwd="/dcsp/app/dcsp/",
+)
 
 if "type_checking_functions" in RUN:
     print("---------------------------------")
@@ -43,10 +49,12 @@ if "type_checking_django" in RUN:
     process2.wait()
     if process2.returncode == 0:
         print("- No errors")
-        outcome["Django hint typing"] = "Pass"
+        outcome["Django hint typing"] = "pass"
     else:
         print(f" -Errors, exit code of: { process2.returncode}")
-        outcome["Django hint typing"] = f"Fail - return code: { process2.returncode }"
+        outcome[
+            "Django hint typing"
+        ] = f"Fail - return code: { process2.returncode }"
 
 if "unit_testing_all_but_git" in RUN:
     print("--------------------------")
@@ -56,6 +64,7 @@ if "unit_testing_all_but_git" in RUN:
     process3 = Popen(
         [
             "python3",
+            "-u",
             "manage.py",
             "test",
             "--settings=dcsp.settings_tests",
@@ -66,7 +75,7 @@ if "unit_testing_all_but_git" in RUN:
     process3.wait()
     if process3.returncode == 0:
         print("- No errors")
-        outcome["Unit testing all but git"] = "Pass"
+        outcome["Unit testing all but git"] = "pass"
     else:
         print(f" -Errors, exit code of: { process3.returncode}")
         outcome[
@@ -92,7 +101,7 @@ if "unit_testing_git_only" in RUN:
     process4.wait()
     if process4.returncode == 0:
         print("- No errors")
-        outcome["Unit testing git and GitHub only"] = "Pass"
+        outcome["Unit testing git and GitHub only"] = "pass"
     else:
         print(f" -Errors, exit code of: { process4.returncode}")
         outcome[
@@ -118,7 +127,7 @@ if "single" in RUN:
     process5.wait()
     if process5.returncode == 0:
         print("- No errors")
-        outcome[f"Single file test { single_file }"] = "Pass"
+        outcome[f"Single file test { single_file }"] = "pass"
     else:
         print(f" -Errors, exit code of: { process5.returncode}")
         outcome[

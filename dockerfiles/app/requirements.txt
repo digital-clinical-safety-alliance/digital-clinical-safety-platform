@@ -70,9 +70,11 @@ sqlparse==0.4.4
 stevedore==5.1.0
 termcolor==2.3.0
 tomli==2.0.1
+types-pexpect==4.8.0.2
 types-psutil==5.9.5.17
 types-pytz==2023.3.1.1
 types-PyYAML==6.0.12.12
+types-requests==2.31.0.10
 typing_extensions==4.8.0
 tzdata==2023.3
 urllib3==2.0.7

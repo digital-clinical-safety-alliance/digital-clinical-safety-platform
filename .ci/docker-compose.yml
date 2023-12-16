@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  docs-builder-cicd:
+    build: ../dockerfiles/app
+    container_name: docs-builder-cicd
+    stdin_open: true # docker run -i
+    tty: true # docker run -t
+    ports:
+      - "8000:8000"
+      - "9000:9000"
+    volumes:
+      - ../:/dcsp
+    working_dir: /dcsp/app
+    command: bash PID_1_cicd.sh
+    #entrypoint: bash PID_1_loop.sh
+    #command: python3 -u cicd.py
+    #command: cd /dcsp/app
+    #command: python3 -u /dcsp/app/dcsp/manage.py test --settings=dcsp.settings_tests
+
