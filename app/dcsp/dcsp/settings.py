@@ -35,9 +35,7 @@ if not DEBUG:
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = (
-    "django-insecure-ud!*dfrs=7*gel5$pu0-0#9*ylt_5oc%&r4!%@f-sff=u=x@x-"
-)
+SECRET_KEY = "django-insecure-ud!*dfrs=7*gel5$pu0-0#9*ylt_5oc%&r4!%@f-sff=u=x@x-"
 
 
 ALLOWED_HOSTS = ["0.0.0.0", "localhost"]

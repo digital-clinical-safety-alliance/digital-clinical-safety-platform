@@ -46,9 +46,7 @@ if "type_checking_django" in RUN:
         outcome["Django hint typing"] = "Pass"
     else:
         print(f" -Errors, exit code of: { process2.returncode}")
-        outcome[
-            "Django hint typing"
-        ] = f"Fail - return code: { process2.returncode }"
+        outcome["Django hint typing"] = f"Fail - return code: { process2.returncode }"
 
 if "unit_testing_all_but_git" in RUN:
     print("--------------------------")
