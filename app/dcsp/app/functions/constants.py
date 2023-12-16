@@ -40,9 +40,7 @@ TESTING_MKDOCS_CONTROL: str = (
 )
 TESTING_MKDOCS_DOCS: str = f"{ TESTING_MKDOCS }docs/"
 TESTING_MKDOCS_TEMPLATES: str = f"{ TESTING_MKDOCS }templates/"
-TESTING_MKDOCS_PLACEHOLDERS_YAML: str = (
-    f"{ TESTING_MKDOCS }docs/placeholders.yml"
-)
+TESTING_MKDOCS_PLACEHOLDERS_YAML: str = f"{ TESTING_MKDOCS }docs/placeholders.yml"
 
 TESTING_MKDOCS_NO_DOCS_FOLDER: str = (
     f"{ TESTS_LOCATION }test_docs/mkdocs_no_docs_folder/"
@@ -50,9 +48,7 @@ TESTING_MKDOCS_NO_DOCS_FOLDER: str = (
 TESTING_MKDOCS_NO_TEMPLATES_FOLDER: str = (
     f"{ TESTS_LOCATION }test_docs/mkdocs_no_template_folder/"
 )
-TESTING_MKDOCS_EMPTY_FOLDERS: str = (
-    f"{ TESTS_LOCATION }test_docs/mkdocs_empty_folders/"
-)
+TESTING_MKDOCS_EMPTY_FOLDERS: str = f"{ TESTS_LOCATION }test_docs/mkdocs_empty_folders/"
 TESTING_MKDOCS_LINTER: str = f"{ TESTS_LOCATION }test_docs/mkdocs_linter/"
 
 # testing Django

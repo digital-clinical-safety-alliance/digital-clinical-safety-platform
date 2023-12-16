@@ -10,9 +10,7 @@ import re
 
 
 class EmailFunctions:
-    _valid_email_regex: str = (
-        r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
-    )
+    _valid_email_regex: str = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
 
     def __init__(self) -> None:
         """Init

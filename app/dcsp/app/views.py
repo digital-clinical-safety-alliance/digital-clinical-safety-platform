@@ -105,9 +105,7 @@ def index(request: HttpRequest) -> HttpResponse:
         if request.method == "GET":
             context = {"form": InstallationForm()}
 
-            return render(
-                request, "installation_method.html", context | std_context()
-            )
+            return render(request, "installation_method.html", context | std_context())
 
         elif request.method == "POST":
             form = InstallationForm(request.POST)
@@ -139,9 +137,7 @@ def index(request: HttpRequest) -> HttpResponse:
 
                 context = {"form": TemplateSelectForm()}
 
-                return render(
-                    request, "template_select.html", context | std_context()
-                )
+                return render(request, "template_select.html", context | std_context())
             else:
                 context = {"form": form}
 
@@ -155,9 +151,7 @@ def index(request: HttpRequest) -> HttpResponse:
         if request.method == "GET":
             context = {"form": TemplateSelectForm()}
 
-            return render(
-                request, "template_select.html", context | std_context()
-            )
+            return render(request, "template_select.html", context | std_context())
 
         elif request.method == "POST":
             form = TemplateSelectForm(request.POST)  # type: ignore[assignment]
@@ -181,17 +175,13 @@ def index(request: HttpRequest) -> HttpResponse:
             else:
                 context = {"form": form}
 
-                return render(
-                    request, "template_select.html", context | std_context()
-                )
+                return render(request, "template_select.html", context | std_context())
 
     elif setup_step >= 2:
         if request.method == "GET":
             context = {"form": PlaceholdersForm()}
 
-            return render(
-                request, "placeholders_show.html", context | std_context()
-            )
+            return render(request, "placeholders_show.html", context | std_context())
 
         elif request.method == "POST":
             form = PlaceholdersForm(data=request.POST)  # type: ignore[assignment]
@@ -283,9 +273,7 @@ def md_edit(request: HttpRequest) -> HttpResponse:
         form_fields = {"md_text": file.read(), "document_name": md_file}
 
     context = {
-        "MDFileSelectForm": MDFileSelectForm(
-            initial={"mark_down_file": md_file}
-        ),
+        "MDFileSelectForm": MDFileSelectForm(initial={"mark_down_file": md_file}),
         "form": MDEditForm(initial=form_fields),
         "document_name": md_file,
     }
@@ -331,9 +319,7 @@ def md_saved(request: HttpRequest) -> HttpResponse:
         file_path = f"{ settings.MKDOCS_DOCS_LOCATION }{ md_file_returned }"
 
         if not os.path.isfile(file_path):
-            return render(
-                request, "500.html", context | std_context(), status=500
-            )
+            return render(request, "500.html", context | std_context(), status=500)
 
         file = open(file_path, "w")
         file.write(md_text_returned)
@@ -425,9 +411,7 @@ def hazard_log(request: HttpRequest) -> HttpResponse:
             gc = GitController()
 
             try:
-                gc.hazard_log(
-                    hazard["title"], hazard["body"], hazard["labels"]
-                )
+                gc.hazard_log(hazard["title"], hazard["body"], hazard["labels"])
             except Exception as error:
                 messages.error(
                     request,
@@ -436,18 +420,14 @@ def hazard_log(request: HttpRequest) -> HttpResponse:
 
                 context = {"form": LogHazardForm(initial=request.POST)}
 
-                return render(
-                    request, "hazard_log.html", context | std_context()
-                )
+                return render(request, "hazard_log.html", context | std_context())
             else:
                 messages.success(
                     request,
                     f"Hazard has been uploaded to GitHub",
                 )
                 context = {"form": LogHazardForm()}
-                return render(
-                    request, "hazard_log.html", context | std_context()
-                )
+                return render(request, "hazard_log.html", context | std_context())
         else:
             context = {"form": form}
             return render(request, "hazard_log.html", context | std_context())
@@ -507,9 +487,7 @@ def hazard_comment(request: HttpRequest, hazard_number: "str") -> HttpResponse:
 
         context = {
             "hazard_open": hazard_open,
-            "form": HazardCommentForm(
-                initial={"comment": c.TEMPLATE_HAZARD_COMMENT}
-            ),
+            "form": HazardCommentForm(initial={"comment": c.TEMPLATE_HAZARD_COMMENT}),
             "hazard_number": hazard_number,
         }
         return render(request, "hazard_comment.html", context | std_context())
@@ -520,22 +498,16 @@ def hazard_comment(request: HttpRequest, hazard_number: "str") -> HttpResponse:
             comment = form.cleaned_data["comment"]
             gc = GitController()
             # TODO - need error handling here
-            gc.add_comment_to_hazard(
-                hazard_number=int(hazard_number), comment=comment
-            )
+            gc.add_comment_to_hazard(hazard_number=int(hazard_number), comment=comment)
             messages.success(
                 request,
                 f"Hazard '{ hazard_number }' updated.",
             )
             context = {"form": LogHazardForm()}
-            return render(
-                request, "hazard_comment.html", context | std_context()
-            )
+            return render(request, "hazard_comment.html", context | std_context())
         else:
             context = {"form": form}
-            return render(
-                request, "hazard_comment.html", context | std_context()
-            )
+            return render(request, "hazard_comment.html", context | std_context())
 
     # Should never really get here, but added for mypy
     return render(request, "500.html", std_context(), status=500)
@@ -626,9 +598,7 @@ def upload_to_github(request: HttpRequest) -> HttpResponse:
     if request.method == "GET":
         context = {"form": UploadToGithubForm()}
 
-        return render(
-            request, "upload_to_github.html", context | std_context()
-        )
+        return render(request, "upload_to_github.html", context | std_context())
 
     if request.method == "POST":
         form = UploadToGithubForm(request.POST)
@@ -642,15 +612,11 @@ def upload_to_github(request: HttpRequest) -> HttpResponse:
                 f"Uploaded to Github with a comment of '{ comment }'",
             )
             context = {"form": UploadToGithubForm()}
-            return render(
-                request, "upload_to_github.html", context | std_context()
-            )
+            return render(request, "upload_to_github.html", context | std_context())
 
         else:
             context = {"form": form}
-            return render(
-                request, "upload_to_github.html", context | std_context()
-            )
+            return render(request, "upload_to_github.html", context | std_context())
 
     # Should never really get here, but added for mypy
     return render(request, "500.html", std_context(), status=500)
