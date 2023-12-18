@@ -12,7 +12,7 @@ services:
     volumes:
       - ../:/dcsp
     working_dir: /dcsp/app
-    command: bash PID_1_cicd.sh
+    entrypoint: bash PID_1_cicd.sh
     #entrypoint: bash PID_1_loop.sh
     #command: python3 -u cicd.py
     #command: cd /dcsp/app
