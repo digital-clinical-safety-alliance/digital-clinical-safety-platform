@@ -27,7 +27,7 @@ import yaml
 import requests
 from requests import Response, exceptions
 import os
-import subprocess  # nosec
+import subprocess
 from typing import Any
 
 sys.path.append("/dcsp/app/dcsp/")  # TODO temp
