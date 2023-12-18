@@ -11,6 +11,9 @@ jobs:
   docker-cicd:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Build and run Docker container
         id: docker
         run: |
