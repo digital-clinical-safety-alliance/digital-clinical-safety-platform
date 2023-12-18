@@ -11,11 +11,34 @@ jobs:
   docker-cicd:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Build and run Docker container
+        id: docker
+        run: |
+          CONTAINER_EXIT_CODE=$(docker-compose -f .cicd/docker-compose.yml up)
+          echo "Container Exit Code: $CONTAINER_EXIT_CODE"
+          echo "##[set-output name=exit-code]${CONTAINER_EXIT_CODE}"
+      
+      - name: Check exit code
+        run: |
+          EXIT_CODE=${{ steps.docker.outputs.exit-code }}
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "Docker container exited with an error"
+            exit 1
+          fi
 
-      - name: Build Docker image & run linter, security, typing and unit testing
-        run: docker-compose -f .cicd/docker-compose.yml up
+
+      #- name: Checkout code
+      #  uses: actions/checkout@v2
+
+      #- name: Build Docker image & run linter, security, typing and unit testing
+      #  run: docker-compose -f .cicd/docker-compose.yml up
+
+
+
+
+
+
+
 
   mkdocs-documents:
     runs-on: ubuntu-latest
