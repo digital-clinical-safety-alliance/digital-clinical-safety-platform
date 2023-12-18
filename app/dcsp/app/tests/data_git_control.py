@@ -179,6 +179,7 @@ CHECK_CREDENTIALS_GET_CALLS = [
             git_contoller_args["github_username"],
             git_contoller_args["github_token"],
         ),
+        timeout=10,
     ),
     call(
         f"https://api.github.com/users/{ git_contoller_args['github_organisation'] }",
@@ -186,6 +187,7 @@ CHECK_CREDENTIALS_GET_CALLS = [
             git_contoller_args["github_organisation"],
             git_contoller_args["github_token"],
         ),
+        timeout=10,
     ),
     call(
         f"https://api.github.com/repos/{ git_contoller_args['github_organisation'] }/{ git_contoller_args['github_repo'] }",
@@ -193,6 +195,7 @@ CHECK_CREDENTIALS_GET_CALLS = [
             git_contoller_args["github_organisation"],
             git_contoller_args["github_token"],
         ),
+        timeout=10,
     ),
 ]
 
@@ -227,3 +230,6 @@ CHECK_CREDENTIALS_REPO_CALL = f"{ git_contoller_args['github_organisation'] }/{ 
 
 
 GET_REPOS = ["repo_1", "repo_2"]
+
+TIME_ERROR_MESSAGE = "Timeout while connecting to GitHub API"
+NO_CONNECTION_ERROR_MESSAGE = "No connection available to GitHub API"

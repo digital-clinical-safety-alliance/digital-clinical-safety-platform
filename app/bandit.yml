@@ -1,0 +1,2 @@
+# FILE: pyproject.toml
+exclude_dirs: ["./cicd.py"]

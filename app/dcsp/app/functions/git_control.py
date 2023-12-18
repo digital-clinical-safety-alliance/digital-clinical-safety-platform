@@ -27,6 +27,7 @@ import yaml
 import requests
 from requests import Response, exceptions
 import os
+import subprocess  # nosec
 from typing import Any
 
 sys.path.append("/dcsp/app/dcsp/")  # TODO temp
@@ -88,7 +89,9 @@ class GitController:
             raise ValueError(f".env location is set to empty string")
 
         if not os.path.isfile(env_location):
-            raise ValueError(f"'{ env_location }' path for .env file does not exist")
+            raise ValueError(
+                f"'{ env_location }' path for .env file does not exist"
+            )
 
         dot_values = dotenv_values(env_location)
 
@@ -115,7 +118,9 @@ class GitController:
             raise ValueError(f"Email address '{ self.email }' is invalid")
 
         if github_organisation == "":
-            self.github_organisation = str(dot_values.get("GITHUB_ORGANISATION" or ""))
+            self.github_organisation = str(
+                dot_values.get("GITHUB_ORGANISATION" or "")
+            )
         else:
             self.github_organisation = github_organisation
 
@@ -128,9 +133,9 @@ class GitController:
         else:
             self.github_repo = github_repo
 
-        if github_token == "":
+        if github_token == "":  # nosec
             self.github_token = str(dot_values.get("GITHUB_TOKEN") or "")
-            if self.github_token == None or self.github_token == "":
+            if self.github_token == None or self.github_token == "":  # nosec
                 raise ValueError(
                     f"'{ c.EnvKeys.GITHUB_TOKEN.value }' has not been set as an argument or in .env"
                 )
@@ -168,15 +173,21 @@ class GitController:
         repo_request: Response
         repo: Repository.Repository
 
-        # TODO will need to manage other errors like time outs and rate limiters
+        # TODO ? manage rate limiters
+
         try:
             username_request = requests.get(
                 f"https://api.github.com/users/{ self.github_username }",
                 auth=(self.github_username, self.github_token),
+                timeout=10,
             )
         except requests.exceptions.ConnectionError:
             raise requests.exceptions.ConnectionError(
-                f"No connection available to GitHub API"
+                "No connection available to GitHub API"
+            )
+        except requests.exceptions.Timeout:
+            raise requests.exceptions.Timeout(
+                "Timeout while connecting to GitHub API"
             )
 
         if username_request.status_code == 200:
@@ -188,16 +199,23 @@ class GitController:
                 f"Error with Github username checking. Returned value of: {username_request.status_code }"
             )
 
-        github_organisation_exists = self.organisation_exists(self.github_organisation)
+        github_organisation_exists = self.organisation_exists(
+            self.github_organisation
+        )
 
         try:
             repo_request = requests.get(
                 f"https://api.github.com/repos/{ self.repo_domain_name() }/{ self.github_repo }",
                 auth=(self.github_organisation, self.github_token),
+                timeout=10,
             )
         except requests.exceptions.ConnectionError:
             raise requests.exceptions.ConnectionError(
-                f"No connection available to GitHub API"
+                "No connection available to GitHub API"
+            )
+        except requests.exceptions.Timeout:
+            raise requests.exceptions.Timeout(
+                "Timeout while connecting to GitHub API"
             )
 
         if repo_request.status_code == 200:
@@ -205,10 +223,14 @@ class GitController:
 
             # patch
             g = Github(self.github_username, self.github_token)
-            repo = g.get_repo(f"{ self.repo_domain_name() }/{ self.github_repo }")
+            repo = g.get_repo(
+                f"{ self.repo_domain_name() }/{ self.github_repo }"
+            )
 
             try:
-                permission = repo.get_collaborator_permission(self.github_username)
+                permission = repo.get_collaborator_permission(
+                    self.github_username
+                )
             except GithubException:
                 pass
         elif repo_request.status_code == 404:
@@ -249,10 +271,15 @@ class GitController:
             organisation_request = requests.get(
                 f"https://api.github.com/users/{ organisation }",
                 auth=(self.github_organisation, self.github_token),
+                timeout=10,
             )
         except requests.exceptions.ConnectionError:
             raise requests.exceptions.ConnectionError(
-                f"No connection available to GitHub API"
+                "No connection available to GitHub API"
+            )
+        except requests.exceptions.Timeout:
+            raise requests.exceptions.Timeout(
+                "Timeout while connecting to GitHub API"
             )
 
         if organisation_request.status_code == 200:
@@ -301,7 +328,9 @@ class GitController:
 
         return repos_found
 
-    def current_repo_on_github(self, github_user_org: str, github_repo: str) -> bool:
+    def current_repo_on_github(
+        self, github_user_org: str, github_repo: str
+    ) -> bool:
         """Checks if supplied repository is on GitHub
 
         Checks if the supplied repository name is on GitHub, in the format
@@ -412,8 +441,27 @@ class GitController:
             repo.config_reader().get_value("user", "name")
             repo.config_reader().get_value("user", "email")
         except:
-            os.system(f"git config --global user.name '{ self.github_username }'")
-            os.system(f"git config --global user.email '{ self.email }'")
+            subprocess.Popen(
+                [
+                    "/usr/bin/git",
+                    "config",
+                    "--global",
+                    "user.name",
+                    self.github_username,
+                ],
+                shell=False,
+            ).wait()  # nosec
+
+            subprocess.Popen(
+                [
+                    "/usr/bin/git",
+                    "config",
+                    "--global",
+                    "user.email",
+                    self.email,
+                ],
+                shell=False,
+            ).wait()  # nosec
 
         repo = Repo(self.repo_path_local)
         repo.git.add("--all")
@@ -430,7 +478,9 @@ class GitController:
         child = pexpect.spawn("git push", timeout=10)
         child.expect("Username for 'https://github.com': ")
         child.sendline(self.github_username)
-        child.expect(f"Password for 'https://{ self.github_username }@github.com': ")
+        child.expect(
+            f"Password for 'https://{ self.github_username }@github.com': "
+        )
         child.sendline(self.github_token)
 
         if verbose:
@@ -473,7 +523,9 @@ class GitController:
         g = Github(self.github_username, self.github_token)
 
         try:
-            repo = g.get_repo(f"{ self.repo_domain_name() }/{ self.github_repo }")
+            repo = g.get_repo(
+                f"{ self.repo_domain_name() }/{ self.github_repo }"
+            )
             repo.create_issue(
                 title=title,
                 body=body,
@@ -568,7 +620,9 @@ class GitController:
         g = Github(self.github_username, self.github_token)
 
         try:
-            repo = g.get_repo(f"{ self.repo_domain_name() }/{ self.github_repo }")
+            repo = g.get_repo(
+                f"{ self.repo_domain_name() }/{ self.github_repo }"
+            )
             open_issues = repo.get_issues(state="open")
         except GithubException as error:
             raise ValueError(
@@ -641,7 +695,9 @@ class GitController:
         g = Github(self.github_username, self.github_token)
 
         try:
-            repo = g.get_repo(f"{ self.repo_domain_name() }/{ self.github_repo }")
+            repo = g.get_repo(
+                f"{ self.repo_domain_name() }/{ self.github_repo }"
+            )
         except GithubException as error:
             raise ValueError(
                 f"Error with accessing repo '{ self.repo_domain_name() }/{ self.github_repo }', return value '{ error.data['message'] }'"

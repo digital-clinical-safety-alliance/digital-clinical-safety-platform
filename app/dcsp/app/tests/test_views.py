@@ -68,7 +68,9 @@ class IndexTest(TestCase):
     @classmethod
     def setUpClass(cls):
         if not os.path.isfile(c.TESTING_ENV_PATH_GIT):
-            raise FileNotFoundError(".env file for GitControllerTest class is missing")
+            raise FileNotFoundError(
+                ".env file for GitControllerTest class is missing"
+            )
             sys.exit(1)
 
     def setUp(self):
@@ -110,7 +112,9 @@ class IndexTest(TestCase):
         self.assertEqual(response.status_code, 200)"""
 
     def test_installation_post_integrated_data_bad(self):
-        response = self.client.post("/", d.INSTALLATION_POST_INTEGRATED_DATA_BAD)
+        response = self.client.post(
+            "/", d.INSTALLATION_POST_INTEGRATED_DATA_BAD
+        )
         self.assertContains(response, "Invalid path")
         self.assertEqual(response.status_code, 200)
 
@@ -246,7 +250,9 @@ class MdSavedTest(TestCase):
     def test_get_setup_None(self):
         response = self.client.get("/md_saved")
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("md_edit"), target_status_code=302)
+        self.assertRedirects(
+            response, reverse("md_edit"), target_status_code=302
+        )
 
     def setup_2_initialise(self):
         response = self.client.post("/", installation_variables())
@@ -331,20 +337,28 @@ class HazardCommentTest(TestCase):
         self.assertTemplateUsed(response, "400.html")
 
     def test_hazard_comment_get(self):
-        response = self.client.get(f"/hazard_comment/{ c.TESTING_CURRENT_ISSUE  }")
+        response = self.client.get(
+            f"/hazard_comment/{ c.TESTING_CURRENT_ISSUE  }"
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_hazard_comment_get_template_correct(self):
-        response = self.client.get(f"/hazard_comment/{ c.TESTING_CURRENT_ISSUE  }")
+        response = self.client.get(
+            f"/hazard_comment/{ c.TESTING_CURRENT_ISSUE  }"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "hazard_comment.html")
 
     def test_hazard_comment_issue_number_nonexistent(self):
-        response = self.client.get(f"/hazard_comment/{ d.ISSUE_NUMBER_NONEXISTENT }")
+        response = self.client.get(
+            f"/hazard_comment/{ d.ISSUE_NUMBER_NONEXISTENT }"
+        )
         self.assertEqual(response.status_code, 400)
 
     def test_hazard_comment_issue_number_nonexistent_corrent_template(self):
-        response = self.client.get(f"/hazard_comment/{ d.ISSUE_NUMBER_NONEXISTENT }")
+        response = self.client.get(
+            f"/hazard_comment/{ d.ISSUE_NUMBER_NONEXISTENT }"
+        )
         self.assertEqual(response.status_code, 400)
         self.assertTemplateUsed(response, "400.html")
 

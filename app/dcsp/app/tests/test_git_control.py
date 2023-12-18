@@ -45,10 +45,14 @@ class GitControllerTest(TestCase):
     @classmethod
     def setUpClass(cls):
         if not os.path.isfile(c.TESTING_ENV_PATH_GIT):
-            raise FileNotFoundError(".env file for GitControllerTest class is missing")
+            raise FileNotFoundError(
+                ".env file for GitControllerTest class is missing"
+            )
             sys.exit(1)
         for key in c.EnvKeys:
-            file_name_temp = f"{c.TESTING_ENV_PATH_GIT_DIR_ONLY}env_no_{ key.value }"
+            file_name_temp = (
+                f"{c.TESTING_ENV_PATH_GIT_DIR_ONLY}env_no_{ key.value }"
+            )
             f = open(file_name_temp, "w")
             for key_again in c.EnvKeys:
                 if key == key_again:
@@ -67,7 +71,9 @@ class GitControllerTest(TestCase):
     def test_init_env_location_empty(self):
         with self.assertRaises(ValueError) as error:
             GitController(env_location="")
-        self.assertEqual(str(error.exception), f".env location is set to empty string")
+        self.assertEqual(
+            str(error.exception), f".env location is set to empty string"
+        )
 
     def test_init_env_location_bad(self):
         with self.assertRaises(ValueError) as error:
@@ -144,7 +150,9 @@ class GitControllerTest(TestCase):
 
         gc = GitController(**d.git_contoller_args)
 
-        self.assertEqual(gc.check_github_credentials(), d.CREDENTIALS_CHECK_REPO_EXISTS)
+        self.assertEqual(
+            gc.check_github_credentials(), d.CREDENTIALS_CHECK_REPO_EXISTS
+        )
 
         calls = mock_get.call_args_list
         self.assertEqual(calls, d.CHECK_CREDENTIALS_GET_CALLS)
@@ -161,7 +169,9 @@ class GitControllerTest(TestCase):
         )
 
         mock_repo_instance.get_collaborator_permission.assert_called_once()
-        calls_permission = mock_repo_instance.get_collaborator_permission.call_args_list
+        calls_permission = (
+            mock_repo_instance.get_collaborator_permission.call_args_list
+        )
         self.assertEqual(
             calls_permission[0].args[0],
             d.git_contoller_args["github_username"],
@@ -170,7 +180,9 @@ class GitControllerTest(TestCase):
     # @tag("run")
     @patch("app.functions.git_control.requests.get")
     @patch("app.functions.git_control.Github")
-    def test_check_github_credentials_no_connection(self, mock_github, mock_get):
+    def test_check_github_credentials_no_connection(
+        self, mock_github, mock_get
+    ):
         mock_get.side_effect = requests.exceptions.ConnectionError(
             "Test Connection Error"
         )
@@ -180,8 +192,10 @@ class GitControllerTest(TestCase):
         mock_github_instance = Mock()
         mock_github.return_value = mock_github_instance
 
-        with self.assertRaises(requests.exceptions.ConnectionError):
+        with self.assertRaises(requests.exceptions.ConnectionError) as error:
             gc.check_github_credentials()
+
+        self.assertEqual(str(error.exception), d.NO_CONNECTION_ERROR_MESSAGE)
 
         self.assertEqual(mock_get.call_count, 1)
         calls = mock_get.call_args_list
@@ -189,13 +203,38 @@ class GitControllerTest(TestCase):
 
         self.assertEqual(mock_github.call_count, 0)
 
-    def test_check_github_credentials_timeout(self):
-        pass
+    # @tag("run")
+    @patch("app.functions.git_control.requests.get")
+    @patch("app.functions.git_control.Github")
+    def test_check_github_credentials_timeout(self, mock_github, mock_get):
+        mock_get.side_effect = requests.exceptions.Timeout(
+            "Test Timeout Error"
+        )
+
+        gc = GitController(**d.git_contoller_args)
+
+        mock_github_instance = Mock()
+        mock_github.return_value = mock_github_instance
+
+        with self.assertRaises(requests.exceptions.Timeout) as error:
+            gc.check_github_credentials()
+
+        self.assertEqual(str(error.exception), d.TIME_ERROR_MESSAGE)
+
+        self.assertEqual(mock_get.call_count, 1)
+        calls = mock_get.call_args_list
+        self.assertEqual(calls[0], d.CHECK_CREDENTIALS_GET_CALLS[0])
+
+        self.assertEqual(mock_github.call_count, 0)
+
+    # TODO #30 may need to catch time outs and no connections in different request places
 
     # @tag("run")
     @patch("app.functions.git_control.requests.get")
     @patch("app.functions.git_control.Github")
-    def test_check_github_credentials_repo_does_not_exist(self, mock_github, mock_get):
+    def test_check_github_credentials_repo_does_not_exist(
+        self, mock_github, mock_get
+    ):
         mock_get.side_effect = iter(
             [
                 Mock(status_code=200),
@@ -223,7 +262,9 @@ class GitControllerTest(TestCase):
     # @tag("run")
     @patch("app.functions.git_control.requests.get")
     @patch("app.functions.git_control.Github")
-    def test_check_github_credentials_username_bad(self, mock_github, mock_get):
+    def test_check_github_credentials_username_bad(
+        self, mock_github, mock_get
+    ):
         mock_get.side_effect = iter(
             [
                 Mock(status_code=404),
@@ -236,8 +277,8 @@ class GitControllerTest(TestCase):
         mock_github.return_value = mock_github_instance
         mock_repo_instance = Mock()
         mock_github_instance.get_repo.return_value = mock_repo_instance
-        mock_repo_instance.get_collaborator_permission.side_effect = GithubException(
-            "No permission for repo"
+        mock_repo_instance.get_collaborator_permission.side_effect = (
+            GithubException("No permission for repo")
         )
 
         gc = GitController(**d.git_contoller_args)
@@ -262,7 +303,9 @@ class GitControllerTest(TestCase):
         )
 
         mock_repo_instance.get_collaborator_permission.assert_called_once()
-        calls_permission = mock_repo_instance.get_collaborator_permission.call_args_list
+        calls_permission = (
+            mock_repo_instance.get_collaborator_permission.call_args_list
+        )
         self.assertEqual(
             calls_permission[0].args[0],
             d.git_contoller_args["github_username"],
@@ -271,7 +314,9 @@ class GitControllerTest(TestCase):
     # @tag("run")
     @patch("app.functions.git_control.requests.get")
     @patch("app.functions.git_control.Github")
-    def test_check_github_credentials_organisation_bad(self, mock_github, mock_get):
+    def test_check_github_credentials_organisation_bad(
+        self, mock_github, mock_get
+    ):
         mock_get.side_effect = iter(
             [
                 Mock(status_code=200),
@@ -330,7 +375,9 @@ class GitControllerTest(TestCase):
         setattr(mock_name0, "name", d.GET_REPOS[0])
         mock_name1 = Mock()
         setattr(mock_name1, "name", d.GET_REPOS[1])
-        mock_repo_instance.get_repos.return_value = iter([mock_name0, mock_name1])
+        mock_repo_instance.get_repos.return_value = iter(
+            [mock_name0, mock_name1]
+        )
 
         gc = GitController(**d.git_contoller_args)
         self.assertTrue(
@@ -393,7 +440,9 @@ class GitControllerTest(TestCase):
         setattr(mock_name0, "name", d.GET_REPOS[0])
         mock_name1 = Mock()
         setattr(mock_name1, "name", d.GET_REPOS[1])
-        mock_repo_instance.get_repos.return_value = iter([mock_name0, mock_name1])
+        mock_repo_instance.get_repos.return_value = iter(
+            [mock_name0, mock_name1]
+        )
 
         gc = GitController(**d.git_contoller_args)
         self.assertTrue(
@@ -423,7 +472,9 @@ class GitControllerTest(TestCase):
         if gc.current_repo_on_github(
             d.git_contoller_args["github_organisation"], d.REPO_NAME_NEW
         ):
-            gc.delete_repo(d.git_contoller_args["github_organisation"], d.REPO_NAME_NEW)
+            gc.delete_repo(
+                d.git_contoller_args["github_organisation"], d.REPO_NAME_NEW
+            )
 
         self.assertFalse(
             gc.current_repo_on_github(
@@ -431,7 +482,9 @@ class GitControllerTest(TestCase):
             )
         )
 
-        gc.create_repo(d.git_contoller_args["github_organisation"], d.REPO_NAME_NEW)
+        gc.create_repo(
+            d.git_contoller_args["github_organisation"], d.REPO_NAME_NEW
+        )
         self.assertTrue(
             gc.current_repo_on_github(
                 d.git_contoller_args["github_organisation"], d.REPO_NAME_NEW
@@ -454,7 +507,9 @@ class GitControllerTest(TestCase):
         if not gc.current_repo_on_github(
             d.git_contoller_args["github_organisation"], d.REPO_NAME_NEW
         ):
-            gc.create_repo(d.git_contoller_args["github_organisation"], d.REPO_NAME_NEW)
+            gc.create_repo(
+                d.git_contoller_args["github_organisation"], d.REPO_NAME_NEW
+            )
 
         self.assertTrue(
             gc.current_repo_on_github(
@@ -462,7 +517,9 @@ class GitControllerTest(TestCase):
             )
         )
 
-        gc.delete_repo(d.git_contoller_args["github_organisation"], d.REPO_NAME_NEW)
+        gc.delete_repo(
+            d.git_contoller_args["github_organisation"], d.REPO_NAME_NEW
+        )
 
         self.assertFalse(
             gc.current_repo_on_github(
@@ -519,7 +576,9 @@ class GitControllerTest(TestCase):
     @tag("git")
     def test_available_hazard_labels_full(self):
         gc = GitController(env_location=c.TESTING_ENV_PATH_GIT)
-        self.assertEqual(gc.available_hazard_labels(), d.AVAILABLE_HAZARD_LABELS_FULL)
+        self.assertEqual(
+            gc.available_hazard_labels(), d.AVAILABLE_HAZARD_LABELS_FULL
+        )
 
     @tag("git")
     def test_available_hazard_labels_name_only(self):
@@ -616,7 +675,9 @@ class GitControllerTest(TestCase):
         gc.hazard_log("title", "body", ["hazard"])
 
         hazard_number = gc.hazards_open()[0]["number"]
-        gc.add_comment_to_hazard(hazard_number=hazard_number, comment="a comment")
+        gc.add_comment_to_hazard(
+            hazard_number=hazard_number, comment="a comment"
+        )
         close_all_issues()
 
     def test_add_comment_to_hazard_number_missing(self):
@@ -626,7 +687,9 @@ class GitControllerTest(TestCase):
         )
         with self.assertRaises(ValueError) as error:
             gc.add_comment_to_hazard(comment="a comment")
-        self.assertEqual(str(error.exception), "No Hazard Number has been provided")
+        self.assertEqual(
+            str(error.exception), "No Hazard Number has been provided"
+        )
 
     def test_add_comment_to_hazard_comment_missing(self):
         gc = GitController(

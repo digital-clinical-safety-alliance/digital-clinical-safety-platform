@@ -12,11 +12,16 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import set_key, dotenv_values
+import json
 
 import app.functions.constants as c
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Environmental variables
+dot_values = dotenv_values("/dcsp/.env_program")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -35,10 +40,10 @@ if not DEBUG:
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-ud!*dfrs=7*gel5$pu0-0#9*ylt_5oc%&r4!%@f-sff=u=x@x-"
+SECRET_KEY = dot_values.get("DJANGO_SECRET_KEY")
 
 
-ALLOWED_HOSTS = ["0.0.0.0", "localhost"]
+ALLOWED_HOSTS = json.loads(dot_values.get("ALLOW_HOSTS"))  # type: ignore
 
 
 # Application definition

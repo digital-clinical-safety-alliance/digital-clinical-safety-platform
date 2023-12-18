@@ -120,9 +120,8 @@ class BuilderTestDocsPresent(TestCase):
     def test_get_placeholders_only_one_placeholder_in_yaml(self):
         doc_build = Builder(c.TESTING_MKDOCS)
         self.assertEqual(d.PLACEHOLDERS_EXPECTED, doc_build.get_placeholders())
-        f = open(f"{ c.TESTING_MKDOCS }docs/placeholders.yml", "w")
-        f.write("extra:\n  name_of_app=The App\n")
-        f.close()
+        f = open(f"{ c.TESTING_MKDOCS }docs/placeholders.yml", "w").close()
+        doc_build.save_placeholders({"name_of_app": "The App"})
         doc_build.get_placeholders()
 
     def test_get_placeholders_empty_docs_folder(self):

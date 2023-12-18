@@ -3,6 +3,7 @@ logs/
 .DS_Store
 /dcsp/app/dcsp/app/tests/test_docs/mkdocs/docs/
 /dcsp/app/dcsp/app/tests/test_docs/mkdocs_empty_folders/docs/
+.env_program
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

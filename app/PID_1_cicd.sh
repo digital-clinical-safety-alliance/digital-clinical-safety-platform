@@ -3,6 +3,28 @@
 cd /dcsp/app/dcsp
 python3 manage.py runserver 0.0.0.0:8000 &
 
+# Black linter
+echo Running Black linter
+cd /dcsp/app
+black . --line-length=79 --check
+
+# Check the exit code of the linter
+if [ $? -ne 0 ]; then
+  echo "Black linter failed!"
+  exit 1
+fi
+
+# Check for security issues with Bandit
+echo "Checking for security issues"
+cd /dcsp/app
+bandit -c bandit.yml -r .
+
+# Check the exit code of the linter
+if [ $? -ne 0 ]; then
+  echo "Bandit security checker failed!"
+  exit 1
+fi
+
 # Run type checking using mypy (replace with your type-checking command)
 echo "Running type checking..."
 cd /dcsp/app
@@ -25,6 +47,6 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# If both type checking and unit testing passed, send a success message
+# If all tests pass, the exit with 0
 echo "Tests passed successfully!"
 exit 0

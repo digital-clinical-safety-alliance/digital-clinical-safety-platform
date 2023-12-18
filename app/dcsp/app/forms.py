@@ -34,7 +34,9 @@ from app.functions.git_control import GitController
 from app.functions.email_functions import EmailFunctions
 
 
-def validation_response(self, field: str, valid: bool, error_message: str) -> None:
+def validation_response(
+    self, field: str, valid: bool, error_message: str
+) -> None:
     """A general function to create form validation results
 
     Provides the field class and error messages to work with Bootstrap.
@@ -67,7 +69,9 @@ def md_files() -> list:
     choices_list: list = []
 
     if not os.path.isdir(MKDOCS_PATH):
-        raise FileNotFoundError(f"{ MKDOCS_PATH } if not a valid folder location")
+        raise FileNotFoundError(
+            f"{ MKDOCS_PATH } if not a valid folder location"
+        )
 
     for root, _, __ in os.walk(MKDOCS_PATH):
         md_files.extend(glob.glob(os.path.join(root, "*.md")))
@@ -266,7 +270,9 @@ class InstallationForm(forms.Form):
                 validation_response(
                     self,
                     "github_organisation_SA",
-                    bool(credentials_check_results["github_organisation_exists"]),
+                    bool(
+                        credentials_check_results["github_organisation_exists"]
+                    ),
                     "Organisation does not exist on Github",
                 )
 
@@ -509,9 +515,9 @@ class LogHazardForm(forms.Form):
         """
         super(LogHazardForm, self).__init__(*args, **kwargs)
         gc: GitController = GitController(env_location=settings.ENV_LOCATION)
-        available_labels: list[dict[str, str]] | list[str] = gc.available_hazard_labels(
-            "name_only"
-        )
+        available_labels: list[dict[str, str]] | list[
+            str
+        ] = gc.available_hazard_labels("name_only")
         labels_choices: list = []
 
         for label in available_labels:

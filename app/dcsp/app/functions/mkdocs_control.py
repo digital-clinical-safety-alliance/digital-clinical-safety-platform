@@ -10,6 +10,7 @@ import psutil
 import time as t
 import os
 from typing import TextIO
+import subprocess  # nosec
 
 import app.functions.constants as c
 
@@ -62,13 +63,14 @@ class MkdocsControl:
             file.write("#!/bin/bash\n")
             file.write("mkdocs serve > /dev/null 2>&1 &")
             file.close()
-            os.system("sh mkdocs_serve.sh")
+            subprocess.Popen(
+                ["/usr/bin/sh", f"{ self.cwd_sh }mkdocs_serve.sh"], shell=False
+            )  # nosec
 
             if wait:
                 while not self.is_process_running():
                     t.sleep(c.TIME_INTERVAL)
                     n += 1
-                    print(f"waiting { n }")
                     if n > c.MAX_WAIT:
                         return False
         return True

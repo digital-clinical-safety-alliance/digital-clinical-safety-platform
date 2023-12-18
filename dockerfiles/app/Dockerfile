@@ -7,7 +7,7 @@ COPY packages.txt /dcsp
 RUN apt-get update
 
 RUN xargs apt-get -y install <packages.txt
-ENV PYTHONUNBUFFERED=1
+
 RUN pip install -r requirements.txt
 
 

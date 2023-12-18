@@ -61,8 +61,12 @@ class Builder:
                 f"Template directory '{ template_dir }' does not exist"  # type: ignore[str-bytes-safe]
             )
 
-        if any(illegal in placeholders_yml_path for illegal in c.ILLEGAL_DIR_CHARS):
-            raise RuntimeError(f"'{ placeholders_yml_path }' is not a valid file name")
+        if any(
+            illegal in placeholders_yml_path for illegal in c.ILLEGAL_DIR_CHARS
+        ):
+            raise RuntimeError(
+                f"'{ placeholders_yml_path }' is not a valid file name"
+            )
 
         self.mkdocs_dir = str(mkdocs_dir)
         self.docs = str(docs)
@@ -117,7 +121,9 @@ class Builder:
         template_chosen_path: str = f"{ self.template_dir }{ template_chosen }"
 
         if not os.path.isdir(template_chosen_path):
-            raise FileNotFoundError(f"'{ template_chosen_path }' does not exist")
+            raise FileNotFoundError(
+                f"'{ template_chosen_path }' does not exist"
+            )
 
         shutil.copytree(
             template_chosen_path,
@@ -180,7 +186,9 @@ class Builder:
                     files_to_check.append(os.path.join(path, name))
 
         if not len(files_to_check):
-            raise FileNotFoundError(f"No files found in mkdocs '{ self.docs }' folder")
+            raise FileNotFoundError(
+                f"No files found in mkdocs '{ self.docs }' folder"
+            )
 
         for file in files_to_check:
             f = open(file, "r")
@@ -200,13 +208,8 @@ class Builder:
             p = p.replace("{{", "")
             p = p.replace("}}", "")
             p = p.strip()
-            if len(stored_placeholders):
-                try:
-                    placeholders_clean[p] = stored_placeholders[p]
-                except:
-                    pass
-            else:
-                placeholders_clean[p] = ""
+            # print(f"**{ stored_placeholders }**")
+            placeholders_clean[p] = stored_placeholders.get(p, "")
 
         return placeholders_clean
 
@@ -263,7 +266,9 @@ class Builder:
 
         return return_dict
 
-    def linter_files(self, folder_file_to_examine: str) -> dict[str, dict[str, str]]:
+    def linter_files(
+        self, folder_file_to_examine: str
+    ) -> dict[str, dict[str, str]]:
         """Check through markdown  file(s) to valid placeholder syntax
 
         Using regex, checks supplied markdown file, or folder of files for errors
