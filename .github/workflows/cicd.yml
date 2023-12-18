@@ -15,7 +15,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Linter, security, typing and unit testing
-        run: docker-compose -f .cicd/docker-compose.yml up -d
+        run: |
+        docker-compose -f .cicd/docker-compose.yml up -d
+        dockerize -wait tcp://docs-builder-cicd:8000 -timeout 1m
 
   mkdocs-documents:
     runs-on: ubuntu-latest
