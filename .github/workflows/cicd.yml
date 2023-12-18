@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Running type checking and unit testing
-        run: docker-compose -f .ci/docker-compose.yml up -d
+        run: docker-compose -f .cicd/docker-compose.yml up -d
 
   documents:
     runs-on: ubuntu-latest
