@@ -27,7 +27,7 @@ import yaml
 import requests
 from requests import Response, exceptions
 import os
-import subprocess
+import subprocess  # nosec B404
 from typing import Any
 
 sys.path.append("/dcsp/app/dcsp/")  # TODO temp
@@ -133,9 +133,12 @@ class GitController:
         else:
             self.github_repo = github_repo
 
-        if github_token == "":  # nosec
+        if github_token == "":  # nosec B105, B107
             self.github_token = str(dot_values.get("GITHUB_TOKEN") or "")
-            if self.github_token == None or self.github_token == "":  # nosec
+            if (
+                self.github_token == None
+                or self.github_token == ""  # nosec B105, B107
+            ):
                 raise ValueError(
                     f"'{ c.EnvKeys.GITHUB_TOKEN.value }' has not been set as an argument or in .env"
                 )
@@ -450,7 +453,7 @@ class GitController:
                     self.github_username,
                 ],
                 shell=False,
-            ).wait()  # nosec
+            ).wait()  # nosec B603
 
             subprocess.Popen(
                 [
@@ -461,7 +464,7 @@ class GitController:
                     self.email,
                 ],
                 shell=False,
-            ).wait()  # nosec
+            ).wait()  # nosec B603
 
         repo = Repo(self.repo_path_local)
         repo.git.add("--all")

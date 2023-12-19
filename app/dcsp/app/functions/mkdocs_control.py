@@ -10,7 +10,7 @@ import psutil
 import time as t
 import os
 from typing import TextIO
-import subprocess  # nosec
+import subprocess  # nosec B404
 
 import app.functions.constants as c
 
@@ -65,7 +65,7 @@ class MkdocsControl:
             file.close()
             subprocess.Popen(
                 ["/usr/bin/sh", f"{ self.cwd_sh }mkdocs_serve.sh"], shell=False
-            )  # nosec
+            )  # nosec B603
 
             if wait:
                 while not self.is_process_running():

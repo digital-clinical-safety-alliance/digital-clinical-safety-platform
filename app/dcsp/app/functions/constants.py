@@ -78,7 +78,7 @@ class EnvKeys(Enum):
     EMAIL = "EMAIL"
     GITHUB_ORGANISATION = "GITHUB_ORGANISATION"
     GITHUB_REPO = "GITHUB_REPO"
-    GITHUB_TOKEN = "GITHUB_TOKEN"  # nosec
+    GITHUB_TOKEN = "GITHUB_TOKEN"  # nosec B105
 
 
 TEMPLATE_HAZARD_COMMENT = """This Issue Template is based on the practices described in NHS Digital DCB0129/DCB0160 Clinical Safety Officer training.
