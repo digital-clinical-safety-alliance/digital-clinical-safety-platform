@@ -13,18 +13,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: ls
-        run: ls -aux
-      
-      - name: pwd
-        run: pwd
-
       - name: Build Docker image & run linter, security, typing and unit testing
-        run: docker-compose -f .cicd/docker-compose.yml up
+        run: docker-compose -f .cicd/docker-compose.yml up --exit-code-from docs-builder-cicd
 
       #- name: Checkout code
       #  uses: actions/checkout@v2
