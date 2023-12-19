@@ -14,8 +14,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Build Docker image & run linter, security, typing and unit testing.
-        id: docker
+      - name: ls
+        run: ls -aux
+
+      - name: Build Docker image & run linter, security, typing and unit testing
         run: docker-compose -f .cicd/docker-compose.yml up
 
       #- name: Checkout code
