@@ -14,21 +14,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Build and run Docker container
+      - name: Build Docker image & run linter, security, typing and unit testing
         id: docker
-        run: |
-          CONTAINER_EXIT_CODE=$(docker-compose -f .cicd/docker-compose.yml up)
-          echo "Container Exit Code: $CONTAINER_EXIT_CODE"
-          echo "##[set-output name=exit-code]${CONTAINER_EXIT_CODE}"
-      
-      - name: Check exit code
-        run: |
-          EXIT_CODE=${{ steps.docker.outputs.exit-code }}
-          if [ "$EXIT_CODE" -ne 0 ]; then
-            echo "Docker container exited with an error"
-            exit 1
-          fi
-
+        run: docker-compose -f .cicd/docker-compose.yml up --exit-code-from
 
       #- name: Checkout code
       #  uses: actions/checkout@v2
