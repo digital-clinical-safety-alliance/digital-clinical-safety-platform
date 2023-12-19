@@ -169,7 +169,7 @@ git_contoller_args = {
     "github_repo": "a_repo",
     "github_token": "a_token",
     "repo_path_local": c.REPO_PATH_LOCAL,
-    "env_location": c.ENV_PATH,
+    "env_location": c.ENV_PATH_PLACEHOLDERS,
 }
 
 CHECK_CREDENTIALS_GET_CALLS = [

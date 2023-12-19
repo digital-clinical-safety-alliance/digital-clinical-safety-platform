@@ -4,6 +4,7 @@ logs/
 /dcsp/app/dcsp/app/tests/test_docs/mkdocs/docs/
 /dcsp/app/dcsp/app/tests/test_docs/mkdocs_empty_folders/docs/
 .env_program
+.env_placeholders
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

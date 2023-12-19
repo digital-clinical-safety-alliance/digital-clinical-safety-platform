@@ -15,6 +15,7 @@ from git import Repo
 from github import Github, Issue, Auth, GithubException
 from unittest.mock import Mock, patch, call
 from unittest.mock import create_autospec
+import time as t
 
 import app.functions.constants as c
 
@@ -22,22 +23,6 @@ sys.path.append(c.FUNCTIONS_APP)
 from app.functions.git_control import GitController
 
 import app.tests.data_git_control as d
-
-
-"""def close_all_issues():
-    dot_values = dotenv_values(c.TESTING_ENV_PATH_GIT)
-    g = Github(
-        dot_values.get("GITHUB_USERNAME"), dot_values.get("GITHUB_TOKEN")
-    )
-    repo = g.get_repo(
-        f"{d.git_contoller_args['github_organisation']}/{ d.REPO_NAME_CURRENT }"
-    )
-    open_issues = repo.get_issues(state="open")
-    for issue in open_issues:
-        if issue.number != c.TESTING_CURRENT_ISSUE:
-            issue.edit(state="closed")
-
-    return"""
 
 
 # @tag("git")
@@ -49,6 +34,10 @@ class GitControllerTest(TestCase):
                 ".env file for GitControllerTest class is missing"
             )
             sys.exit(1)
+
+        if not os.path.isfile(c.ENV_PATH_PLACEHOLDERS):
+            open(c.ENV_PATH_PLACEHOLDERS, "w").close()
+
         for key in c.EnvKeys:
             file_name_temp = (
                 f"{c.TESTING_ENV_PATH_GIT_DIR_ONLY}env_no_{ key.value }"
@@ -63,7 +52,6 @@ class GitControllerTest(TestCase):
                     else:
                         f.write(f"{ key_again.value }='some test data'\n")
             f.close()
-        # close_all_issues()
 
     def test_init(self):
         GitController(env_location=c.TESTING_ENV_PATH_GIT)

@@ -45,7 +45,7 @@ class GitController:
         github_repo: str = c.REPO_NAME,
         github_token: str = "",
         repo_path_local: str = c.REPO_PATH_LOCAL,
-        env_location: str = c.ENV_PATH,
+        env_location: str = c.ENV_PATH_PLACEHOLDERS,
     ) -> None:
         """Initialising GitController class
 

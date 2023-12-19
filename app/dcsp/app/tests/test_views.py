@@ -73,6 +73,9 @@ class IndexTest(TestCase):
             )
             sys.exit(1)
 
+        if not os.path.isfile(c.ENV_PATH_PLACEHOLDERS):
+            open(c.ENV_PATH_PLACEHOLDERS, "w").close()
+
     def setUp(self):
         self.client.get("/start_afresh")
 

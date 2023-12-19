@@ -11,13 +11,13 @@ import app.functions.constants as c
 
 
 class ENVManipulator:
-    def __init__(self, env_path: str = c.ENV_PATH) -> None:
+    def __init__(self, env_path: str = c.ENV_PATH_PLACEHOLDERS) -> None:
         """Initialise the env path
 
         Initialise the env path
 
         Args:
-            env_path (str): location of the env file. Sets to c.ENV_PATH if not
+            env_path (str): location of the env file. Sets to c.ENV_PATH_PLACEHOLDERS if not
                             sets.
         """
         self.env_path = env_path

@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
-from dotenv import set_key, dotenv_values
+from dotenv import dotenv_values
 import json
 
 import app.functions.constants as c
@@ -21,7 +21,8 @@ import app.functions.constants as c
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Environmental variables
-dot_values = dotenv_values("/dcsp/.env_program")
+# dot_values = dotenv_values(c.ENV_PATH)
+print(os.environ)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -40,11 +41,12 @@ if not DEBUG:
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = dot_values.get("DJANGO_SECRET_KEY")
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY"
+)  # dot_values.get("DJANGO_SECRET_KEY")
 
-
-ALLOWED_HOSTS = json.loads(dot_values.get("ALLOW_HOSTS"))  # type: ignore
-
+ALLOWED_HOSTS = json.loads(os.getenv("ALLOW_HOSTS"))  # type: ignore
+# json.loads(dot_values.get("ALLOW_HOSTS"))
 
 # Application definition
 
