@@ -16,6 +16,9 @@ jobs:
 
       - name: ls
         run: ls -aux
+      
+      - name: pwd
+        run: pwd
 
       - name: Build Docker image & run linter, security, typing and unit testing
         run: docker-compose -f .cicd/docker-compose.yml up
