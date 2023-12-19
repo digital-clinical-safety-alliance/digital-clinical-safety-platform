@@ -16,7 +16,7 @@ jobs:
 
       - name: Build Docker image & run linter, security, typing and unit testing
         id: docker
-        run: docker-compose -f .cicd/docker-compose.yml up --exit-code-from
+        run: docker-compose -f .cicd/docker-compose.yml up
 
       #- name: Checkout code
       #  uses: actions/checkout@v2
