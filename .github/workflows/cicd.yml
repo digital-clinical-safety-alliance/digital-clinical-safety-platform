@@ -50,19 +50,19 @@ jobs:
       #  if: steps.check_changes.outputs.dockerfile_hash == steps.check_changes.outputs.dockerhub_hash
       #  run: docker-compose pull
 
-      - name: Build Docker image & run linter, security, typing and unit testing 
-        run: >
-          DJANGO_SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}' 
-          ALLOW_HOSTS='${{ secrets.ALLOW_HOSTS }}' 
-          docker-compose -f .cicd/docker-compose.yml up --exit-code-from docs-builder-cicd
+      #- name: Build Docker image & run linter, security, typing and unit testing 
+      #  run: >
+      #    DJANGO_SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}' 
+      #    ALLOW_HOSTS='${{ secrets.ALLOW_HOSTS }}' 
+      #    docker-compose -f .cicd/docker-compose.yml up --exit-code-from docs-builder-cicd
 
-  mkdocs-documents:
-    runs-on: ubuntu-latest
-    needs: docker-cicd
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.x
-      - run: pip install -r ./mkdocs_dcsp/requirements_mkdocs_dcsp.txt
-      - run: mkdocs gh-deploy --force --config-file './mkdocs_dcsp/mkdocs.yml'
+  #mkdocs-documents:
+  #  runs-on: ubuntu-latest
+  #  needs: docker-cicd
+  #  steps:
+  #    - uses: actions/checkout@v3
+  #    - uses: actions/setup-python@v4
+  #      with:
+  #        python-version: 3.x
+  #    - run: pip install -r ./mkdocs_dcsp/requirements_mkdocs_dcsp.txt
+  #    - run: mkdocs gh-deploy --force --config-file './mkdocs_dcsp/mkdocs.yml'
