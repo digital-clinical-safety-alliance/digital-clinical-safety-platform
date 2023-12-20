@@ -15,7 +15,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build Docker image & run linter, security, typing and unit testing 
-        run: DJANGO_SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}' ALLOW_HOSTS='${{ secrets.ALLOW_HOSTS }}' docker-compose -f .cicd/docker-compose.yml up --exit-code-from docs-builder-cicd
+        run: >
+          DJANGO_SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}' 
+          ALLOW_HOSTS='${{ secrets.ALLOW_HOSTS }}' 
+          docker-compose -f .cicd/docker-compose.yml up --exit-code-from docs-builder-cicd
 
   mkdocs-documents:
     runs-on: ubuntu-latest
