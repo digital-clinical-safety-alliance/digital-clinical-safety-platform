@@ -1,8 +1,8 @@
 # Additional
 logs/
 .DS_Store
-/dcsp/app/dcsp/app/tests/test_docs/mkdocs/docs/
-/dcsp/app/dcsp/app/tests/test_docs/mkdocs_empty_folders/docs/
+/dcsp/app/dcsp/app/tests/test_docs/mkdocs/docs/*
+/dcsp/app/dcsp/app/tests/test_docs/mkdocs_empty_folders/docs/*
 .env_program
 .env_placeholders
 
