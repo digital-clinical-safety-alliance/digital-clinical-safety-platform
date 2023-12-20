@@ -20,9 +20,12 @@ jobs:
 
       - name: List all added files
         run: |
-           for file in ${{ steps.changed-files.outputs.modified_files }}; do
-              echo "$file was modified."
-           done
+          for file in ${{ steps.changed-files.outputs.modified_files }}; do
+            if [[ $file == *"dockerfiles/app/"* ]]; then
+              echo "!!!!!  Dockerfile content changed  !!!!!"
+            fi 
+            echo "$file was modified."
+          done
 
       #- name: Set up Docker Buildx
       #  uses: docker/setup-buildx-action@v1
