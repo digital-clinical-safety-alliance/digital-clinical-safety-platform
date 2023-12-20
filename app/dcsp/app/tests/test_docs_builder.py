@@ -102,6 +102,11 @@ class BuilderTestDocsEmpty(TestCase):
 
 
 class BuilderTestDocsPresent(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        if not os.path.isdir(c.TESTING_MKDOCS):
+            os.makedirs(c.TESTING_MKDOCS, exist_ok=True)
+
     def setUp(self):
         doc_build = Builder(c.TESTING_MKDOCS)
         doc_build.copy_templates("test_templates")
