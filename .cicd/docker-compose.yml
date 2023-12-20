@@ -4,7 +4,7 @@ services:
   docs-builder-cicd:
     build: ../dockerfiles/app
     container_name: docs-builder-cicd
-    restart: no
+    restart: "no"
     environment:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
       - ALLOW_HOSTS=${ALLOW_HOSTS}
