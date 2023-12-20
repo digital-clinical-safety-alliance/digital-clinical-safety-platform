@@ -22,8 +22,8 @@ import app.tests.data_docs_builder as d
 class BuilderTestDocsEmpty(TestCase):
     @classmethod
     def setUpClass(cls):
-        if not os.path.isdir(c.TESTING_MKDOCS):
-            os.makedirs(c.TESTING_MKDOCS, exist_ok=True)
+        if not os.path.isdir(c.TESTING_MKDOCS_DOCS):
+            os.makedirs(c.TESTING_MKDOCS_DOCS, exist_ok=True)
 
     def test_init(self):
         # TODO: may need to improve this test
@@ -104,8 +104,8 @@ class BuilderTestDocsEmpty(TestCase):
 class BuilderTestDocsPresent(TestCase):
     @classmethod
     def setUpClass(cls):
-        if not os.path.isdir(c.TESTING_MKDOCS):
-            os.makedirs(c.TESTING_MKDOCS, exist_ok=True)
+        if not os.path.isdir(c.TESTING_MKDOCS_DOCS):
+            os.makedirs(c.TESTING_MKDOCS_DOCS, exist_ok=True)
 
     def setUp(self):
         doc_build = Builder(c.TESTING_MKDOCS)
