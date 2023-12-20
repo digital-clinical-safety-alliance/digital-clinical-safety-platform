@@ -25,6 +25,12 @@ class BuilderTestDocsEmpty(TestCase):
         if not os.path.isdir(c.TESTING_MKDOCS_DOCS):
             os.makedirs(c.TESTING_MKDOCS_DOCS, exist_ok=True)
 
+        if not os.path.isdir(c.TESTING_MKDOCS_LINTER_DOCS):
+            os.makedirs(c.TESTING_MKDOCS_LINTER_DOCS, exist_ok=True)
+
+        if not os.path.isdir(c.TESTING_MKDOCS_EMPTY_FOLDERS):
+            os.makedirs(c.TESTING_MKDOCS_EMPTY_FOLDERS, exist_ok=True)
+
     def test_init(self):
         # TODO: may need to improve this test
         # Basically want to check a valid object is returned
@@ -106,6 +112,12 @@ class BuilderTestDocsPresent(TestCase):
     def setUpClass(cls):
         if not os.path.isdir(c.TESTING_MKDOCS_DOCS):
             os.makedirs(c.TESTING_MKDOCS_DOCS, exist_ok=True)
+
+        if not os.path.isdir(c.TESTING_MKDOCS_LINTER_DOCS):
+            os.makedirs(c.TESTING_MKDOCS_LINTER_DOCS, exist_ok=True)
+
+        if not os.path.isdir(c.TESTING_MKDOCS_EMPTY_FOLDERS):
+            os.makedirs(c.TESTING_MKDOCS_EMPTY_FOLDERS, exist_ok=True)
 
     def setUp(self):
         doc_build = Builder(c.TESTING_MKDOCS)

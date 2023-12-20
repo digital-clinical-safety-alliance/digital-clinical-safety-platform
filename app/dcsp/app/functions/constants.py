@@ -59,7 +59,7 @@ TESTING_MKDOCS_EMPTY_FOLDERS: str = (
     f"{ TESTS_LOCATION }test_docs/mkdocs_empty_folders/"
 )
 TESTING_MKDOCS_LINTER: str = f"{ TESTS_LOCATION }test_docs/mkdocs_linter/"
-
+TESTING_MKDOCS_LINTER_DOCS: str = f"{ TESTING_MKDOCS_LINTER }docs/"
 # testing Django
 TESTING_ENV_PATH_DJANGO: str = (
     f"{ TESTS_LOCATION }test_django/.env_placeholders_test"
