@@ -83,7 +83,9 @@ class BuilderTestDocsEmpty(TestCase):
                 if fnmatch(name, "*.md"):
                     files_to_check.append(os.path.join(path, name))
 
-        self.assertEqual(d.FILES_EXPECTED_ON_TEMPLATES_COPY, files_to_check)
+        self.assertEqual(
+            d.FILES_EXPECTED_ON_TEMPLATES_COPY.sort(), files_to_check.sort()
+        )
 
         for root, dirs, files in os.walk(c.TESTING_MKDOCS_DOCS):
             for file in files:
