@@ -20,6 +20,11 @@ import app.tests.data_docs_builder as d
 
 
 class BuilderTestDocsEmpty(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        if not os.path.isdir(c.TESTING_MKDOCS):
+            os.makedirs(c.TESTING_MKDOCS, exist_ok=True)
+
     def test_init(self):
         # TODO: may need to improve this test
         # Basically want to check a valid object is returned
