@@ -78,7 +78,8 @@ class BuilderTestDocsEmpty(TestCase):
 
         for root, dirs, files in os.walk(c.TESTING_MKDOCS_DOCS):
             for file in files:
-                os.unlink(os.path.join(root, file))
+                if not fnmatch(file, ".gitkeep"):
+                    os.unlink(os.path.join(root, file))
             for dir in dirs:
                 shutil.rmtree(os.path.join(root, dir))
 
@@ -86,7 +87,7 @@ class BuilderTestDocsEmpty(TestCase):
         open(c.TESTING_MKDOCS_PLACEHOLDERS_YAML, "a").close()
         doc_build = Builder(c.TESTING_MKDOCS)
         doc_build.empty_docs_folder()
-        self.assertFalse(os.listdir(c.TESTING_MKDOCS_DOCS))
+        self.assertEqual(os.listdir(c.TESTING_MKDOCS_DOCS), [".gitkeep"])
 
     def test_read_placeholders_yaml_missing(self):
         doc_build = Builder(c.TESTING_MKDOCS)

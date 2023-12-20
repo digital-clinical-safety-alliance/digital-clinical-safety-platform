@@ -136,7 +136,7 @@ class Builder:
         """Deletes the content of the docs folder
 
         Deletes all files and folders in the 'docs' folder within the main
-        mkdocs folder.
+        mkdocs folder. Leaves .gitkeep untouched.
 
         Returns:
             None
@@ -147,7 +147,8 @@ class Builder:
 
         for root, dirs, files in os.walk(self.docs):
             for file in files:
-                os.unlink(os.path.join(root, file))
+                if not fnmatch(file, ".gitkeep"):
+                    os.unlink(os.path.join(root, file))
             for dir in dirs:
                 shutil.rmtree(os.path.join(root, dir))
         return

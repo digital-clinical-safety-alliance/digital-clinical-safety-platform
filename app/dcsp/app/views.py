@@ -738,8 +738,9 @@ def start_afresh(request: HttpRequest) -> HttpResponse:
 
     if settings.START_AFRESH or settings.TESTING:
         for root, dirs, files in os.walk(settings.MKDOCS_DOCS_LOCATION):
-            for f in files:
-                os.unlink(os.path.join(root, f))
+            for file in files:
+                if not fnmatch(file, ".gitkeep"):
+                    os.unlink(os.path.join(root, file))
             for d in dirs:
                 shutil.rmtree(os.path.join(root, d))
 

@@ -14,31 +14,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+      #- name: Set up Docker Buildx
+      #  uses: docker/setup-buildx-action@v1
   
-      - name: Check if Docker image has changed
-        id: check_changes
-        run: |
-          DOCKERFILE_HASH=$(cat ./dockerfiles/app/Dockerfile | md5sum | awk '{print $1}')
-          DOCKERHUB_HASH=$(docker pull cotswoldsmaker/dcsp:latest 2>&1 | grep Digest | awk '{print $2}')
-          echo "::set-output name=dockerfile_hash::$DOCKERFILE_HASH"
-          echo "::set-output name=dockerhub_hash::$DOCKERHUB_HASH"
-        shell: bash
+      #- name: Check if Docker image has changed
+      #  id: check_changes
+      #  run: |
+      #    DOCKERFILE_HASH=$(cat ./dockerfiles/app/Dockerfile | md5sum | awk '{print $1}')
+      #    DOCKERHUB_HASH=$(docker pull cotswoldsmaker/dcsp:latest 2>&1 | grep Digest | awk '{print $2}')
+      #    echo "::set-output name=dockerfile_hash::$DOCKERFILE_HASH"
+      #    echo "::set-output name=dockerhub_hash::$DOCKERHUB_HASH"
+      #  shell: bash
   
-      - name: Build and push Docker Compose services
-        if: steps.check_changes.outputs.dockerfile_hash != steps.check_changes.outputs.dockerhub_hash
-        run: |
-          docker-compose build
-          echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
-          docker-compose push
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      #- name: Build and push Docker Compose services
+      #  if: steps.check_changes.outputs.dockerfile_hash != steps.check_changes.outputs.dockerhub_hash
+      #  run: |
+      #    docker-compose build
+      #    echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+      #    docker-compose push
+      #  env:
+      #    DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      #    DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
   
-      - name: Pull Docker Compose services
-        if: steps.check_changes.outputs.dockerfile_hash == steps.check_changes.outputs.dockerhub_hash
-        run: docker-compose pull
+      #- name: Pull Docker Compose services
+      #  if: steps.check_changes.outputs.dockerfile_hash == steps.check_changes.outputs.dockerhub_hash
+      #  run: docker-compose pull
 
       - name: Build Docker image & run linter, security, typing and unit testing 
         run: >

@@ -2,7 +2,8 @@ version: "3.9"
 
 services:
   docs-builder-cicd:
-    build: ../dockerfiles/app
+    image: cotswoldsmaker/dcsp:latest
+    #build: ../dockerfiles/app
     container_name: docs-builder-cicd
     restart: "no"
     environment:
@@ -16,3 +17,4 @@ services:
     working_dir: /dcsp/app
     entrypoint: bash PID_1_cicd.sh
 
+# DJANGO_SECRET_KEY='12341234afqwer' ALLOW_HOSTS='["0.0.0.0","localhost"]' docker-compose up --exit-code-from docs-builder-cicd
