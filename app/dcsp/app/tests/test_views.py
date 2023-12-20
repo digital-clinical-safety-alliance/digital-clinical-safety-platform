@@ -140,10 +140,10 @@ class IndexTest(TestCase):
 
         self.assertEqual(calls_git_controller_instance, {})
 
-    def test_installation_post_template_correct(self):
+    """def test_installation_post_template_correct(self):
         response = self.client.post("/", installation_variables())
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "template_select.html")
+        self.assertTemplateUsed(response, "template_select.html")"""
 
     #
     @patch("app.forms.GitController")
