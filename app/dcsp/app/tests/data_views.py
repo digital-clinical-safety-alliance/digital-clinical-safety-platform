@@ -103,3 +103,10 @@ ISSUE_NUMBER_CURRENT = 6
 ISSUE_NUMBER_NONEXISTENT = 1
 
 HAZARD_COMMENT_DATA = {"comment": "comment"}
+
+CREDENTIALS_CHECK_REPO_EXISTS = {
+    "github_username_exists": True,
+    "github_organisation_exists": True,
+    "repo_exists": True,
+    "permission": "admin",
+}

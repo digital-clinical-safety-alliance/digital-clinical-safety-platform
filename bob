@@ -1,2 +1,0 @@
-DJANGO_SECRET_KEY = "bt^P10kM&j5~~+)wtErU-0!lY7rfDSZV7of_1x7aaAtt{g[0O=b"
-ALLOW_HOSTS = '["0.0.0.0","localhost"]'

@@ -60,6 +60,17 @@ def validation_response(
 
 
 def md_files() -> list:
+    """Finds markdown files
+
+    Looks for markdown files in MKDOCS_PATH. Resturns a list of paths relative
+    to MKDOCS_PATH
+
+    Returns:
+        list: list of paths of markdown files relative to MKDOCS_PATH
+
+    Raises:
+        FileNotFoundError: if MKDOCS_PATH is not a valid directory
+    """
     MKDOCS_PATH: str = settings.MKDOCS_DOCS_LOCATION
     root: str = ""
     md_files: list = []

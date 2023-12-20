@@ -11,19 +11,19 @@ WIDTH_FINAL_RESULTS: int = 70
 
 RUN: list = []
 # RUN.append("type_checking_functions")
-RUN.append("type_checking_django")
-RUN.append("unit_testing_all_but_git")
+# RUN.append("type_checking_django")
+# RUN.append("unit_testing_all_but_git")
 # RUN.append("unit_testing_git_only")
-# RUN.append("single")
-single_file = "app.tests.test_forms"
+RUN.append("single")
+single_file = "app.tests.test_views"
 
 outcome = {}
 all_pass = True
 
-process = Popen(
+"""process = Popen(
     ["python3", "manage.py", "runserver", "0.0.0.0:8000"],
     cwd="/dcsp/app/dcsp/",
-)
+)"""
 
 if "type_checking_functions" in RUN:
     print("---------------------------------")
@@ -120,7 +120,7 @@ if "single" in RUN:
             "test",
             single_file,
             "--settings=dcsp.settings_tests",
-            # "--tag=run",
+            "--tag=run",
         ],
         cwd="/dcsp/app/dcsp",
     )

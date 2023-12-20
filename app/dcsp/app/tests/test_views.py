@@ -1,6 +1,8 @@
 from django.test import TestCase, tag, override_settings
 from django.urls import reverse
 from django.conf import settings
+from unittest.mock import Mock, patch, call
+
 import time as t
 import sys
 import os
@@ -24,7 +26,8 @@ from app.views import std_context
 import app.tests.data_views as d
 
 
-def setup_level(self, level):
+@patch("app.forms.GitController")
+def setup_level(self, level, mock_git_controller):
     if not isinstance(level, int):
         raise ValueError("Supplied level is not convertable into an integer")
         sys.exit(1)
@@ -34,6 +37,12 @@ def setup_level(self, level):
         sys.exit(1)
 
     if level >= 1:
+        mock_git_controller_instance = Mock()
+        mock_git_controller.return_value = mock_git_controller_instance
+        mock_git_controller_instance.check_github_credentials.return_value = (
+            d.CREDENTIALS_CHECK_REPO_EXISTS
+        )
+
         response = self.client.post("/", installation_variables())
         self.assertEqual(response.status_code, 200)
     if level >= 2:
@@ -61,9 +70,25 @@ def installation_variables():
     return env_for_post
 
 
+def env_variables():
+    em = ENVManipulator(c.TESTING_ENV_PATH_GIT)
+    all_variables = em.read_all()
+
+    return_values = {
+        "github_username": all_variables["GITHUB_USERNAME"],
+        "github_organisation": all_variables["GITHUB_ORGANISATION"],
+        "email": all_variables["EMAIL"],
+        "github_token": all_variables["GITHUB_TOKEN"],
+        "github_repo": all_variables["GITHUB_REPO"],
+    }
+
+    return return_values
+
+
 # TODO - add some messages tests
 
 
+@tag("run")
 class IndexTest(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -92,11 +117,43 @@ class IndexTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "installation_method.html")
 
-    def test_installation_post_good_data(self):
+    @patch("app.forms.GitController")
+    def test_installation_post_good_data(self, mock_git_controller):
+        mock_git_controller_instance = Mock()
+        mock_git_controller.return_value = mock_git_controller_instance
+        mock_git_controller_instance.check_github_credentials.return_value = (
+            d.CREDENTIALS_CHECK_REPO_EXISTS
+        )
+
         response = self.client.post("/", installation_variables())
         self.assertEqual(response.status_code, 200)
 
+        mock_git_controller.assert_called_once()
+        _, calls_git_controller = mock_git_controller.call_args
+        self.assertEqual(calls_git_controller, env_variables())
+
+        mock_git_controller_instance.check_github_credentials.assert_called_once()
+        (
+            _,
+            calls_git_controller_instance,
+        ) = mock_git_controller_instance.check_github_credentials.call_args
+
+        self.assertEqual(calls_git_controller_instance, {})
+
     def test_installation_post_template_correct(self):
+        response = self.client.post("/", installation_variables())
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "template_select.html")
+
+    #
+    @patch("app.forms.GitController")
+    def test_installation_post_template_correct(self, mock_git_controller):
+        mock_git_controller_instance = Mock()
+        mock_git_controller.return_value = mock_git_controller_instance
+        mock_git_controller_instance.check_github_credentials.return_value = (
+            d.CREDENTIALS_CHECK_REPO_EXISTS
+        )
+
         response = self.client.post("/", installation_variables())
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "template_select.html")
@@ -126,7 +183,6 @@ class IndexTest(TestCase):
         response1 = self.client.get("/")
         self.assertEqual(response1.status_code, 200)
 
-    # @tag("run")
     def test_template_select_get_template_correct(self):
         setup_level(self, 1)
         response = self.client.get("/")
@@ -183,16 +239,18 @@ class IndexTest(TestCase):
         pass
 
 
+@tag("run")
 # TODO: Need to see if could use IndexViewTest to reduce code here
 class MdEditTest(TestCase):
     def setUp(self):
         self.client.get("/start_afresh")
 
     def test_md_edit_wrong_method(self):
-        response = self.client.post("/", installation_variables())
+        setup_level(self, 2)
+        """response = self.client.post("/", installation_variables())
         self.assertEqual(response.status_code, 200)
         response1 = self.client.post("/", d.TEMPLATE_GOOD_DATA)
-        self.assertEqual(response1.status_code, 200)
+        self.assertEqual(response1.status_code, 200)"""
         response2 = self.client.delete("/md_edit")
         self.assertEqual(response2.status_code, 405)
 
@@ -203,37 +261,36 @@ class MdEditTest(TestCase):
         self.assertRedirects(response, reverse("index"))
 
     def test_md_edit_setup_step_1(self):
-        # TODO: #1 why is this not working!
-        """IVT = IndexViewTest()
-        IVT.test_installation_post_good_data()"""
-        response = self.client.post("/", installation_variables())
-        self.assertEqual(response.status_code, 200)
+        setup_level(self, 1)
         response1 = self.client.get("/md_edit")
         self.assertEqual(response1.status_code, 302)
         self.assertRedirects(response1, reverse("index"))
 
     def test_md_edit_setup_step_2(self):
-        response = self.client.post("/", installation_variables())
+        setup_level(self, 2)
+        """response = self.client.post("/", installation_variables())
         self.assertEqual(response.status_code, 200)
         response1 = self.client.post("/", d.TEMPLATE_GOOD_DATA)
-        self.assertEqual(response1.status_code, 200)
+        self.assertEqual(response1.status_code, 200)"""
         response2 = self.client.get("/md_edit")
         self.assertEqual(response2.status_code, 200)
 
     def test_md_edit_template_correct(self):
-        response = self.client.post("/", installation_variables())
+        setup_level(self, 2)
+        """response = self.client.post("/", installation_variables())
         self.assertEqual(response.status_code, 200)
         response1 = self.client.post("/", d.TEMPLATE_GOOD_DATA)
-        self.assertEqual(response1.status_code, 200)
+        self.assertEqual(response1.status_code, 200)"""
         response2 = self.client.get("/md_edit")
         self.assertEqual(response2.status_code, 200)
         self.assertTemplateUsed(response2, "md_edit.html")
 
     def test_md_edit_post_good_data(self):
-        response = self.client.post("/", installation_variables())
+        setup_level(self, 2)
+        """response = self.client.post("/", installation_variables())
         self.assertEqual(response.status_code, 200)
         response1 = self.client.post("/", d.TEMPLATE_GOOD_DATA)
-        self.assertEqual(response1.status_code, 200)
+        self.assertEqual(response1.status_code, 200)"""
         response2 = self.client.post("/md_edit", d.MD_EDIT_GOOD_DATA)
         self.assertEqual(response2.status_code, 200)
         self.assertTemplateUsed(response2, "md_edit.html")
@@ -241,7 +298,7 @@ class MdEditTest(TestCase):
     # TODO - no clean method for md_edit form yet, will need testing for this once implemented wth bad data
 
 
-# @tag("run")
+@tag("run")
 class MdSavedTest(TestCase):
     def setUp(self):
         self.client.get("/start_afresh")
@@ -257,22 +314,22 @@ class MdSavedTest(TestCase):
             response, reverse("md_edit"), target_status_code=302
         )
 
-    def setup_2_initialise(self):
+    """def setup_2_initialise(self):
         response = self.client.post("/", installation_variables())
         self.assertEqual(response.status_code, 200)
         response1 = self.client.post("/", d.TEMPLATE_GOOD_DATA)
-        self.assertEqual(response1.status_code, 200)
+        self.assertEqual(response1.status_code, 200)"""
 
     # @tag("run")
     def test_get_setup_2_good_data(self):
-        self.setup_2_initialise()
+        setup_level(self, 2)
         response2 = self.client.post("/md_saved", d.MD_SAVED_GOOD_DATA)
         self.assertEqual(response2.status_code, 200)
         f = open(d.MD_SAVED_TEMPLATE_FILE_PATH, "r")
         self.assertEqual(f.read(), d.MD_SAVED_GOOD_DATA["md_text"])
 
     def test_get_setup_2_good_data_template_correct(self):
-        self.setup_2_initialise()
+        setup_level(self, 2)
         response2 = self.client.post("/md_saved", d.MD_SAVED_GOOD_DATA)
         self.assertEqual(response2.status_code, 200)
         self.assertTemplateUsed(response2, "md_edit.html")
@@ -295,6 +352,7 @@ class MdNewTest(TestCase):
     pass
 
 
+@tag("run")
 class HazardLogTest(TestCase):
     def setUp(self):
         self.client.get("/start_afresh")
@@ -410,7 +468,7 @@ class StdContectTest(TestCase):
         setup_level(self, 2)
         self.assertEqual(std_context(), d.STD_CONTEXT_SETUP_2)
 
-    @tag("run")
+    # @tag("run")
     def test_setup_3(self):
         setup_level(self, 3)
         self.assertEqual(std_context(), d.STD_CONTEXT_SETUP_3)

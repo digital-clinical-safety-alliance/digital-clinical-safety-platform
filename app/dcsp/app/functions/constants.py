@@ -34,7 +34,9 @@ ENV_PATH_PLACEHOLDERS = f"{ MAIN_FOLDER }.env_placeholders"
 
 # Testing MKDOCS
 # TODO - work out why two env paths ?? for async testing?
-TESTING_ENV_PATH_MKDOCS: str = f"{ TESTS_LOCATION }test_docs/.env_placeholders"
+TESTING_ENV_PATH_MKDOCS: str = (
+    f"{ TESTS_LOCATION }test_docs/.env_placeholders_test"
+)
 
 
 TESTING_MKDOCS: str = f"{ TESTS_LOCATION }test_docs/mkdocs/"
@@ -60,7 +62,7 @@ TESTING_MKDOCS_LINTER: str = f"{ TESTS_LOCATION }test_docs/mkdocs_linter/"
 
 # testing Django
 TESTING_ENV_PATH_DJANGO: str = (
-    f"{ TESTS_LOCATION }test_django/.env_placeholders"
+    f"{ TESTS_LOCATION }test_django/.env_placeholders_test"
 )
 
 # git and Github
@@ -121,6 +123,8 @@ An analysis of the Causes of the Hazard
 
 # Testing git and GitHub
 TESTING_ENV_PATH_GIT_DIR_ONLY: str = f"{ TESTS_LOCATION }git_control/"
-TESTING_ENV_PATH_GIT: str = f"{ TESTS_LOCATION }git_control/.env_placeholders"
+TESTING_ENV_PATH_GIT: str = (
+    f"{ TESTS_LOCATION }git_control/.env_placeholders_test"
+)
 
 FORM_ELEMENTS_MAX_WIDTH: str = "max-w-800"

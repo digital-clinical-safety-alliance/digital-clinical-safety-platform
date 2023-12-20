@@ -1,5 +1,13 @@
 #!/bin/bash
 
+cd /dcsp/app
+python3 env_startup_check.py
+
+# Check the exit code of env checker
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+
 cd /dcsp/app/dcsp
 python3 manage.py runserver 0.0.0.0:8000 &
 

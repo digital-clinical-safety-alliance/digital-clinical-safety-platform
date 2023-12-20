@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Environmental variables
 # dot_values = dotenv_values(c.ENV_PATH)
-print(os.environ)
+# print(os.environ)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

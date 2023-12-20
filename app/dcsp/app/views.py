@@ -111,7 +111,6 @@ def index(request: HttpRequest) -> HttpResponse:
 
         elif request.method == "POST":
             form = InstallationForm(request.POST)
-            # TODO #27 - check condentials (happening in forms soon)
             if form.is_valid():
                 env_m.add(
                     EnvKeys.GITHUB_USERNAME.value,
