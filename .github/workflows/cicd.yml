@@ -84,14 +84,15 @@ jobs:
         run: |
           cat variables.env
           source variables.env
-          echo "Variable value is ${MY_VARIABLE}"
+          echo "Variable value is $UPDATE_HASH"
 
       - name: Update stored HASH if needed
         run: |
           source variables.env
-          echo "Variable value is ${MY_VARIABLE}"
-          if [ "${MY_VARIABLE}" = "true" ]; then
-            echo "${FOLDER_HASH}" > docker-image-build.txt
+          echo "Variable value is $UPDATE_HASH"
+          if [ "$UPDATE_HASH" = "true" ]; then
+          echo "Hello" > docker-image-build.txt
+            #echo "${FOLDER_HASH}" > docker-image-build.txt
             git config --global user.email "${{ secrets.EMAIL }}"
             git config --global user.name "${{ secrets.USERNAME }}"
             git add .
