@@ -34,7 +34,8 @@ jobs:
       run: |
         if [ "${FOLDER_HASH}" != "${REMOTE_HASH}" ]; then
           echo "Hashes do not match. Rebuilding Docker image..."
-          docker buildx build -f ./dockerfiles/app/Dockerfile -t cotswoldsmaker/dcsp:latest
+          cd dockerfiles/app
+          docker build . -t cotswoldsmaker/dcsp:latest
           echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
           docker image push cotswoldsmaker/dcsp:latest
 
