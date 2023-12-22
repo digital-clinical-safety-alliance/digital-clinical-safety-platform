@@ -96,13 +96,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
+      - name: Docker build setup
         uses: docker/setup-buildx-action@v1
 
-      - name: pull image layers
-        run: docker-compose -f .cicd/docker-compose.yml pull
+      - name: Docker push action
+        uses: docker/build-push-action@v2
+        with: 
+          context: ./base
+          file: ./base/Dockerfile
+
+      #- name: Set up Docker Buildx
+      #  uses: docker/setup-buildx-action@v1
+
+      #- name: pull image layers
+      #  run: docker-compose -f .cicd/docker-compose.yml pull
 
       - name: Run linter, security, typing and unit testing in Docker container
         run: >
@@ -110,18 +119,18 @@ jobs:
           ALLOW_HOSTS='${{ secrets.ALLOW_HOSTS }}' 
           docker-compose -f .cicd/docker-compose.yml up --exit-code-from docs-builder-cicd
       
-      - name: cache images
-        uses: satackey/action-docker-layer-caching@v0.0.11
+      #- name: cache images
+      #  uses: satackey/action-docker-layer-caching@v0.0.11
           # Ignore the failure of a step and avoid terminating the job. 
         #continue-on-error: true
       
-  mkdocs-documents:
-    runs-on: ubuntu-latest
-    needs: cicd-in-docker
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.x
-      - run: pip install -r ./mkdocs_dcsp/requirements_mkdocs_dcsp.txt
-      - run: mkdocs gh-deploy --force --config-file './mkdocs_dcsp/mkdocs.yml'
+  #mkdocs-documents:
+  #  runs-on: ubuntu-latest
+  #  needs: cicd-in-docker
+  #  steps:
+  #    - uses: actions/checkout@v3
+  #    - uses: actions/setup-python@v4
+  #      with:
+  #        python-version: 3.x
+  #    - run: pip install -r ./mkdocs_dcsp/requirements_mkdocs_dcsp.txt
+  #    - run: mkdocs gh-deploy --force --config-file './mkdocs_dcsp/mkdocs.yml'
