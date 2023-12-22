@@ -34,6 +34,8 @@ jobs:
       run: |
         if [ "${FOLDER_HASH}" != "${REMOTE_HASH}" ]; then
           echo "Hashes do not match. Rebuilding Docker image..."
+          echo "UPDATE_HASH=true" >> $GITHUB_ENV
+
           cd dockerfiles/app
           docker build . -t cotswoldsmaker/dcsp:latest
           echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
@@ -46,10 +48,19 @@ jobs:
           #git -C dcsp-cicd-state push origin main
         else
           echo "Hashes match. No need to rebuild."
+          echo "UPDATE_HASH=false" >> $GITHUB_ENV
         fi
       env:
         DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      
+    - name: Set variable for "dcsp-cicd-check-and-update" workflow
+      run: echo "UPDATE_HASH=${UPDATE_HASH}" > variables.env
+    - name: Upload variables
+      uses: actions/upload-artifact@v2
+      with:
+        name: variables
+        path: variables.env
 
   dcsp-cicd-check-and-update:
     needs: check-and-rebuild
@@ -60,10 +71,21 @@ jobs:
         with:
           repository: digital-clinical-safety-alliance/dcsp-cicd-state
           token: ${{ secrets.TOKEN }}
+      
+      - name: Download variables
+        uses: actions/download-artifact@v2
+        with:
+          name: variables
+
+      - name: Use variables
+        run: |
+          source variables.env
+          echo "Variable value is $MY_VARIABLE"
 
       - name: Update stored HASH if needed
         run: |
-          if [ "${FOLDER_HASH}" != "${REMOTE_HASH}" ]; then
+          source variables.env
+          if [ "$MY_VARIABLE" = "true" ]; then
             echo "${FOLDER_HASH}" > docker-image-build.txt
             git config --global user.email "${{ secrets.EMAIL }}"
             git config --global user.name "${{ secrets.USERNAME }}"
