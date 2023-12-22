@@ -62,7 +62,7 @@ You cannot have variables (eg {{ variable_name}}) inside the metadata of markdow
 You need to add github secrets for updating issue labels. Need to manually run once as well.
 
 # Docker and DockerHub
-To build and push an image to DockerHub
+To build and push an image to DockerHub (need to be in dockerfiles/app folder)
 >> docker login
 >> docker build . -t cotswoldsmaker/dcsp:latest
 
