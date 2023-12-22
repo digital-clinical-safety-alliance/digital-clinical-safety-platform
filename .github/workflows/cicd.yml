@@ -93,7 +93,7 @@ jobs:
           echo "Variable value is $UPDATE_HASH"
           if [ "$UPDATE_HASH" = "true" ]; then
             #echo "Hello" >> docker-image-build.txt
-            echo "$NEW_HASH" >> docker-image-build.txt
+            echo "$NEW_HASH" > docker-image-build.txt
             rm variables.env
             git config --global user.email "${{ secrets.EMAIL }}"
             git config --global user.name "${{ secrets.USERNAME }}"
