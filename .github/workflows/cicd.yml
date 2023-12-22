@@ -92,7 +92,7 @@ jobs:
             echo "Hashes match. No need to update stored HASH."
           fi
 
-  docker-cicd:
+  cicd-in-docker:
     needs: image-check-and-rebuild
     runs-on: ubuntu-latest
     steps:
@@ -102,12 +102,22 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Build Docker image & run linter, security, typing and unit testing 
+      - name: Run linter, security, typing and unit testing in Docker container
         run: >
           DJANGO_SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}' 
           ALLOW_HOSTS='${{ secrets.ALLOW_HOSTS }}' 
           docker-compose -f .cicd/docker-compose.yml up --exit-code-from docs-builder-cicd
-    
+      
+  mkdocs-documents:
+    runs-on: ubuntu-latest
+    needs: cicd-in-docker
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - run: pip install -r ./mkdocs_dcsp/requirements_mkdocs_dcsp.txt
+      - run: mkdocs gh-deploy --force --config-file './mkdocs_dcsp/mkdocs.yml'
 #jobs:
 #  image-build:
 #    runs-on: ubuntu-latest
@@ -174,13 +184,4 @@ jobs:
       #    ALLOW_HOSTS='${{ secrets.ALLOW_HOSTS }}' 
       #    docker-compose -f .cicd/docker-compose.yml up --exit-code-from docs-builder-cicd
 
-  #mkdocs-documents:
-  #  runs-on: ubuntu-latest
-  #  needs: docker-cicd
-  #  steps:
-  #    - uses: actions/checkout@v3
-  #    - uses: actions/setup-python@v4
-  #      with:
-  #        python-version: 3.x
-  #    - run: pip install -r ./mkdocs_dcsp/requirements_mkdocs_dcsp.txt
-  #    - run: mkdocs gh-deploy --force --config-file './mkdocs_dcsp/mkdocs.yml'
+
