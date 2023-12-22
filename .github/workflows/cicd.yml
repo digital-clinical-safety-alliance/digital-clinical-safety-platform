@@ -36,10 +36,10 @@ jobs:
           echo "Hashes do not match. Rebuilding Docker image..."
           echo "UPDATE_HASH=true" >> $GITHUB_ENV
 
-          cd dockerfiles/app
-          docker build . -t cotswoldsmaker/dcsp:latest
-          echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
-          docker image push cotswoldsmaker/dcsp:latest
+          #cd dockerfiles/app
+          #docker build . -t cotswoldsmaker/dcsp:latest
+          #echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+          #docker image push cotswoldsmaker/dcsp:latest
 
           # Update the hash in docker-image-build.txt
           #echo "${FOLDER_HASH}" > dcsp-cicd-state/docker-image-build.txt
@@ -59,7 +59,7 @@ jobs:
     - name: Upload variables
       uses: actions/upload-artifact@v2
       with:
-        name: variables
+        name: variables.env
         path: variables.env
 
   dcsp-cicd-check-and-update:
@@ -75,7 +75,7 @@ jobs:
       - name: Download variables
         uses: actions/download-artifact@v2
         with:
-          name: variables
+          name: variables.env
 
       - name: Use variables
         run: |
