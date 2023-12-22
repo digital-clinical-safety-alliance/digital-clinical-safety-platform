@@ -2,8 +2,7 @@ version: "3.9"
 
 services:
   docs-builder-cicd:
-    image: cotswoldsmaker/dcsp
-    #build: ../dockerfiles/app
+    image: cotswoldsmaker/dcsp:latest
     container_name: docs-builder-cicd
     restart: "no"
     environment:

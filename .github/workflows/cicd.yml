@@ -61,7 +61,7 @@ jobs:
         name: variables
         path: variables.env
 
-  dcsp-cicd-check-and-update:
+  image-check-and-update:
     needs: check-and-rebuild
     runs-on: ubuntu-latest
     steps:
@@ -76,18 +76,11 @@ jobs:
         with:
           name: variables
 
-      - name: Use variables
-        run: |
-          cat variables.env
-          source variables.env
-          echo "Variable value is $UPDATE_HASH"
-
       - name: Update stored HASH if needed
         run: |
           source variables.env
           echo "Variable value is $UPDATE_HASH"
           if [ "$UPDATE_HASH" = "true" ]; then
-            #echo "Hello" >> docker-image-build.txt
             echo "$NEW_HASH" > docker-image-build.txt
             rm variables.env
             git config --global user.email "${{ secrets.EMAIL }}"
@@ -99,6 +92,22 @@ jobs:
             echo "Hashes match. No need to update stored HASH."
           fi
 
+  docker-cicd:
+    needs: check-and-rebuild
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build Docker image & run linter, security, typing and unit testing 
+        run: >
+          DJANGO_SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}' 
+          ALLOW_HOSTS='${{ secrets.ALLOW_HOSTS }}' 
+          docker-compose -f .cicd/docker-compose.yml up --exit-code-from docs-builder-cicd
+    
 #jobs:
 #  image-build:
 #    runs-on: ubuntu-latest
