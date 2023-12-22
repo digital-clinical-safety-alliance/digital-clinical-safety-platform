@@ -23,6 +23,7 @@ jobs:
       run: |
         FOLDER_HASH=$(find ./dockerfiles/app -type f -exec md5sum {} + | sort -k 2 | md5sum | awk '{ print $1 }')
         echo "FOLDER_HASH=${FOLDER_HASH}" >> $GITHUB_ENV
+        echo "Hash = ${FOLDER_HASH}"
 
     - name: Download Remote Hash
       run: |
@@ -82,13 +83,13 @@ jobs:
       - name: Use variables
         run: |
           source variables.env
-          echo "Variable value is $MY_VARIABLE"
+          echo "Variable value is ${MY_VARIABLE}"
 
       - name: Update stored HASH if needed
         run: |
           source variables.env
-          echo "Variable value is $MY_VARIABLE"
-          if [ "$MY_VARIABLE" = "true" ]; then
+          echo "Variable value is ${MY_VARIABLE}"
+          if [ "${MY_VARIABLE}" = "true" ]; then
             echo "${FOLDER_HASH}" > docker-image-build.txt
             git config --global user.email "${{ secrets.EMAIL }}"
             git config --global user.name "${{ secrets.USERNAME }}"
