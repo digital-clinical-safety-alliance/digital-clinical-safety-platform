@@ -21,7 +21,7 @@ jobs:
     - name: Calculate Folder Hash
       id: hash
       run: |
-        FOLDER_HASH=$(find .dockerfiles/app -type f -exec md5sum {} + | sort -k 2 | md5sum | awk '{ print $1 }')
+        FOLDER_HASH=$(find ./dockerfiles/app -type f -exec md5sum {} + | sort -k 2 | md5sum | awk '{ print $1 }')
         echo "FOLDER_HASH=${FOLDER_HASH}" >> $GITHUB_ENV
 
     - name: Download Remote Hash
