@@ -5,6 +5,7 @@ import requests
 import json
 from dotenv import dotenv_values
 import os
+from typing import Any
 
 import app.functions.constants as c
 import app.tests.data_docker_control as d
@@ -63,11 +64,11 @@ class DockerHubController:
 
         return
 
-    def results(self):
+    def results(self) -> Any:
         """ """
-        full_results: dict = d.RETURN_VALUE["results"]
+        full_results: Any = d.RETURN_VALUE["results"]
         print(full_results)
-        return
+        return full_results
 
     def get_tags(self, user_name: str, respository: str) -> list:
         """Get names"""
@@ -98,4 +99,4 @@ class DockerHubController:
         print(request_results.status_code)
         print(request_results.content)
 
-        return
+        return False
