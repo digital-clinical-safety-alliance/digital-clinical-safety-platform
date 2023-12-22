@@ -62,7 +62,7 @@ jobs:
     - name: Upload variables
       uses: actions/upload-artifact@v2
       with:
-        name: variables.env
+        name: variables
         path: variables.env
 
   dcsp-cicd-check-and-update:
@@ -78,10 +78,11 @@ jobs:
       - name: Download variables
         uses: actions/download-artifact@v2
         with:
-          name: variables.env
+          name: variables
 
       - name: Use variables
         run: |
+          cat variables.env
           source variables.env
           echo "Variable value is ${MY_VARIABLE}"
 
