@@ -55,7 +55,9 @@ jobs:
         DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
       
     - name: Set variable for "dcsp-cicd-check-and-update" workflow
-      run: echo "UPDATE_HASH=${UPDATE_HASH}" > variables.env
+      run: |
+        echo "UPDATE_HASH=${UPDATE_HASH}" > variables.env
+        echo "--${UPDATE_HASH}--"
     - name: Upload variables
       uses: actions/upload-artifact@v2
       with:
