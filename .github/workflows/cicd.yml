@@ -57,7 +57,8 @@ jobs:
       
     - name: Set variable for "dcsp-cicd-check-and-update" workflow
       run: |
-        echo "UPDATE_HASH=${UPDATE_HASH}" > variables.env
+        echo "UPDATE_HASH=${UPDATE_HASH}" >> variables.env
+        echo "NEW_HASH=${FOLDER_HASH}" >> variables.env
         echo "--${UPDATE_HASH}--"
     - name: Upload variables
       uses: actions/upload-artifact@v2
@@ -91,8 +92,8 @@ jobs:
           source variables.env
           echo "Variable value is $UPDATE_HASH"
           if [ "$UPDATE_HASH" = "true" ]; then
-          echo "Hello" > docker-image-build.txt
-            #echo "${FOLDER_HASH}" > docker-image-build.txt
+            #echo "Hello" > docker-image-build.txt
+            echo "$FOLDER_HASH" > docker-image-build.txt
             git config --global user.email "${{ secrets.EMAIL }}"
             git config --global user.name "${{ secrets.USERNAME }}"
             git add .
