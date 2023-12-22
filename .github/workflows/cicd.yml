@@ -37,10 +37,10 @@ jobs:
           echo "Hashes do not match. Rebuilding Docker image..."
           echo "UPDATE_HASH=true" >> $GITHUB_ENV
 
-          #cd dockerfiles/app
-          #docker build . -t cotswoldsmaker/dcsp:latest
-          #echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
-          #docker image push cotswoldsmaker/dcsp:latest
+          cd dockerfiles/app
+          docker build . -t cotswoldsmaker/dcsp:latest
+          echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+          docker image push cotswoldsmaker/dcsp:latest
 
           # Update the hash in docker-image-build.txt
           #echo "${FOLDER_HASH}" > dcsp-cicd-state/docker-image-build.txt
@@ -92,7 +92,7 @@ jobs:
           source variables.env
           echo "Variable value is $UPDATE_HASH"
           if [ "$UPDATE_HASH" = "true" ]; then
-            #echo "Hello" >> docker-image-build.txt 
+            #echo "Hello" >> docker-image-build.txt
             echo "$NEW_HASH" >> docker-image-build.txt
             rm variables.env
             git config --global user.email "${{ secrets.EMAIL }}"
