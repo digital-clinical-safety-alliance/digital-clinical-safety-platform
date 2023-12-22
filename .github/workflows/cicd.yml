@@ -92,8 +92,8 @@ jobs:
           source variables.env
           echo "Variable value is $UPDATE_HASH"
           if [ "$UPDATE_HASH" = "true" ]; then
-            #echo "Hello" > docker-image-build.txt
-            echo "$FOLDER_HASH" > docker-image-build.txt
+            echo "Hello" >> docker-image-build.txt
+            echo "$FOLDER_HASH" >> docker-image-build.txt
             git config --global user.email "${{ secrets.EMAIL }}"
             git config --global user.name "${{ secrets.USERNAME }}"
             git add .
