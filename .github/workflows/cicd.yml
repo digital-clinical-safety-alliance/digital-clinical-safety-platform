@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          repository: digital-clinical-safety-alliance/digital-clinical-safety-platform
+          repository: digital-clinical-safety-alliance/dcsp-cicd-state
           token: ${{ secrets.TOKEN }}
 
       - name: Read and Update File
