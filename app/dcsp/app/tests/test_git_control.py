@@ -38,16 +38,16 @@ class GitControllerTest(TestCase):
         if not os.path.isfile(c.ENV_PATH_PLACEHOLDERS):
             open(c.ENV_PATH_PLACEHOLDERS, "w").close()
 
-        for key in c.EnvKeys:
+        for key in c.EnvKeysPH:
             file_name_temp = (
                 f"{c.TESTING_ENV_PATH_GIT_DIR_ONLY}env_no_{ key.value }"
             )
             f = open(file_name_temp, "w")
-            for key_again in c.EnvKeys:
+            for key_again in c.EnvKeysPH:
                 if key == key_again:
                     f.write(f"{ key_again.value }=''\n")
                 else:
-                    if key_again.value == c.EnvKeys.EMAIL.value:
+                    if key_again.value == c.EnvKeysPH.EMAIL.value:
                         f.write(f"{ key_again.value }='john.doe@domain.com'\n")
                     else:
                         f.write(f"{ key_again.value }='some test data'\n")
@@ -72,10 +72,10 @@ class GitControllerTest(TestCase):
         )
 
     def test_init_single_empty_fields(self):
-        for key in c.EnvKeys:
+        for key in c.EnvKeysPH:
             if (
-                key.value != c.EnvKeys.GITHUB_REPO.value
-                and key.value != c.EnvKeys.GITHUB_ORGANISATION.value
+                key.value != c.EnvKeysPH.GITHUB_REPO.value
+                and key.value != c.EnvKeysPH.GITHUB_ORGANISATION.value
             ):
                 with self.assertRaises(ValueError) as error:
                     GitController(
@@ -558,7 +558,7 @@ class GitControllerTest(TestCase):
         dot_values = dotenv_values(c.TESTING_ENV_PATH_GIT)
         self.assertEqual(
             str(error.exception),
-            f"Error with accessing repo '{ dot_values.get(c.EnvKeys.GITHUB_ORGANISATION.value) }/{ d.REPO_BAD_NAME }', return value 'Not Found'",
+            f"Error with accessing repo '{ dot_values.get(c.EnvKeysPH.GITHUB_ORGANISATION.value) }/{ d.REPO_BAD_NAME }', return value 'Not Found'",
         )
 
     @tag("git")
@@ -641,7 +641,7 @@ class GitControllerTest(TestCase):
         dot_values = dotenv_values(c.TESTING_ENV_PATH_GIT)
         self.assertEqual(
             str(error.exception),
-            f"Error with accessing repo '{ dot_values.get(c.EnvKeys.GITHUB_ORGANISATION.value) }/{ d.REPO_BAD_NAME }', return value 'Not Found'",
+            f"Error with accessing repo '{ dot_values.get(c.EnvKeysPH.GITHUB_ORGANISATION.value) }/{ d.REPO_BAD_NAME }', return value 'Not Found'",
         )
         close_all_issues()
 

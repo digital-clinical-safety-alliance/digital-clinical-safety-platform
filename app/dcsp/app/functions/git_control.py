@@ -99,7 +99,7 @@ class GitController:
             self.github_username = str(dot_values.get("GITHUB_USERNAME") or "")
             if self.github_username == "":
                 raise ValueError(
-                    f"'{ c.EnvKeys.GITHUB_USERNAME.value }' has not been set as an argument or in .env"
+                    f"'{ c.EnvKeysPH.GITHUB_USERNAME.value }' has not been set as an argument or in .env"
                 )
         else:
             self.github_username = github_username
@@ -108,7 +108,7 @@ class GitController:
             self.email = str(dot_values.get("EMAIL") or "")
             if self.email == "":
                 raise ValueError(
-                    f"'{ c.EnvKeys.EMAIL.value }' has not been set as an argument or in .env"
+                    f"'{ c.EnvKeysPH.EMAIL.value }' has not been set as an argument or in .env"
                 )
         else:
             self.email = email
@@ -128,7 +128,7 @@ class GitController:
             self.github_repo = str(dot_values.get("GITHUB_REPO") or "")
             if self.github_repo == "":
                 raise ValueError(
-                    f"'{ c.EnvKeys.GITHUB_REPO.value }' has not been set as an argument or in .env"
+                    f"'{ c.EnvKeysPH.GITHUB_REPO.value }' has not been set as an argument or in .env"
                 )
         else:
             self.github_repo = github_repo
@@ -140,7 +140,7 @@ class GitController:
                 or self.github_token == ""  # nosec B105, B107
             ):
                 raise ValueError(
-                    f"'{ c.EnvKeys.GITHUB_TOKEN.value }' has not been set as an argument or in .env"
+                    f"'{ c.EnvKeysPH.GITHUB_TOKEN.value }' has not been set as an argument or in .env"
                 )
         else:
             self.github_token = github_token

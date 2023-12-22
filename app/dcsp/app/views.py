@@ -35,7 +35,7 @@ from typing import Any, TextIO
 # from collections.abc import Buffer
 
 import app.functions.constants as c
-from app.functions.constants import EnvKeys
+from app.functions.constants import EnvKeysPH
 
 sys.path.append(c.FUNCTIONS_APP)
 from app.functions.env_manipulation import ENVManipulator
@@ -113,23 +113,23 @@ def index(request: HttpRequest) -> HttpResponse:
             form = InstallationForm(request.POST)
             if form.is_valid():
                 env_m.add(
-                    EnvKeys.GITHUB_USERNAME.value,
+                    EnvKeysPH.GITHUB_USERNAME.value,
                     form.cleaned_data["github_username_SA"],
                 )
                 env_m.add(
-                    EnvKeys.EMAIL.value,
+                    EnvKeysPH.EMAIL.value,
                     form.cleaned_data["email_SA"],
                 )
                 env_m.add(
-                    EnvKeys.GITHUB_ORGANISATION.value,
+                    EnvKeysPH.GITHUB_ORGANISATION.value,
                     form.cleaned_data["github_organisation_SA"],
                 )
                 env_m.add(
-                    EnvKeys.GITHUB_REPO.value,
+                    EnvKeysPH.GITHUB_REPO.value,
                     form.cleaned_data["github_repo_SA"],
                 )
                 env_m.add(
-                    EnvKeys.GITHUB_TOKEN.value,
+                    EnvKeysPH.GITHUB_TOKEN.value,
                     form.cleaned_data["github_token_SA"],
                 )
                 env_m.add("setup_step", "1")

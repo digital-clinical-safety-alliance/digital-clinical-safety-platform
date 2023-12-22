@@ -9,8 +9,10 @@
 ## Now build the app from scratch whilst learning about coding along the way
 * Build a Docker-compose.yaml file to start up environment
 * May need separate Dockerfiles to build container environments
+
 * Log into container with
 >> docker exec -it docs-builder bash
+
 * Good reading resource - https://realpython.com/django-setup/
 * Create a new django project
 >> django-admin startproject dcsp
@@ -62,5 +64,20 @@ You need to add github secrets for updating issue labels. Need to manually run o
 # Docker and DockerHub
 To build and push an image to DockerHub
 >> docker login
->> docker build -t dcsp .
+>> docker build . -t cotswoldsmaker/dcsp:latest
+
+To re-tag an image
 >> docker image tag dcsp cotswoldsmaker/dcsp:latest
+
+>> docker image push cotswoldsmaker/dcsp:latest
+
+Playing around with builds
+>> docker build . --label "SHA=SHA12321" -t cotswoldsmaker/dcsp:a_third_SHA
+>> docker image push cotswoldsmaker/dcsp:a_third_SHA
+
+$ curl -X GET https://registry.hub.docker.com/v1/repositories/cotswoldsmaker/dcsp/tags
+[{"layer": "", "name": "32"}, {"layer": "", "name": "33"}, {"layer": "", "name": "34"}]
+
+curl -X GET https://hub.docker.com/v2/repositories/cotswoldsmaker/dcsp/tags 
+
+

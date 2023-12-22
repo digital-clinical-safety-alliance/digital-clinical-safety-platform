@@ -8,8 +8,8 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-cd /dcsp/app/dcsp
-python3 manage.py runserver 0.0.0.0:8000 &
+#cd /dcsp/app/dcsp
+#python3 manage.py runserver 0.0.0.0:8000 &
 
 # Black linter
 echo Running Black linter

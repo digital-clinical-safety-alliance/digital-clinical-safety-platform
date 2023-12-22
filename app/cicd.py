@@ -15,7 +15,7 @@ RUN: list = []
 # RUN.append("unit_testing_all_but_git")
 # RUN.append("unit_testing_git_only")
 RUN.append("single")
-single_file = "app.tests.test_views"
+single_file = "app.tests.test_docker_control"
 
 outcome = {}
 all_pass = True
