@@ -40,16 +40,39 @@ jobs:
           docker image push cotswoldsmaker/dcsp:latest
 
           # Update the hash in docker-image-build.txt
-          echo "${FOLDER_HASH}" > dcsp-cicd-state/docker-image-build.txt
-          git -C dcsp-cicd-state add docker-image-build.txt
-          git -C dcsp-cicd-state commit -m "Update Docker image hash"
-          git -C dcsp-cicd-state push origin main
+          #echo "${FOLDER_HASH}" > dcsp-cicd-state/docker-image-build.txt
+          #git -C dcsp-cicd-state add docker-image-build.txt
+          #git -C dcsp-cicd-state commit -m "Update Docker image hash"
+          #git -C dcsp-cicd-state push origin main
         else
           echo "Hashes match. No need to rebuild."
         fi
       env:
         DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+  dcsp-cicd-check-and-update:
+    needs: check-and-rebuild
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          repository: digital-clinical-safety-alliance/dcsp-cicd-state
+          token: ${{ secrets.TOKEN }}
+
+      - name: Update stored HASH if needed
+        run: |
+          if [ "${FOLDER_HASH}" != "${REMOTE_HASH}" ]; then
+            echo "${FOLDER_HASH}" > docker-image-build.txt
+            git config --global user.email "${{ secrets.EMAIL }}"
+            git config --global user.name "${{ secrets.USERNAME }}"
+            git add .
+            git commit -m "Update file with today's date"
+            git push
+          else
+            echo "Hashes match. No need to update stored HASH."
+          fi
 
 #jobs:
 #  image-build:
