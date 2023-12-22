@@ -23,13 +23,11 @@ jobs:
       run: |
         FOLDER_HASH=$(find ./dockerfiles/app -type f -exec md5sum {} + | sort -k 2 | md5sum | awk '{ print $1 }')
         echo "FOLDER_HASH=${FOLDER_HASH}" >> $GITHUB_ENV
-        echo "Hash = ${FOLDER_HASH}"
 
     - name: Download Remote Hash
       run: |
         git clone https://github.com/digital-clinical-safety-alliance/dcsp-cicd-state.git
         REMOTE_HASH=$(cat dcsp-cicd-state/docker-image-build.txt)
-        echo ${REMOTE_HASH}
         echo "REMOTE_HASH=${REMOTE_HASH}" >> $GITHUB_ENV
 
     - name: Compare Hashes and Rebuild Docker Image
@@ -50,11 +48,11 @@ jobs:
         DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
       
-    - name: Set variable for "dcsp-cicd-check-and-update" workflow
+    - name: Set variable for "image-state-update" workflow
       run: |
         echo "UPDATE_HASH=${UPDATE_HASH}" >> variables.env
         echo "NEW_HASH=${FOLDER_HASH}" >> variables.env
-        echo "--${UPDATE_HASH}--"
+
     - name: Upload variables
       uses: actions/upload-artifact@v2
       with:
@@ -79,8 +77,9 @@ jobs:
       - name: Update stored HASH if needed
         run: |
           source variables.env
-          echo "Variable value is $UPDATE_HASH"
+
           if [ "$UPDATE_HASH" = "true" ]; then
+            echo "Hashes do not match. Updating docker-image-build.txt file"
             echo "$NEW_HASH" > docker-image-build.txt
             rm variables.env
             git config --global user.email "${{ secrets.EMAIL }}"
@@ -102,6 +101,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
+      - name: Cache Docker image layers
+        uses: actions/cache@v2
+        with:
+          path: |
+            /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-${{ hashFiles('**/*.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
       - name: Run linter, security, typing and unit testing in Docker container
         run: >
           DJANGO_SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}' 
@@ -118,70 +126,3 @@ jobs:
           python-version: 3.x
       - run: pip install -r ./mkdocs_dcsp/requirements_mkdocs_dcsp.txt
       - run: mkdocs gh-deploy --force --config-file './mkdocs_dcsp/mkdocs.yml'
-#jobs:
-#  image-build:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v2
-#        with:
-#          repository: digital-clinical-safety-alliance/dcsp-cicd-state
-#          token: ${{ secrets.TOKEN }}
-
-#      - name: Read and Update File
-#        run: |
-#          # Your logic to read the file, update it with today's date and time
-#          # For example, using a simple bash script:
-#          current_date=$(date +"%Y-%m-%d %H:%M:%S")
-#          echo "Updated at: $current_date" > docker-image-build.txt
-      
-#      - name: Commit and Push
-#        run: |
-#          git config --global user.email "${{ secrets.EMAIL }}"
-#          git config --global user.name "${{ secrets.USERNAME }}"
-#          git add .
-#          git commit -m "Update file with today's date"
-#          git push
-          
-  #docker-cicd:
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #    - name: Checkout code
-  #      uses: actions/checkout@v2
-
-      #- name: Set up Docker Buildx
-      #  uses: docker/setup-buildx-action@v1
-  
-      #- name: Check if Docker image has changed
-      #  id: check_changes
-      #  run: |
-      #    DOCKERFILE_HASH=$(cat ./dockerfiles/app/Dockerfile | md5sum | awk '{print $1}')
-      #    DOCKERHUB_HASH=$(docker pull cotswoldsmaker/dcsp:latest 2>&1 | grep Digest | awk '{print $2}')
-      #    echo "::set-output name=dockerfile_hash::$DOCKERFILE_HASH"
-      #    echo "::set-output name=dockerhub_hash::$DOCKERHUB_HASH"
-      #  shell: bash
-  
-      #- name: Build and push Docker Compose services
-      #  if: steps.check_changes.outputs.dockerfile_hash != steps.check_changes.outputs.dockerhub_hash
-      #  run: |
-      #    docker-compose build
-      #    echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
-      #    docker-compose push
-      #  env:
-      #    DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      #    DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-  
-      #- name: Pull Docker Compose services
-      #  if: steps.check_changes.outputs.dockerfile_hash == steps.check_changes.outputs.dockerhub_hash
-      #  run: docker-compose pull
-
-      #- name: Check for current tags
-      #  run: docker pull --all-tags cotswoldsmaker/dcsp
-        
-      #- name: Build Docker image & run linter, security, typing and unit testing 
-      #  run: >
-      #    DJANGO_SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}' 
-      #    ALLOW_HOSTS='${{ secrets.ALLOW_HOSTS }}' 
-      #    docker-compose -f .cicd/docker-compose.yml up --exit-code-from docs-builder-cicd
-
-
