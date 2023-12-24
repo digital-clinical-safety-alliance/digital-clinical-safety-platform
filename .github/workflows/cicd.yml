@@ -28,6 +28,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./dockerfile/app/Dockerfile
+          file: ./dockerfiles/app/Dockerfile
           push: true
           tags: cotswoldsmaker/dcsp:latest
