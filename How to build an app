@@ -71,7 +71,7 @@ To re-tag an image
 
 >> docker image push cotswoldsmaker/dcsp:latest
 
-Playing around with builds.
+Playing around with builds
 >> docker build . --label "SHA=SHA12321" -t cotswoldsmaker/dcsp:a_third_SHA
 >> docker image push cotswoldsmaker/dcsp:a_third_SHA
 
