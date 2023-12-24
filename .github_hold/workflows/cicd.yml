@@ -1,0 +1,135 @@
+name: cicd
+on:
+  push:
+    branches:
+      - master 
+      - main
+permissions:
+  contents: write
+
+jobs:
+  image-check-and-rebuild:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v1
+
+    - name: Calculate Folder Hash
+      id: hash
+      run: |
+        FOLDER_HASH=$(find ./dockerfiles/app -type f -exec md5sum {} + | sort -k 2 | md5sum | awk '{ print $1 }')
+        echo "FOLDER_HASH=${FOLDER_HASH}" >> $GITHUB_ENV
+
+    - name: Download Remote Hash
+      run: |
+        git clone https://github.com/digital-clinical-safety-alliance/dcsp-cicd-state.git
+        REMOTE_HASH=$(cat dcsp-cicd-state/docker-image-build.txt)
+        echo "REMOTE_HASH=${REMOTE_HASH}" >> $GITHUB_ENV
+
+    - name: Compare Hashes and Rebuild Docker Image
+      run: |
+        if [ "${FOLDER_HASH}" != "${REMOTE_HASH}" ]; then
+          echo "Hashes do not match. Rebuilding Docker image..."
+          echo "UPDATE_HASH=true" >> $GITHUB_ENV
+
+          cd dockerfiles/app
+          docker build . -t cotswoldsmaker/dcsp:latest
+          echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+          docker image push cotswoldsmaker/dcsp:latest
+        else
+          echo "Hashes match. No need to rebuild."
+          echo "UPDATE_HASH=false" >> $GITHUB_ENV
+        fi
+      env:
+        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      
+    - name: Set variable for "image-state-update" workflow
+      run: |
+        echo "UPDATE_HASH=${UPDATE_HASH}" >> variables.env
+        echo "NEW_HASH=${FOLDER_HASH}" >> variables.env
+
+    - name: Upload variables
+      uses: actions/upload-artifact@v2
+      with:
+        name: variables
+        path: variables.env
+
+  image-state-update:
+    needs: image-check-and-rebuild
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          repository: digital-clinical-safety-alliance/dcsp-cicd-state
+          token: ${{ secrets.TOKEN }}
+      
+      - name: Download variables
+        uses: actions/download-artifact@v2
+        with:
+          name: variables
+
+      - name: Update stored HASH if needed
+        run: |
+          source variables.env
+
+          if [ "$UPDATE_HASH" = "true" ]; then
+            echo "Hashes do not match. Updating docker-image-build.txt file"
+            echo "$NEW_HASH" > docker-image-build.txt
+            rm variables.env
+            git config --global user.email "${{ secrets.EMAIL }}"
+            git config --global user.name "${{ secrets.USERNAME }}"
+            git add .
+            git commit -m "Hash updated"
+            git push
+          else
+            echo "Hashes match. No need to update stored HASH."
+          fi
+
+  cicd-in-docker:
+    needs: image-check-and-rebuild
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Docker build setup
+        uses: docker/setup-buildx-action@v1
+
+      #- name: Docker push action
+      #  uses: docker/build-push-action@v2
+      #  with: 
+      #    context: ./base
+      #    file: ./base/Dockerfile
+
+      #- name: Set up Docker Buildx
+      #  uses: docker/setup-buildx-action@v1
+
+      #- name: pull image layers
+      #  run: docker-compose -f .cicd/docker-compose.yml pull
+
+      - name: Run linter, security, typing and unit testing in Docker container
+        run: >
+          DJANGO_SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}' 
+          ALLOW_HOSTS='${{ secrets.ALLOW_HOSTS }}' 
+          docker-compose -f .cicd/docker-compose.yml up --exit-code-from docs-builder-cicd
+      
+      #- name: cache images
+      #  uses: satackey/action-docker-layer-caching@v0.0.11
+          # Ignore the failure of a step and avoid terminating the job. 
+        #continue-on-error: true
+      
+  #mkdocs-documents:
+  #  runs-on: ubuntu-latest
+  #  needs: cicd-in-docker
+  #  steps:
+  #    - uses: actions/checkout@v3
+  #    - uses: actions/setup-python@v4
+  #      with:
+  #        python-version: 3.x
+  #    - run: pip install -r ./mkdocs_dcsp/requirements_mkdocs_dcsp.txt
+  #    - run: mkdocs gh-deploy --force --config-file './mkdocs_dcsp/mkdocs.yml'
