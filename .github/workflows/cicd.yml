@@ -27,7 +27,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./dockerfiles/app/
           file: ./dockerfiles/app/Dockerfile
           push: true
           tags: cotswoldsmaker/dcsp:latest
