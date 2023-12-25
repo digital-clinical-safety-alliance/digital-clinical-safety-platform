@@ -30,6 +30,7 @@ jobs:
           file: ./dockerfiles/app/Dockerfile
           tags: cotswoldsmaker/dcsp:latest
           push: true
+          load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
       
