@@ -57,3 +57,5 @@ Using the [GitHub Projects](h{{ hazard_log_url }}/projects) you can create a tab
 ## Risk Matrix and Acceptability Criteria
 
 ![risk-matrix](_assets/_images/risk-matrix.png)
+
+# Need a new graphical representation of hazard log
