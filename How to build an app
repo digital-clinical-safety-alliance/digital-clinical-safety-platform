@@ -11,7 +11,7 @@
 * May need separate Dockerfiles to build container environments
 
 * Log into container with
->> docker exec -it docs-builder bash
+>> docker exec -it dcsp-docs-builder bash
 
 * Good reading resource - https://realpython.com/django-setup/
 * Create a new django project
@@ -80,4 +80,6 @@ $ curl -X GET https://registry.hub.docker.com/v1/repositories/cotswoldsmaker/dcs
 
 curl -X GET https://hub.docker.com/v2/repositories/cotswoldsmaker/dcsp/tags 
 
-
+>> python3 manage.py migrate
+>> python3 manage.py createsuperuser
+>> manage.py collectstatic

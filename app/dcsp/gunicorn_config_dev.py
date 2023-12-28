@@ -4,7 +4,7 @@
 bind = "0.0.0.0:8000"
 
 # The number of worker processes for handling requests
-workers = 2
+workers = 4
 
 # The type of worker processes to spawn
 worker_class = "sync"  # Alternatively, use "gevent" for async workers

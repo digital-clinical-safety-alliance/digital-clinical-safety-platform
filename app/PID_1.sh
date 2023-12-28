@@ -14,11 +14,11 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-
+echo "Starting up Gunicorn server for Django"
 cd /dcsp/app/dcsp
-#python3 manage.py runserver 0.0.0.0:8000 &
-#gunicorn dcsp.wsgi:application -b 0.0.0.0:8000 &
-gunicorn -c gunicorn_config_dev.py
+gunicorn -c gunicorn_config_dev.py &
+
+echo "Gunicorn running. PID_1.sh on loop"
 
 while :
 do

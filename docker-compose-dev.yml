@@ -1,38 +1,55 @@
 version: "3.9"
 
 services:
-  docs-builder:
+  dcsp-docs-builder:
     build: ./dockerfiles/app
-    container_name: docs-builder
+    container_name: dcsp-docs-builder
     #restart: unless-stopped
+    #ports:
+    #  - "80:80"
+    #  - "443:443"
+    #  - "9000:9000"
     volumes:
       - ./:/dcsp
     env_file:
       - .env
     working_dir: /dcsp/app
+    depends_on:
+      - dcsp-postgres
+    networks: 
+      - cross-site
     entrypoint: bash PID_1.sh
-    #TODO: need to run as non-root at some point
+
+  dcsp-postgres:
+    image: postgres:latest
+    container_name: dcsp-postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DATABASE}
     networks: 
       - cross-site
 
-  nginx:
+  dcsp-nginx:
     image: nginx:alpine
-    container_name: nginx
+    container_name: dcsp-nginx
     #restart: unless-stopped
     ports:
-      - "80:80"
       - "443:443"
+      - "80:80"
       - "9000:9000"
     volumes:
-      - ./app/dcsp/app/static/:/dcsp/app/dcsp/app/static/
-      - ./nginx/development/:/etc/nginx/
+      - ./app/dcsp/static/:/static/
+      - ./nginx/dev/:/etc/nginx/
       - ./logs/nginx/:/var/log/nginx/
     depends_on:
-      - docs-builder
+      - dcsp-docs-builder
     networks: 
       - cross-site
 
-#  certbot:
+#  dcsp-certbot:
 #    image: certbot/certbot:latest
 #    volumes:
 #      - /var/certbot/conf:/etc/letsencrypt/:rw
@@ -42,6 +59,8 @@ services:
 #    networks: 
 #      - cross-site
 
+volumes:
+  postgres_data:
 
 networks:
   cross-site:
