@@ -45,17 +45,4 @@ Using the [GitHub Projects](h{{ hazard_log_url }}/projects) you can create a tab
 
 ## Creating a Hazard
 
-1. Navigate to [Issues]({{ hazard_log_url }}/issues)
-2. Click on New Issue
-3. Use the **Hazard Issue Template** to guide you through adding the necessary information.
-4. Label according to Severity and Likelihood, then calculate Risk Level.
-5. Assign to CSO @pacharanero.
-6. Save by 'committing' to the repository.
-7. Review and ensure complete.
-8. Invite others to review and comment using @mention or by sharing the URL
-
-## Risk Matrix and Acceptability Criteria
-
-![risk-matrix](_assets/_images/risk-matrix.png)
-
 # Need a new graphical representation of hazard log

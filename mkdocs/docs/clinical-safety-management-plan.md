@@ -118,7 +118,7 @@ All identified hazards will be recorded in the Hazard Log.
 
 ### Risk Assessment
 
-the {{ clinical_safety_team_name }}'s Health will conduct Healthcare IT system risk assessment in accordance with the Risk Management Strategy. The Hazard Log will be updated to capture the risk assessment.
+The {{ clinical_safety_team_name }}'s Health will conduct Healthcare IT system risk assessment in accordance with the Risk Management Strategy. The Hazard Log will be updated to capture the risk assessment.
 
 ### Risk Evaluation
 

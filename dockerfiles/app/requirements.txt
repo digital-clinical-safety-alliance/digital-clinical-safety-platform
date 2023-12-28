@@ -22,6 +22,7 @@ gitdb==4.0.11
 github==1.2.7
 GitPython==3.1.40
 griffe==0.38.0
+gunicorn==21.2.0
 idna==3.4
 Jinja2==3.1.2
 Markdown==3.5

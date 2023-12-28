@@ -1,0 +1,14 @@
+# Navigation structure
+nav:
+  - Home: "index.md"
+  - "clinical-safety-management-system.md"
+  - "clinical-safety-management-plan.md"
+  - "clinical-safety-case-report.md"
+  - "hazard-log.md"
+  - "business-continuity.md"
+  - "security.md"
+  - "third-party-tools-safety-assmt.md"
+  - "medical-device.md"
+  - "download.md"
+  - "contact.md"
+  - "license.md"

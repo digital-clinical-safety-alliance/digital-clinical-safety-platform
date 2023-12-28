@@ -16,7 +16,9 @@ fi
 
 
 cd /dcsp/app/dcsp
-python3 manage.py runserver 0.0.0.0:8000 &
+#python3 manage.py runserver 0.0.0.0:8000 &
+#gunicorn dcsp.wsgi:application -b 0.0.0.0:8000 &
+gunicorn -c gunicorn_config_dev.py
 
 while :
 do

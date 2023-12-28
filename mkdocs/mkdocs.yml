@@ -152,3 +152,5 @@ markdown_extensions:
   #     link: https://github.com/exampleorgsgithub
 
 INHERIT: ./docs/placeholders.yml
+
+#INHERIT: ./docs/template-configuration.yml
