@@ -8,6 +8,7 @@ from app import views
 """
 urlpatterns = [
     path("", views.index, name="index"),
+    path("build", views.build, name="build"),
     path(
         "start_afresh",
         views.start_afresh,

@@ -8,10 +8,10 @@
     <link rel="stylesheet" href="/static/css/dcsp.css">
 
 
-    <link rel="shortcut icon" href="/static/assets/favicons/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/static/assets/favicons/favicon.ico">
     <link rel="apple-touch-icon" href="/static/assets/favicons/favicon.ico">
     <link rel="mask-icon" href="/static/assets/favicons/favicon.ico" color="#005eb8">
-    <link rel="icon" href="/static/assets/favicons/favicon-192x192.png">
+    <link rel="icon" type="image/png" href="/static/assets/favicons/favicon-16x16.png">
 </head>
 <body class="bg-info bg-gradient bg-opacity-25">
 
@@ -34,59 +34,94 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav">
-          <li class="nav-item">
-            {% if mkdoc_running %}
-              <a class="nav-link" href="/mkdoc_redirect/home" >
-                MKDOC
+          {% if not request.user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link" href="/" >
+                Home
               </a>
-            {% else %}
-              <div class="nav-link disabled">
-                MKDOC
-              </div>
-            {% endif %}
+            </li>
+          {% endif %}
+          {% if request.user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link" href="/build" >
+                Build
+              </a>
+            </li>
+          {% endif %}
+          {% if request.user.is_authenticated %}
+            <li class="nav-item">
+              {% if mkdoc_running %}
+                <a class="nav-link" href="/mkdoc_redirect/home" >
+                  MKDOC
+                </a>
+              {% else %}
+                <div class="nav-link disabled">
+                  MKDOC
+                </div>
+              {% endif %}
+            </li>
+          {% endif %}
+          {% if request.user.is_authenticated %}
+            <li class="nav-item">
+              {% if mkdoc_running %}
+                <a class="nav-link" href="/md_edit">
+                  Edit documents
+                </a>
+              {% else %}
+                <div class="nav-link disabled">
+                  Edit documents
+                </div>
+              {% endif %}
+            </li>
+          {% endif %}
+          {% if request.user.is_authenticated %}
+            <li class="nav-item">
+              {% if mkdoc_running %}
+                <a class="nav-link" href="/hazard_log">
+                  Log hazard
+                </a>
+              {% else %}
+                <div class="nav-link disabled">
+                  Log hazard
+                </div>
+              {% endif %}
+            </li>
+          {% endif %}
+          {% if request.user.is_authenticated %}
+            <li class="nav-item">
+              {% if mkdoc_running %}
+                <a class="nav-link" href="/hazards_open">
+                  Open hazards
+                </a>
+              {% else %}
+                <div class="nav-link disabled">
+                  Open hazards
+                </div>
+              {% endif %}
+            </li>
+          {% endif %}
+          {% if request.user.is_authenticated %}
+            <li class="nav-item">
+              {% if mkdoc_running %}
+                <a class="nav-link" href="/upload_to_github">
+                  Upload to Github
+                </a>
+              {% else %}
+                <div class="nav-link disabled">
+                  Upload to Github
+                </div>
+              {% endif %}
           </li>
+          {% endif %}
           <li class="nav-item">
-            {% if mkdoc_running %}
-              <a class="nav-link" href="/md_edit">
-                Edit documents
+            {% if request.user.is_authenticated %}
+              <a class="nav-link" href="/accounts/logout">
+                Logout
               </a>
             {% else %}
-              <div class="nav-link disabled">
-                Edit documents
-              </div>
-            {% endif %}
-          </li>
-          <li class="nav-item">
-            {% if mkdoc_running %}
-              <a class="nav-link" href="/hazard_log">
-                Log hazard
+              <a class="nav-link" href="/accounts/login">
+                Login
               </a>
-            {% else %}
-              <div class="nav-link disabled">
-                Log hazard
-              </div>
-            {% endif %}
-          </li>
-          <li class="nav-item">
-            {% if mkdoc_running %}
-              <a class="nav-link" href="/hazards_open">
-                Open hazards
-              </a>
-            {% else %}
-              <div class="nav-link disabled">
-                Open hazards
-              </div>
-            {% endif %}
-          </li>
-          <li class="nav-item">
-            {% if mkdoc_running %}
-              <a class="nav-link" href="/upload_to_github">
-                Upload to Github
-              </a>
-            {% else %}
-              <div class="nav-link disabled">
-                Upload to Github
-              </div>
             {% endif %}
           </li>
         </ul>
@@ -96,7 +131,13 @@
   
   <div class="fade-out-element"> 
     <div class="main_container">
-      
+      <div style="text-align:right;">
+        {% if request.user.is_authenticated %}
+          Logged in: <strong>{{ request.user.username }}</strong>
+        {% else %}
+          Logged out
+        {% endif %}
+      </div>
       <div class="col-md-6 mx-auto">
         <div class="{{FORM_ELEMENTS_MAX_WIDTH}}">
           {% if messages %}
@@ -117,10 +158,12 @@
       {% block main %}{% endblock %}
 
 
-      {% if START_AFRESH %}
-        Developer: <a href="/start_afresh">Start afresh!</a>
-      {% else %}
-        Production environment
+      {% if request.user.is_authenticated %}
+        {% if START_AFRESH %}
+          Developer: <a href="/start_afresh">Start afresh!</a>
+        {% else %}
+          Production environment
+        {% endif %}
       {% endif %}
       
     </div>

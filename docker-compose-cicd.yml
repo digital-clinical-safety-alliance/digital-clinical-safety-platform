@@ -5,9 +5,11 @@ services:
     image: cotswoldsmaker/dcsp:latest
     container_name: docs-builder-cicd
     restart: "no"
-    environment:
-      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-      - ALLOW_HOSTS=${ALLOW_HOSTS}
+    env_file:
+      - .env
+    #environment:
+    #  - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+    #  - ALLOW_HOSTS=${ALLOW_HOSTS}
     ports:
       - "8000:8000"
       - "9000:9000"

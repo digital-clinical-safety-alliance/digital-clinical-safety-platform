@@ -1,10 +1,23 @@
 # gunicorn_config.py
+import os
+import glob
+
+import app.functions.constants as c
+
+
+def find_html_files(folder_path: str) -> list[str]:
+    html_files = []
+    for root, dirs, files in os.walk(folder_path):
+        html_files.extend(glob.glob(os.path.join(root, "*.html")))
+
+    return html_files
+
 
 # The address and port to bind to
 bind = "0.0.0.0:8000"
 
 # The number of worker processes for handling requests
-workers = 4
+workers = 1
 
 # The type of worker processes to spawn
 worker_class = "sync"  # Alternatively, use "gevent" for async workers
@@ -28,6 +41,9 @@ debug = True
 
 # Preload the application before the worker processes are forked
 # preload_app = True
+
+reload = True
+reload_extra_files = find_html_files(c.TEMPLATES_FOLDER)
 
 # The path to the application module or callable
 # For example, "myapp:app" means "from myapp import app"

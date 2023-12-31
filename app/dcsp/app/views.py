@@ -6,6 +6,7 @@ mkdocs
 
 Functions:
     index: placeholder
+    main: placeholder
     md_edit: placeholder
     md_saved: placeholder
     md_new: placeholder
@@ -23,6 +24,7 @@ Functions:
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpRequest
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.conf import settings
 
 import os
@@ -57,6 +59,27 @@ from .forms import (
 
 
 def index(request: HttpRequest) -> HttpResponse:
+    """Landing page for DCSP app
+
+    Landing page for DCSP app
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
+    context: dict[str, Any] = {}
+    if request.method != "GET":
+        return render(request, "405.html", std_context(), status=405)
+
+    context = {}
+
+    return render(request, "index.html", context | std_context())
+
+
+@login_required
+def build(request: HttpRequest) -> HttpResponse:
     """Index page, carrying out steps to initialise a static site
 
     Acting as a single page application, this function undertakes several
@@ -228,6 +251,7 @@ def index(request: HttpRequest) -> HttpResponse:
     return render(request, "500.html", std_context(), status=500)
 
 
+@login_required
 def md_edit(request: HttpRequest) -> HttpResponse:
     """Function for editing of markdown files in the static site
 
@@ -255,7 +279,7 @@ def md_edit(request: HttpRequest) -> HttpResponse:
     setup_step = setup_step_get()
 
     if setup_step < 2:
-        return redirect("/")
+        return redirect("/main")
 
     if request.method == "GET":
         if not os.path.isdir(settings.MKDOCS_DOCS_LOCATION):
@@ -292,6 +316,7 @@ def md_edit(request: HttpRequest) -> HttpResponse:
     return render(request, "md_edit.html", context | std_context())
 
 
+@login_required
 def md_saved(request: HttpRequest) -> HttpResponse:
     """Saves the markdown file
 
@@ -320,7 +345,7 @@ def md_saved(request: HttpRequest) -> HttpResponse:
 
     setup_step = setup_step_get()
     if setup_step < 2:
-        return redirect("/")
+        return redirect("/main")
 
     form = MDEditForm(request.POST)
     if form.is_valid():
@@ -368,6 +393,7 @@ def md_saved(request: HttpRequest) -> HttpResponse:
     return render(request, "500.html", status=500)
 
 
+@login_required
 def md_new(request: HttpRequest) -> HttpResponse:
     """Not complete - to create a new markdown file
 
@@ -392,6 +418,7 @@ def md_new(request: HttpRequest) -> HttpResponse:
     return render(request, "500.html", status=500)
 
 
+@login_required
 def hazard_log(request: HttpRequest) -> HttpResponse:
     """Logs hazards as issues on GitHub
 
@@ -455,6 +482,7 @@ def hazard_log(request: HttpRequest) -> HttpResponse:
     return render(request, "500.html", std_context(), status=500)
 
 
+@login_required
 def hazard_comment(request: HttpRequest, hazard_number: "str") -> HttpResponse:
     """Adds a comment to an issue
 
@@ -540,6 +568,7 @@ def hazard_comment(request: HttpRequest, hazard_number: "str") -> HttpResponse:
     return render(request, "500.html", std_context(), status=500)
 
 
+@login_required
 # TODO - testing needed
 def hazards_open(request: HttpRequest) -> HttpResponse:
     """Title
@@ -574,6 +603,7 @@ def hazards_open(request: HttpRequest) -> HttpResponse:
     return render(request, "500.html", std_context(), status=500)
 
 
+@login_required
 def mkdoc_redirect(request: HttpRequest, path: str) -> HttpResponse:
     """Title
 
@@ -603,6 +633,7 @@ def mkdoc_redirect(request: HttpRequest, path: str) -> HttpResponse:
     return render(request, "500.html", std_context(), status=500)
 
 
+@login_required
 # TODO - testing needed
 def upload_to_github(request: HttpRequest) -> HttpResponse:
     """Title
@@ -717,6 +748,7 @@ def std_context() -> dict[str, Any]:
     return std_context_dict
 
 
+@login_required
 def start_afresh(request: HttpRequest) -> HttpResponse:
     """Title
 
@@ -750,7 +782,7 @@ def start_afresh(request: HttpRequest) -> HttpResponse:
         mkdocs = MkdocsControl()
         if not mkdocs.stop(wait=True):
             return render(request, "500.html", status=500)
-    return redirect("/")
+    return redirect("/main")
 
 
 def custom_404(request: HttpRequest, exception) -> HttpResponse:
