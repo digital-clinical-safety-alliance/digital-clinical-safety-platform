@@ -30,8 +30,8 @@ jobs:
           file: ./dockerfiles/app/Dockerfile
           tags: cotswoldsmaker/dcsp:latest
           push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          #cache-from: type=gha
+          #cache-to: type=gha,mode=max
       
       - name: Testing inside Docker container
         run: >
