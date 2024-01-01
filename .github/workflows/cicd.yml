@@ -38,7 +38,7 @@ jobs:
         run: >
           DJANGO_SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}' 
           ALLOW_HOSTS='${{ secrets.ALLOW_HOSTS }}' 
-          docker-compose -f docker-compose-cicd-docs-builder up --exit-code-from docs-builder-cicd
+          docker-compose -f docker-compose-cicd-docs-builder.yml up --exit-code-from docs-builder-cicd
   
   mkdocs-documents:
     runs-on: ubuntu-latest
