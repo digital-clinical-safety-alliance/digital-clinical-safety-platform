@@ -12,9 +12,9 @@ COPY requirements.txt /dcsp
 RUN pip install -r requirements.txt
 
 # TODO #35 - might have to check that removing admin privaleges does not affect creating volumes and networks
-RUN adduser -D dcsp-user
+#RUN adduser -D dcsp-user
 
-COPY --from=builder --chown=dcsp-user:dcsp-user /dcsp
+#COPY --from=builder --chown=dcsp-user:dcsp-user /dcsp
 
 #RUN addgroup dcsp-user && adduser -DH -G dcsp-user dcsp-user
 
@@ -22,5 +22,14 @@ COPY --from=builder --chown=dcsp-user:dcsp-user /dcsp
 #RUN adduser -S -D -h /usr/app/src dcsp-user dcsp-user-group
 #RUN chown -R dcsp-user:dcsp-user-roup /dcsp
 #RUN chmod -R 777 /dcsp
-USER dcsp-user
+
+# Create a user group 'xyzgroup'
+RUN addgroup -S xyzgroup
+
+# Create a user 'appuser' under 'xyzgroup'
+RUN adduser -S -D -h /usr/app/src appuser xyzgroup
+
+# Chown all the files to the app user.
+RUN chown -R appuser:xyzgroup /dcsp
+USER appuser 
 
