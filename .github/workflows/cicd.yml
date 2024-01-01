@@ -34,10 +34,23 @@ jobs:
           cache-to: type=gha,mode=max
           platforms: linux/amd64
       
+      - name: Make .env file
+        uses: SpicyPizza/create-envfile@v1
+        with:
+          envkey_DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+          envkey_ALLOW_HOSTS: ${{ secrets.ALLOW_HOSTS }}
+          envkey_DEBUG: False
+          envkey_EMAIL_HOST_USER: none
+          envkey_EMAIL_HOST_PASSWORD: none
+          envkey_POSTGRES_USER: dcsp
+          envkey_POSTGRES_PASSWORD: a_password
+          envkey_POSTGRES_DB: 'cicd_database'
+          envkey_POSTGRES_ENGINE: 'django.db.backends.postgresql'
+          envkey_POSTGRES_PORT: '5432'
+          file_name: .env
+
       - name: Testing inside Docker container
         run: >
-          DJANGO_SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}' 
-          ALLOW_HOSTS='${{ secrets.ALLOW_HOSTS }}' 
           docker-compose -f docker-compose-cicd-docs-builder.yml up --exit-code-from docs-builder-cicd
   
   mkdocs-documents:
