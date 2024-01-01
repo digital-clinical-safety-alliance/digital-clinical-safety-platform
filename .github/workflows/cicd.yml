@@ -34,7 +34,7 @@ jobs:
           cache-to: type=gha,mode=max
           platforms: linux/amd64
       
-      - name: Make .env file
+      - name: Make .env file.s
         uses: SpicyPizza/create-envfile@v2.0
         with:
           envkey_DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
