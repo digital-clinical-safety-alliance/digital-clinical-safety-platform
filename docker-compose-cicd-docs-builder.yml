@@ -2,9 +2,9 @@ version: "3.9"
 
 services:
   dcsp-docs-builder-cicd:
-    build: ./dockerfiles/app
+    #build: ./dockerfiles/app
     image: cotswoldsmaker/dcsp:latest
-    #container_name: dcsp-docs-builder-cicd
+    container_name: dcsp-docs-builder-cicd
     restart: "no"
     volumes:
       - ./:/dcsp
