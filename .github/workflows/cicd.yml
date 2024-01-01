@@ -51,7 +51,7 @@ jobs:
 
       - name: Testing inside Docker container
         run: >
-          docker-compose -f docker-compose-cicd-docs-builder.yml up --exit-code-from docs-builder-cicd
+          docker-compose -f docker-compose-cicd-docs-builder.yml up --exit-code-from dcsp-docs-builder-cicd
   
   mkdocs-documents:
     runs-on: ubuntu-latest
