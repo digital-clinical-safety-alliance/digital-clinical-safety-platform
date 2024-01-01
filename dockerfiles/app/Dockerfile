@@ -24,12 +24,13 @@ RUN pip install -r requirements.txt
 #RUN chmod -R 777 /dcsp
 
 # Create a user group 'xyzgroup'
-RUN addgroup -S xyzgroup
+#RUN addgroup -S xyzgroup
 
 # Create a user 'appuser' under 'xyzgroup'
-RUN adduser -S -D -h /usr/app/src appuser xyzgroup
+#RUN adduser -S -D -h /usr/app/src appuser xyzgroup
 
 # Chown all the files to the app user.
-RUN chown -R appuser:xyzgroup /dcsp
-USER appuser 
+RUN useradd dcspuser
+RUN chown -R dcspuser /dcsp
+USER dcspuser 
 
