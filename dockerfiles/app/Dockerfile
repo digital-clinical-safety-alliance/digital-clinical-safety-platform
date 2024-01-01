@@ -32,5 +32,6 @@ RUN pip install -r requirements.txt
 # Chown all the files to the app user.
 RUN useradd dcspuser
 RUN chown -R dcspuser /dcsp
+RUN chmod -R g+rw /dcsp
 USER dcspuser 
 
