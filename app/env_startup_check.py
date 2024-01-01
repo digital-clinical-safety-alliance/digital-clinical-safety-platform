@@ -8,6 +8,16 @@ import sys
 env_to_check: list[str] = [
     "DJANGO_SECRET_KEY",
     "ALLOW_HOSTS",
+    "DJANGO_SECRET_KEY",
+    "ALLOW_HOSTS",
+    "DEBUG",
+    "EMAIL_HOST_USER",
+    "EMAIL_HOST_PASSWORD",
+    "POSTGRES_USER",
+    "POSTGRES_PASSWORD",
+    "POSTGRES_DB",
+    "POSTGRES_ENGINE",
+    "POSTGRES_PORT",
 ]
 
 env_to_check_dict: dict[str, str] = {}

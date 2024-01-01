@@ -279,7 +279,7 @@ def md_edit(request: HttpRequest) -> HttpResponse:
     setup_step = setup_step_get()
 
     if setup_step < 2:
-        return redirect("/main")
+        return redirect("/build")
 
     if request.method == "GET":
         if not os.path.isdir(settings.MKDOCS_DOCS_LOCATION):
@@ -345,7 +345,7 @@ def md_saved(request: HttpRequest) -> HttpResponse:
 
     setup_step = setup_step_get()
     if setup_step < 2:
-        return redirect("/main")
+        return redirect("/build")
 
     form = MDEditForm(request.POST)
     if form.is_valid():
@@ -782,7 +782,7 @@ def start_afresh(request: HttpRequest) -> HttpResponse:
         mkdocs = MkdocsControl()
         if not mkdocs.stop(wait=True):
             return render(request, "500.html", status=500)
-    return redirect("/main")
+    return redirect("/build")
 
 
 def custom_404(request: HttpRequest, exception) -> HttpResponse:

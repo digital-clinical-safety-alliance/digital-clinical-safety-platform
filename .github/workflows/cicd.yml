@@ -30,14 +30,15 @@ jobs:
           file: ./dockerfiles/app/Dockerfile
           tags: cotswoldsmaker/dcsp:latest
           push: true
-          #cache-from: type=gha
-          #cache-to: type=gha,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
       
       - name: Testing inside Docker container
         run: >
           DJANGO_SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}' 
           ALLOW_HOSTS='${{ secrets.ALLOW_HOSTS }}' 
-          docker-compose -f docker-compose-cicd.yml up --exit-code-from docs-builder-cicd
+          docker-compose -f docker-compose-cicd-docs-builder up --exit-code-from docs-builder-cicd
   
   mkdocs-documents:
     runs-on: ubuntu-latest

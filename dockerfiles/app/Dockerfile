@@ -12,8 +12,8 @@ COPY requirements.txt /dcsp
 RUN pip install -r requirements.txt
 
 # Create user
-RUN addgroup --system dcsp-user && adduser --system --group dcsp-user
+#RUN addgroup --system dcsp-user && adduser --system --group dcsp-user
 
 # Change to dcsp-user user
-USER dcsp-user
+#USER dcsp-user
 

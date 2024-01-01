@@ -1,4 +1,5 @@
-from django.test import TestCase, tag, override_settings
+from django.test import TestCase, tag, override_settings, Client
+from django.contrib.auth.models import User
 from django.urls import reverse
 from django.conf import settings
 from unittest.mock import Mock, patch, call
@@ -43,13 +44,13 @@ def setup_level(self, level, mock_git_controller):
             d.CREDENTIALS_CHECK_REPO_EXISTS
         )
 
-        response = self.client.post("/", installation_variables())
+        response = self.client.post("/build", installation_variables())
         self.assertEqual(response.status_code, 200)
     if level >= 2:
-        response1 = self.client.post("/", d.TEMPLATE_GOOD_DATA)
+        response1 = self.client.post("/build", d.TEMPLATE_GOOD_DATA)
         self.assertEqual(response1.status_code, 200)
     if level >= 3:
-        response3 = self.client.post("/", d.PLACEHOLDERS_GOOD_DATA)
+        response3 = self.client.post("/build", d.PLACEHOLDERS_GOOD_DATA)
         self.assertEqual(response3.status_code, 200)
     return
 
@@ -85,11 +86,20 @@ def env_variables():
     return return_values
 
 
-# TODO - add some messages tests
+def login_and_start_afresh(self):
+    self.user = User.objects.create_user(
+        username="u", password="p"
+    )  # nosec B106
+    self.client = Client()
+    self.client.login(username="u", password="p")  # nosec B106
+    self.client.get("/start_afresh")
+    return
 
 
-@tag("run")
-class IndexTest(TestCase):
+# TODO #34 - add some messages tests
+
+
+class BuildTest(TestCase):
     @classmethod
     def setUpClass(cls):
         if not os.path.isfile(c.TESTING_ENV_PATH_GIT):
@@ -98,22 +108,25 @@ class IndexTest(TestCase):
             )
             sys.exit(1)
 
-        if not os.path.isfile(c.ENV_PATH_PLACEHOLDERS):
-            open(c.ENV_PATH_PLACEHOLDERS, "w").close()
+        if not os.path.isfile(c.TESTING_ENV_PATH_DJANGO):
+            open(c.TESTING_ENV_PATH_DJANGO, "w").close()
 
     def setUp(self):
-        self.client.get("/start_afresh")
+        login_and_start_afresh(self)
 
     def test_method_bad(self):
-        response = self.client.delete("/")
+        self.client.login(username="u", password="p")  # nosec B106
+        response = self.client.delete("/build")
         self.assertEqual(response.status_code, 405)
 
     def test_installation_setup_get(self):
-        response = self.client.get("/")
+        self.client.login(username="u", password="p")  # nosec B106
+        response = self.client.get("/build")
         self.assertEqual(response.status_code, 200)
 
     def test_installation_setup_get_template_correct(self):
-        response = self.client.get("/")
+        self.client.login(username="u", password="p")  # nosec B106
+        response = self.client.get("/build")
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "installation_method.html")
 
@@ -125,7 +138,8 @@ class IndexTest(TestCase):
             d.CREDENTIALS_CHECK_REPO_EXISTS
         )
 
-        response = self.client.post("/", installation_variables())
+        self.client.login(username="u", password="p")  # nosec B106
+        response = self.client.post("/build", installation_variables())
         self.assertEqual(response.status_code, 200)
 
         mock_git_controller.assert_called_once()
@@ -141,11 +155,10 @@ class IndexTest(TestCase):
         self.assertEqual(calls_git_controller_instance, {})
 
     """def test_installation_post_template_correct(self):
-        response = self.client.post("/", installation_variables())
+        response = self.client.post("/build", installation_variables())
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "template_select.html")"""
 
-    #
     @patch("app.forms.GitController")
     def test_installation_post_template_correct(self, mock_git_controller):
         mock_git_controller_instance = Mock()
@@ -154,7 +167,8 @@ class IndexTest(TestCase):
             d.CREDENTIALS_CHECK_REPO_EXISTS
         )
 
-        response = self.client.post("/", installation_variables())
+        self.client.login(username="u", password="p")  # nosec B106
+        response = self.client.post("/build", installation_variables())
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "template_select.html")
 
@@ -165,34 +179,38 @@ class IndexTest(TestCase):
     def test_installation_post_stand_alone_data_bad(self):
         pass
         """response = self.client.post(
-            "/", d.INSTALLATION_POST_STAND_ALONE_DATA_BAD
+            "/build", d.INSTALLATION_POST_STAND_ALONE_DATA_BAD
         )
         print(response.content)
         self.assertContains(response, "Invalid URL")
         self.assertEqual(response.status_code, 200)"""
 
     def test_installation_post_integrated_data_bad(self):
+        self.client.login(username="u", password="p")  # nosec B106
         response = self.client.post(
-            "/", d.INSTALLATION_POST_INTEGRATED_DATA_BAD
+            "/build", d.INSTALLATION_POST_INTEGRATED_DATA_BAD
         )
         self.assertContains(response, "Invalid path")
         self.assertEqual(response.status_code, 200)
 
     def test_template_select_get(self):
+        self.client.login(username="u", password="p")  # nosec B106
         setup_level(self, 1)
-        response1 = self.client.get("/")
+        response1 = self.client.get("/build")
         self.assertEqual(response1.status_code, 200)
 
     def test_template_select_get_template_correct(self):
+        self.client.login(username="u", password="p")  # nosec B106
         setup_level(self, 1)
-        response = self.client.get("/")
+        response = self.client.get("/build")
         self.assertEqual(response.status_code, 200)
         # print(response.content)
         self.assertTemplateUsed(response, "template_select.html")
 
     def test_template_post_good_data(self):
+        # Below function call logs in
         self.test_installation_post_good_data()
-        response = self.client.post("/", d.TEMPLATE_GOOD_DATA)
+        response = self.client.post("/build", d.TEMPLATE_GOOD_DATA)
         self.assertEqual(response.status_code, 200)
 
     # TODO
@@ -200,108 +218,96 @@ class IndexTest(TestCase):
         pass
 
     def test_template_post_bad_data(self):
+        # Below function call logs in
         self.test_installation_post_good_data()
-        response = self.client.post("/", d.TEMPLATE_BAD_DATA)
+        response = self.client.post("/build", d.TEMPLATE_BAD_DATA)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Select a valid choice.")
 
     def test_template_post_template_correct(self):
         self.test_installation_post_good_data()
-        response = self.client.post("/", d.TEMPLATE_GOOD_DATA)
+        response = self.client.post("/build", d.TEMPLATE_GOOD_DATA)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "placeholders_show.html")
 
     def test_placeholders_get(self):
         self.test_template_post_good_data()
-        response = self.client.get("/")
+        response = self.client.get("/build")
         self.assertEqual(response.status_code, 200)
 
     def test_placeholders_get_template_correct(self):
         self.test_template_post_good_data()
-        response = self.client.get("/")
+        response = self.client.get("/build")
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "placeholders_show.html")
 
     def test_placeholders_post_good_data(self):
         self.test_template_post_good_data()
-        response = self.client.post("/", d.PLACEHOLDERS_GOOD_DATA)
+        response = self.client.post("/build", d.PLACEHOLDERS_GOOD_DATA)
         self.assertEqual(response.status_code, 200)
 
     # TODO
     def test_post_good_data_message(self):
         pass
 
-    # TODO - no cleaning check for placeholders yet, but will need a test
-    # function if cleaning is implemented.
+    def test_logged_out(self):
+        self.client.logout()
+        response = self.client.get("/build")
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, "/accounts/login/?next=/build")
 
     @classmethod
     def tearDownClass(cls):
         pass
 
 
-@tag("run")
-# TODO: Need to see if could use IndexViewTest to reduce code here
 class MdEditTest(TestCase):
     def setUp(self):
-        self.client.get("/start_afresh")
+        login_and_start_afresh(self)
 
-    def test_md_edit_wrong_method(self):
+    def test_wrong_method(self):
         setup_level(self, 2)
-        """response = self.client.post("/", installation_variables())
-        self.assertEqual(response.status_code, 200)
-        response1 = self.client.post("/", d.TEMPLATE_GOOD_DATA)
-        self.assertEqual(response1.status_code, 200)"""
         response2 = self.client.delete("/md_edit")
         self.assertEqual(response2.status_code, 405)
 
-    def test_md_edit_setup_step_none(self):
-        self.client.post("/start_afresh")
+    def test_setup_step_none(self):
         response = self.client.get("/md_edit")
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("index"))
+        self.assertRedirects(response, reverse("build"))
 
-    def test_md_edit_setup_step_1(self):
+    def test_setup_step_1(self):
         setup_level(self, 1)
         response1 = self.client.get("/md_edit")
         self.assertEqual(response1.status_code, 302)
-        self.assertRedirects(response1, reverse("index"))
+        self.assertRedirects(response1, reverse("build"))
 
-    def test_md_edit_setup_step_2(self):
+    def test_setup_step_2(self):
         setup_level(self, 2)
-        """response = self.client.post("/", installation_variables())
-        self.assertEqual(response.status_code, 200)
-        response1 = self.client.post("/", d.TEMPLATE_GOOD_DATA)
-        self.assertEqual(response1.status_code, 200)"""
         response2 = self.client.get("/md_edit")
         self.assertEqual(response2.status_code, 200)
 
-    def test_md_edit_template_correct(self):
+    def test_template_correct(self):
         setup_level(self, 2)
-        """response = self.client.post("/", installation_variables())
-        self.assertEqual(response.status_code, 200)
-        response1 = self.client.post("/", d.TEMPLATE_GOOD_DATA)
-        self.assertEqual(response1.status_code, 200)"""
         response2 = self.client.get("/md_edit")
         self.assertEqual(response2.status_code, 200)
         self.assertTemplateUsed(response2, "md_edit.html")
 
-    def test_md_edit_post_good_data(self):
+    def test_post_good_data(self):
         setup_level(self, 2)
-        """response = self.client.post("/", installation_variables())
-        self.assertEqual(response.status_code, 200)
-        response1 = self.client.post("/", d.TEMPLATE_GOOD_DATA)
-        self.assertEqual(response1.status_code, 200)"""
         response2 = self.client.post("/md_edit", d.MD_EDIT_GOOD_DATA)
         self.assertEqual(response2.status_code, 200)
         self.assertTemplateUsed(response2, "md_edit.html")
 
-    # TODO - no clean method for md_edit form yet, will need testing for this once implemented wth bad data
+    def test_logged_out(self):
+        self.client.logout()
+        response = self.client.get("/md_edit")
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, "/accounts/login/?next=/md_edit")
 
 
-@tag("run")
 class MdSavedTest(TestCase):
     def setUp(self):
-        self.client.get("/start_afresh")
+        login_and_start_afresh(self)
 
     def test_md_edit_wrong_method(self):
         response = self.client.delete("/md_saved")
@@ -315,12 +321,11 @@ class MdSavedTest(TestCase):
         )
 
     """def setup_2_initialise(self):
-        response = self.client.post("/", installation_variables())
+        response = self.client.post("/build", installation_variables())
         self.assertEqual(response.status_code, 200)
-        response1 = self.client.post("/", d.TEMPLATE_GOOD_DATA)
+        response1 = self.client.post("/build", d.TEMPLATE_GOOD_DATA)
         self.assertEqual(response1.status_code, 200)"""
 
-    # @tag("run")
     def test_get_setup_2_good_data(self):
         setup_level(self, 2)
         response2 = self.client.post("/md_saved", d.MD_SAVED_GOOD_DATA)
@@ -338,12 +343,16 @@ class MdSavedTest(TestCase):
     def test_post_good_data_message(self):
         pass
 
-    # @tag("run")
     def test_post_bad_filename(self):
-        # self.setup_2_initialise()
         setup_level(self, 3)
         response2 = self.client.post("/md_saved", d.MD_SAVED_BAD_FILENAME)
         self.assertEqual(response2.status_code, 500)
+
+    def test_logged_out(self):
+        self.client.logout()
+        response = self.client.get("/md_saved")
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, "/accounts/login/?next=/md_saved")
 
     # TODO - there is no markdown validity checker yet. But will need a test when in place
 
@@ -352,10 +361,9 @@ class MdNewTest(TestCase):
     pass
 
 
-@tag("run")
 class HazardLogTest(TestCase):
     def setUp(self):
-        self.client.get("/start_afresh")
+        login_and_start_afresh(self)
 
     def test_hazard_log_bad_method(self):
         response = self.client.delete("/hazard_log")
@@ -373,7 +381,17 @@ class HazardLogTest(TestCase):
     def test_hazard_log_post(self):
         pass
 
+    def test_logged_out(self):
+        self.client.logout()
+        response = self.client.get("/hazard_log")
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, "/accounts/login/?next=/hazard_log")
 
+
+# @tag("run")
+# self.user = User.objects.create_user(username="u", password="p") # nosec B106
+# self.client = Client()
+# self.client.login(username="u", password="p") # nosec B106
 @tag("git")
 class HazardCommentTest(TestCase):
     def setUp(self):
@@ -433,7 +451,7 @@ class HazardsOpenTest(TestCase):
 
 class MkdocsRedirectTest(TestCase):
     def setUp(self):
-        self.client.get("/start_afresh")
+        login_and_start_afresh(self)
 
     def test_bad_method(self):
         response = self.client.delete("/mkdoc_redirect/home")
@@ -442,6 +460,14 @@ class MkdocsRedirectTest(TestCase):
     def test_get_home(self):
         response = self.client.get("/mkdoc_redirect/home")
         self.assertEqual(response.status_code, 302)
+
+    def test_logged_out(self):
+        self.client.logout()
+        response = self.client.get("/mkdoc_redirect/home")
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response, "/accounts/login/?next=/mkdoc_redirect/home"
+        )
 
 
 class UpLoadToGithubTest(TestCase):
@@ -452,10 +478,9 @@ class SetupStepTest(TestCase):
     pass
 
 
-@tag("git")
-class StdContectTest(TestCase):
+class StdContentTest(TestCase):
     def setUp(self):
-        self.client.get("/start_afresh")
+        login_and_start_afresh(self)
 
     def test_setup_None(self):
         self.assertEqual(std_context(), d.STD_CONTEXT_SETUP_NONE)
@@ -468,13 +493,11 @@ class StdContectTest(TestCase):
         setup_level(self, 2)
         self.assertEqual(std_context(), d.STD_CONTEXT_SETUP_2)
 
-    # @tag("run")
     def test_setup_3(self):
         setup_level(self, 3)
         self.assertEqual(std_context(), d.STD_CONTEXT_SETUP_3)
 
 
-@tag("git")
 class StartAfreshEnabledTest(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -487,7 +510,7 @@ class StartAfreshEnabledTest(TestCase):
         settings.ENV_LOCATION = c.TESTING_ENV_PATH_DJANGO
 
     def setUp(self):
-        self.client.get("/start_afresh")
+        login_and_start_afresh(self)
 
     def test_bad_method(self):
         response = self.client.delete("/start_afresh")
@@ -511,6 +534,12 @@ class StartAfreshEnabledTest(TestCase):
         git_env_dict["setup_step"] = "3"
         self.assertEqual(em_django.read_all(), git_env_dict)
 
+    def test_logged_out(self):
+        self.client.logout()
+        response = self.client.get("/start_afresh")
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, "/accounts/login/?next=/start_afresh")
+
     @classmethod
     def tearDownClass(cls):
         settings.START_AFRESH = cls.start_fresh_previous_state
@@ -518,7 +547,6 @@ class StartAfreshEnabledTest(TestCase):
         settings.ENV_LOCATION = cls.env_location_previous
 
 
-@tag("git")
 class StartAfreshDisabledTest(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -529,7 +557,7 @@ class StartAfreshDisabledTest(TestCase):
 
     def setUp(self):
         settings.TESTING = True
-        self.client.get("/start_afresh")
+        login_and_start_afresh(self)
         settings.TESTING = False
 
     def test_bad_method(self):
@@ -553,6 +581,12 @@ class StartAfreshDisabledTest(TestCase):
         git_env_dict = em_git.read_all()
         git_env_dict["setup_step"] = "3"
         self.assertEqual(em_django.read_all(), git_env_dict)
+
+    def test_logged_out(self):
+        self.client.logout()
+        response = self.client.get("/start_afresh")
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, "/accounts/login/?next=/start_afresh")
 
     @classmethod
     def tearDownClass(cls):
