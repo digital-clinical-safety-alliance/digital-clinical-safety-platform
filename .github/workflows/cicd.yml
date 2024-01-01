@@ -35,7 +35,7 @@ jobs:
           platforms: linux/amd64
       
       - name: Make .env file
-        uses: SpicyPizza/create-envfile@v1
+        uses: SpicyPizza/create-envfile@v2.0
         with:
           envkey_DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
           envkey_ALLOW_HOSTS: ${{ secrets.ALLOW_HOSTS }}
