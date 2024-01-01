@@ -10,6 +10,7 @@ services:
       - ./:/dcsp
     env_file:
       - .env
+    # Could probably remove this.
     environment:
       - POSTGRES_HOST=dcsp-postgres-cicd
     working_dir: /dcsp/app
