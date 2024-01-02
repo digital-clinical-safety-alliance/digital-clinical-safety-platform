@@ -27,7 +27,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./dockerfiles/app/
-          file: ./dockerfiles/app/Dockerfile-cicd
+          file: ./dockerfiles/app/Dockerfile
           tags: cotswoldsmaker/dcsp:latest
           push: true
           cache-from: type=gha
