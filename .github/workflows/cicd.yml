@@ -79,10 +79,8 @@ jobs:
       - name: cd to '/src/digital-clinical-safety-platform'
         run: ssh deploy 'cd /src/digital-clinical-safety-platform'
 
-      - run: echo ${{ secrets.DOCKERHUB_USERNAME }} + ${{ secrets.DOCKERHUB_PASSWORD }}
-
       - name: Login to Docker
-        run: ssh deploy 'docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}'
+        run: ssh deploy 'docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}'
 
       - name: Pull image from Dockerhub
         run: ssh deploy 'docker pull cotswoldsmaker/dcsp:latest'
