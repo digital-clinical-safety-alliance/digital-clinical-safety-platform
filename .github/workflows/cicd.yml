@@ -100,8 +100,13 @@ jobs:
         run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-prod.yml down'
 
       - name: Start docker-compose again
-        run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-prod.yml up --build -d'
+        run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-prod.yml up -d'
+      
+      - name: Migrate Django (TODO - needs alembic)
+        run: ssh deploy 'docker exec -it dcsp-docs-builder-prod bash && cd dcsp/ && python3 manage.py migrate'
   
+
+  docker exec -it dcsp-docs-builder-prod bash
   
   mkdocs-documents:
     runs-on: ubuntu-latest

@@ -2,9 +2,6 @@ version: "3.9"
 
 services:
   dcsp-docs-builder-prod:
-    #build: 
-    #  context: ./dockerfiles/app/
-    #  dockerfile: Dockerfile-dev-cicd
     image: cotswoldsmaker/dcsp-doc-builder:latest
     container_name: dcsp-docs-builder-prod
     restart: "always"
