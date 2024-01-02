@@ -87,7 +87,7 @@ jobs:
         run: ssh deploy 'git pull'
       
       - name: Stop docker-compose
-       run: ssh deploy 'docker compose -f docker-compose-prod.yml down'
+        run: ssh deploy 'docker compose -f docker-compose-prod.yml down'
 
       - name: Start docker-compose again
         run: ssh deploy 'docker compose -f docker-compose-prod.yml up'
