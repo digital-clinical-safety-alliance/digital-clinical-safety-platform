@@ -53,7 +53,7 @@ jobs:
         run: >
           docker-compose -f docker-compose-cicd-docs-builder.yml up --exit-code-from dcsp-docs-builder-cicd
       
-      - name: Build cicd image
+      - name: Build production image
         uses: docker/build-push-action@v5
         with:
           context: ./dockerfiles/app/

@@ -13,8 +13,9 @@ RUN pip install -r requirements.txt
 
 # Chown all the files to user.
 ARG UNAME=dcspuser
+
 RUN groupadd $UNAME
-RUN useradd $UNAME
+RUN useradd -ms /bin/bash $UNAME
 RUN chown -R $UNAME /dcsp
 RUN chmod -R g+rw /dcsp
 USER $UNAME
