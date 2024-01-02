@@ -12,8 +12,8 @@ COPY requirements.txt /dcsp
 RUN pip install -r requirements.txt
 
 # Chown all the files to user.
-RUN addgroup demo && adduser -DH -G demo demo
-RUN chown -R $UNAME /dcsp
+RUN addgroup dcspuser && adduser -DH -G dcspuser dcspuser
+RUN chown -R dcspuser /dcsp
 RUN chmod -R g+rw /dcsp
-USER $UNAME
+USER dcspuser
 
