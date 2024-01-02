@@ -38,7 +38,7 @@ services:
       - "9000:9000"
     volumes:
       - ./app/dcsp/static/:/static/
-      - ./nginx/dev/:/etc/nginx/
+      - ./nginx/prod/:/etc/nginx/
       - ./logs/nginx/:/var/log/nginx/
     depends_on:
       - dcsp-docs-builder-prod
