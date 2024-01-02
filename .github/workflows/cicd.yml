@@ -68,7 +68,6 @@ jobs:
             HostName $SSH_HOST
             User $SSH_USER
             IdentityFile ~/.ssh/deploy.key
-            RemoteCommand cd /src/digital-clinical-safety-platform; $SHELL -il
             StrictHostKeyChecking no
           END
         env:
@@ -84,13 +83,13 @@ jobs:
         run: ssh deploy 'docker pull cotswoldsmaker/dcsp:latest'
 
       - name: Git pull
-        run: ssh deploy 'git pull'
+        run: ssh deploy 'cd /src/digital-clinical-safety-platform && git pull'
       
       - name: Stop docker-compose
-        run: ssh deploy 'docker compose -f docker-compose-prod.yml down'
+        run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-prod.yml down'
 
       - name: Start docker-compose again
-        run: ssh deploy 'docker compose -f docker-compose-prod.yml up'
+        run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-prod.yml up'
   
   
   mkdocs-documents:
