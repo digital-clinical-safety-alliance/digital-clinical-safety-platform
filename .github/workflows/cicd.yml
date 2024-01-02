@@ -76,7 +76,7 @@ jobs:
           SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
           # ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 
-      - name: Create folder
+      - name: Create folder test
         run: ssh deploy 'cd /src && mkdir hi_there'
 
   
