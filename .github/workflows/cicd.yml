@@ -53,16 +53,16 @@ jobs:
       #  run: >
       #    docker-compose -f docker-compose-cicd-docs-builder.yml up --exit-code-from dcsp-docs-builder-cicd
       
-      - name: Build and push production image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./dockerfiles/app/
-          file: ./dockerfiles/app/Dockerfile-prod
-          tags: cotswoldsmaker/dcsp:prod
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          platforms: linux/amd64
+      #- name: Build and push production image
+      #  uses: docker/build-push-action@v5
+      #  with:
+      #    context: ./dockerfiles/app/
+      #    file: ./dockerfiles/app/Dockerfile-prod
+      #    tags: cotswoldsmaker/dcsp:prod
+      #    push: true
+      #    cache-from: type=gha
+      #    cache-to: type=gha,mode=max
+      #    platforms: linux/amd64
   
 
   deploy:
@@ -91,7 +91,7 @@ jobs:
         run: ssh deploy 'docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}'
 
       - name: Pull image from Dockerhub
-        run: ssh deploy 'docker pull cotswoldsmaker/dcsp:latest'
+        run: ssh deploy 'docker pull cotswoldsmaker/dcsp:prod'
 
       - name: Git pull
         run: ssh deploy 'cd /src/digital-clinical-safety-platform && git pull'
@@ -100,7 +100,7 @@ jobs:
         run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-prod.yml down'
 
       - name: Start docker-compose again
-        run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-prod.yml up -d'
+        run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-prod.yml up --build -d'
   
   
   mkdocs-documents:

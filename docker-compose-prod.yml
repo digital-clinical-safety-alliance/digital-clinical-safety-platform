@@ -2,7 +2,8 @@ version: "3.9"
 
 services:
   dcsp-docs-builder-prod:
-    image: cotswoldsmaker/dcsp:prod
+    build: ./dockerfiles/app/Dockerfile-prod
+    #image: cotswoldsmaker/dcsp:prod
     container_name: dcsp-docs-builder-prod
     restart: "always"
     volumes:
