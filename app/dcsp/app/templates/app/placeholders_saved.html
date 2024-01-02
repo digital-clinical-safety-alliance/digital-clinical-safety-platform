@@ -12,7 +12,7 @@
     <p>You have now completed the set up for your clinical safety documentation. 
       Please clinic on the button below to view these pages</p>
       
-    <form action="http://localhost:9000/" method="post">
+    <form action="http://{% host_url %}:9000/" method="post">
       {% csrf_token %}
 
       <div align="right">

@@ -233,6 +233,8 @@ def build(request: HttpRequest) -> HttpResponse:
                     "Placeholders saved",
                 )
 
+                context["host_url"] = request.get_host().split(":")[0]
+
                 mkdocs = MkdocsControl()
                 if not mkdocs.start(wait=True):
                     return render(request, "500.html")
