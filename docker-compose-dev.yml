@@ -41,8 +41,8 @@ services:
       - "80:80"
       - "9000:9000"
     volumes:
-      - ./app/dcsp/static/:/static/
-      - ./nginx/dev/:/etc/nginx/
+      - ./app/dcsp/static/:/static/:ro
+      - ./nginx/dev/:/etc/nginx/:ro
       - ./logs/nginx/:/var/log/nginx/
     depends_on:
       - dcsp-docs-builder
