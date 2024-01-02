@@ -30,7 +30,7 @@ jobs:
           file: ./dockerfiles/app/Dockerfile-dev-cicd
           tags: cotswoldsmaker/dcsp-doc-builder:latest
           push: true
-         cache-from: type=gha
+          cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
       
