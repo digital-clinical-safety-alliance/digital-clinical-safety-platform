@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   dcsp-docs-builder-cicd:
-    image: cotswoldsmaker/dcsp:latest
+    image: cotswoldsmaker/dcsp:cicd
     container_name: dcsp-docs-builder-cicd
     restart: "no"
     volumes:

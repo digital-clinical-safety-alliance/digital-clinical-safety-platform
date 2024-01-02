@@ -23,13 +23,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       
-      - name: Build and push image using cache
+      - name: Build cicd image
         uses: docker/build-push-action@v5
         with:
           context: ./dockerfiles/app/
-          file: ./dockerfiles/app/Dockerfile
-          tags: cotswoldsmaker/dcsp:latest
-          push: true
+          file: ./dockerfiles/app/Dockerfile-dev-cicd
+          tags: cotswoldsmaker/dcsp:cicd
+          #push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
@@ -49,9 +49,20 @@ jobs:
           envkey_POSTGRES_PORT: '5432'
           file_name: .env
 
-      #- name: Testing inside Docker container
-      #  run: >
-      #    docker-compose -f docker-compose-cicd-docs-builder.yml up --exit-code-from dcsp-docs-builder-cicd
+      - name: Testing inside Docker container
+        run: >
+          docker-compose -f docker-compose-cicd-docs-builder.yml up --exit-code-from dcsp-docs-builder-cicd
+      
+      - name: Build cicd image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./dockerfiles/app/
+          file: ./dockerfiles/app/Dockerfile-prod
+          tags: cotswoldsmaker/dcsp:prod
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
   
 
   deploy:

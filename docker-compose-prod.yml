@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   dcsp-docs-builder-prod:
-    image: cotswoldsmaker/dcsp:latest
+    image: cotswoldsmaker/dcsp:prod
     container_name: dcsp-docs-builder-prod
     restart: "always"
     volumes:

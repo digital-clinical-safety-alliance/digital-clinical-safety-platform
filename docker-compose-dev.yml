@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   dcsp-docs-builder:
-    build: ./dockerfiles/app
+    build: ./dockerfiles/app/Dockerfile-dev-cicd
     container_name: dcsp-docs-builder
     #restart: unless-stopped
     #ports:
