@@ -68,6 +68,7 @@ jobs:
             HostName $SSH_HOST
             User $SSH_USER
             IdentityFile ~/.ssh/deploy.key
+            RemoteCommand cd /src/digital-clinical-safety-platform; $SHELL -il
             StrictHostKeyChecking no
           END
         env:
@@ -76,9 +77,6 @@ jobs:
           SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
           # ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 
-      - name: cd to '/src/digital-clinical-safety-platform'
-        run: ssh deploy 'cd /src/digital-clinical-safety-platform'
-
       - name: Login to Docker
         run: ssh deploy 'docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}'
 
@@ -86,12 +84,13 @@ jobs:
         run: ssh deploy 'docker pull cotswoldsmaker/dcsp:latest'
 
       - name: Git pull
-        run: ssh deploy 'cd /src/digital-clinical-safety-platform && git pull'
+        run: ssh deploy 'git pull'
       
-      # TODO: stop docker
+      - name: Stop docker-compose
+       run: ssh deploy 'docker compose -f docker-compose-prod.yml down'
 
-      - name: Start docker again
-        run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-prod.yml up'
+      - name: Start docker-compose again
+        run: ssh deploy 'docker compose -f docker-compose-prod.yml up'
   
   
   mkdocs-documents:
