@@ -105,9 +105,6 @@ jobs:
       - name: Migrate Django (TODO - needs alembic)
         run: ssh deploy 'docker exec -it dcsp-docs-builder-prod bash && cd dcsp/ && python3 manage.py migrate'
   
-
-  docker exec -it dcsp-docs-builder-prod bash
-  
   mkdocs-documents:
     runs-on: ubuntu-latest
     needs: Image-build-and-test
