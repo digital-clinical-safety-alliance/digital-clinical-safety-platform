@@ -151,6 +151,7 @@ class InstallationForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                "autocomplete": "github-username",
             }
         ),
     )
@@ -191,6 +192,7 @@ class InstallationForm(forms.Form):
         widget=forms.PasswordInput(
             attrs={
                 "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                "autocomplete": "github-token",
             }
         ),
     )

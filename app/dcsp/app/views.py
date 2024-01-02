@@ -615,6 +615,7 @@ def mkdoc_redirect(request: HttpRequest, path: str) -> HttpResponse:
         HttpResponse: for loading the correct webpage
     """
     mkdocs: MkdocsControl
+    host_url: str = request.get_host().split(":")[0]
 
     if not request.method == "GET":
         return render(request, "405.html", std_context(), status=405)
@@ -625,9 +626,9 @@ def mkdoc_redirect(request: HttpRequest, path: str) -> HttpResponse:
     # TODO - need message page for if mkdocs is not running
 
     if path == "home":
-        return redirect(f"http://localhost:9000")
+        return redirect(f"http://{ host_url }:9000")
     else:
-        return redirect(f"http://localhost:9000/{ path }")
+        return redirect(f"http://{ host_url }:9000/{ path }")
 
     # Should never really get here, but added for mypy
     return render(request, "500.html", std_context(), status=500)
