@@ -91,7 +91,7 @@ jobs:
       # TODO: stop docker
 
       - name: Start docker again
-        run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-dev.yml up'
+        run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-prod.yml up'
   
   
   mkdocs-documents:
