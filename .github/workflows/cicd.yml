@@ -76,9 +76,19 @@ jobs:
           SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
           # ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 
-      - name: Create folder test
-        run: ssh deploy 'cd /src && mkdir hi_there'
+      - name: cd to '/src/digital-clinical-safety-platform'
+        run: ssh deploy 'cd /src/digital-clinical-safety-platform'
 
+      - name: Login to Docker
+        run: ssh deploy 'docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}'
+
+      - name: Pull image from Dockerhub
+        run: ssh deploy 'docker pull cotswoldsmaker/dcsp:latest'
+      
+      # TODO: stop docker
+
+      - name: Start docker again
+        run: ssh deploy 'docker compose -f docker-compose-dev.yml up'
   
   
   mkdocs-documents:
