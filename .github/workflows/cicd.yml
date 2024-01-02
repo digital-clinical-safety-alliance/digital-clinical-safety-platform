@@ -76,8 +76,8 @@ jobs:
           SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
           # ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 
-      #- name: cd to '/src/digital-clinical-safety-platform'
-      #  run: ssh deploy 'cd /src/digital-clinical-safety-platform'
+      - name: cd to '/src/digital-clinical-safety-platform'
+        run: ssh deploy 'cd /src/digital-clinical-safety-platform'
 
       - name: Login to Docker
         run: ssh deploy 'docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}'
