@@ -19,5 +19,5 @@ RUN groupadd -g $GID -o $UNAME
 RUN useradd -m -u $UID -g $GID -o -s /bin/bash $UNAME
 RUN chown -R dcspuser /dcsp
 RUN chmod -R g+rw /dcsp
-#USER $UNAME
+USER $UNAME
 
