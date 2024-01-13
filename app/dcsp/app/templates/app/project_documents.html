@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block main %}
+  <div class="row">
+    <div class="col"></div>
+    <div class="col-12 col-md-6 mx-auto">
+      <h2>
+        {{ project.name }}
+      </h2>
+    </div>
+    <div class="col"></div>
+  </div>
+  <div class="row">
+    
+    {% include "project_side_bar.html" %}
+
+    <div class="col-12 col-md-6">
+      <div class="mb-1">
+        <div class="p-2 mb-2 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-1">
+          <strong> Description </strong> <br>
+          {{ project.description }}
+        </div>
+      </div>
+
+      <div class="mb-1">
+        <div class="p-2 mb-2 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-1">
+          <strong> Owner </strong> <br>
+          {{ project.owner.first_name }} {{ project.owner.last_name }}
+        </div>
+      </div>
+
+      <div class="mb-1">
+        <div class="p-2 mb-2 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-1">
+          <strong> Members </strong> <br>
+          {% if members %}
+            {% for member in members %}
+              {{ member.first_name }} {{ member.last_name }}
+              {% if not loop.last %}
+                <br>
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            No others
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="mb-1">
+        <div class="p-2 mb-2 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-1">
+          <strong> External repository </strong> <br>
+          {{ project.external_repo_url }}
+        </div>
+      </div>
+  	</div>
+
+		<div class="col">
+			<h5>Latest activity:</h5>
+			<ul>
+				<li>Activity 1</li>
+				<li>Activity 2</li>
+				<li>Activity 3</li>
+			</ul>
+		</div>
+	</div>
+  
+    
+{% endblock %}

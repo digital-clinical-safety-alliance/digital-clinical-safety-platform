@@ -15,11 +15,15 @@
 </head>
 <body class="bg-info bg-gradient bg-opacity-25">
 
+  <div id="loading-container2">
+    <div class="loading-icon"></div>
+  </div>
+
   <!-- Loading animation -->
   <div class="loading-container">
     <div class="loader">
-      <object type="image/svg+xml" data="/static/assets/gifs/Loading SD.svg">
-        <img src="/static/assets/gifs/Loading SD.svg" />
+      <object type="image/svg+xml" data="/static/assets/animations/Loading SD.svg">
+        <img src="/static/assets/animations/Loading SD.svg" />
       </object>
     </div>
   </div>
@@ -41,86 +45,24 @@
               </a>
             </li>
           {% endif %}
+
           {% if request.user.is_authenticated %}
-            <li class="nav-item">
-              <a class="nav-link" href="/build" >
-                Build
+          <li class="nav-item">
+              <a class="nav-link" href="/settings" >
+                settings
               </a>
-            </li>
-          {% endif %}
-          {% if request.user.is_authenticated %}
-            <li class="nav-item">
-              {% if mkdoc_running %}
-                <a class="nav-link" href="/mkdoc_redirect/home" >
-                  MKDOC
-                </a>
-              {% else %}
-                <div class="nav-link disabled">
-                  MKDOC
-                </div>
-              {% endif %}
-            </li>
-          {% endif %}
-          {% if request.user.is_authenticated %}
-            <li class="nav-item">
-              {% if mkdoc_running %}
-                <a class="nav-link" href="/md_edit">
-                  Edit documents
-                </a>
-              {% else %}
-                <div class="nav-link disabled">
-                  Edit documents
-                </div>
-              {% endif %}
-            </li>
-          {% endif %}
-          {% if request.user.is_authenticated %}
-            <li class="nav-item">
-              {% if mkdoc_running %}
-                <a class="nav-link" href="/hazard_log">
-                  Log hazard
-                </a>
-              {% else %}
-                <div class="nav-link disabled">
-                  Log hazard
-                </div>
-              {% endif %}
-            </li>
-          {% endif %}
-          {% if request.user.is_authenticated %}
-            <li class="nav-item">
-              {% if mkdoc_running %}
-                <a class="nav-link" href="/hazards_open">
-                  Open hazards
-                </a>
-              {% else %}
-                <div class="nav-link disabled">
-                  Open hazards
-                </div>
-              {% endif %}
-            </li>
-          {% endif %}
-          {% if request.user.is_authenticated %}
-            <li class="nav-item">
-              {% if mkdoc_running %}
-                <a class="nav-link" href="/upload_to_github">
-                  Upload to Github
-                </a>
-              {% else %}
-                <div class="nav-link disabled">
-                  Upload to Github
-                </div>
-              {% endif %}
           </li>
           {% endif %}
+
+
           <li class="nav-item">
             {% if request.user.is_authenticated %}
               <a class="nav-link" href="/accounts/logout">
-                Logout
+                logout
               </a>
             {% else %}
               <a class="nav-link" href="/accounts/login">
-                Login
+                login
               </a>
             {% endif %}
           </li>
@@ -168,7 +110,7 @@
       
     </div>
   </div>
-
+  
   <div class="card">
     <div class="card-header bg-primary bg-gradient border border-black">
       Extra details
@@ -181,8 +123,43 @@
     </div>
   </div>
 
+  <style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    #loading-container2 {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .loading-icon {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+  </style>
+
   <script>
     var element = document.querySelector('.fade-out-element'); 
+
     function fadeOut(el) {
       var opacity = 1; // Initial opacity
       var interval = setInterval(function() {
@@ -195,20 +172,24 @@
           }
       }, 50);
     }
-  </script>
-
-  <script>
+    
     document.body.classList.add('loaded');
-    window.onbeforeunload = function(e){
-      document.querySelector('.loading-container').style.display = 'block'
+    /*window.onbeforeunload = function(e){
+      document.querySelector('.loading-container').style.display = 'block';
       fadeOut(element);
-    }
+    }*/
+
+    document.addEventListener("DOMContentLoaded", function () {
+      // Hide the loading container once the page is loaded
+      document.getElementById("loading-container2").style.display = "none";
+    });
+
   </script>   
     
   <!-- Bootstrap JavaScript -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
   <script src="/static/bootstrap-5.3.2-dist/js/bootstrap.js"></script>
-
+  
   </body>
 </html>

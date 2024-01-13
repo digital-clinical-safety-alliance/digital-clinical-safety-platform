@@ -17,7 +17,9 @@ env_to_check: list[str] = [
     "POSTGRES_PASSWORD",
     "POSTGRES_DB",
     "POSTGRES_ENGINE",
+    "POSTGRES_HOST",
     "POSTGRES_PORT",
+    "ENCRYPTION_KEY",
 ]
 
 env_to_check_dict: dict[str, str] = {}

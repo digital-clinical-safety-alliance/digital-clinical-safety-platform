@@ -2,7 +2,9 @@ version: "3.9"
 
 services:
   dcsp-docs-builder:
-    build: ./dockerfiles/app/Dockerfile
+    build: 
+      context: ./dockerfiles/app
+      dockerfile: Dockerfile
     container_name: dcsp-docs-builder
     #restart: unless-stopped
     #ports:
@@ -11,6 +13,9 @@ services:
     #  - "9000:9000"
     volumes:
       - ./:/dcsp
+      # TODO #36 - This will need to be converted into a volume at some point
+      - ../projects:/projects
+      - ../documentation-pages:/documentation-pages
     env_file:
       - .env
     working_dir: /dcsp/app
@@ -43,6 +48,7 @@ services:
     volumes:
       - ./app/dcsp/static/:/static/:ro
       - ./nginx/dev/:/etc/nginx/:ro
+      - ../documentation-pages:/documentation-pages
       - ./logs/nginx/:/var/log/nginx/
     depends_on:
       - dcsp-docs-builder

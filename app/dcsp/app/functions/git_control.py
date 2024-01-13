@@ -22,6 +22,7 @@ from github import (
     PaginatedList,
     Issue,
 )
+
 import pexpect
 import yaml
 import requests
@@ -34,6 +35,41 @@ sys.path.append("/dcsp/app/dcsp/")  # TODO temp
 import app.functions.constants as c
 from app.functions.constants import GhCredentials
 from app.functions.email_functions import EmailFunctions
+
+
+class GitHubController:
+    def __init__(self):
+        """ """
+        env_location: str = c.ENV_PATH_PLACEHOLDERS
+        dot_values = dotenv_values(env_location)
+        self.github_username = str(dot_values.get("GITHUB_USERNAME") or "")
+        self.github_token = str(dot_values.get("GITHUB_TOKEN") or "")
+
+    def exists(self, repo_url: str) -> bool:
+        """ """
+        g = Github(self.github_username, self.github_token)
+
+        # Find the index of the second-to-last forward slash
+        index_of_second_last_slash = repo_url.rfind(
+            "/", 0, repo_url.rfind("/")
+        )
+
+        # Retrieve the substring after the second-to-last forward slash
+        repo_path = repo_url[index_of_second_last_slash + 1 :]
+
+        try:
+            repo = g.get_repo(repo_path)
+        except GithubException:
+            return False
+        return True
+
+
+if __name__ == "__main__":
+    gh = GitHubController()
+
+    url = "https://github.com/digital-clinical-safety-alliance/digital-clinical-safety-platform"
+
+    print(gh.exists(url))
 
 
 class GitController:

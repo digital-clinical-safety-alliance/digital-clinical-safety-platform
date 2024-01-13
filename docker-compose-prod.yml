@@ -7,6 +7,7 @@ services:
     restart: "always"
     volumes:
       - ./:/dcsp
+      - users_docs:/users_docs
     env_file:
       - .env
     working_dir: /dcsp/app
@@ -57,6 +58,7 @@ services:
 
 volumes:
   postgres_data:
+  users_docs:
 
 networks:
   cross-site:

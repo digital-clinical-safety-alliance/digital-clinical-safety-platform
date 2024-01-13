@@ -27,5 +27,6 @@ urlpatterns = [
     path("", include("app.urls")),
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
+    # TODO - should this be defined in Nginx?
     path("favicon.ico", RedirectView.as_view(url="/static/favicon.ico")),
 ]

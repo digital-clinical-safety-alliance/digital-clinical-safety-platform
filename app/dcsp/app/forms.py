@@ -18,6 +18,14 @@ Functions:
 from django import forms
 from django.conf import settings
 
+from .models import (
+    User,
+    UserProfile,
+    Project,
+    ProjectGroup,
+    UserProjectAttribute,
+)
+
 import os
 import glob
 from fnmatch import fnmatch
@@ -32,6 +40,7 @@ sys.path.append(c.FUNCTIONS_APP)
 from app.functions.docs_builder import Builder
 from app.functions.git_control import GitController
 from app.functions.email_functions import EmailFunctions
+from app.functions.projects_builder import ProjectBuilder
 
 
 def validation_response(
@@ -96,6 +105,150 @@ def md_files() -> list:
     return choices_list
 
 
+class ProjectSetupInitialForm(forms.Form):
+    """Setup a project"""
+
+    CHOICES_1 = (
+        ("", ""),
+        (
+            "import",
+            "Import from external source",
+        ),
+        (
+            "start_anew",
+            "Start a new project from scratch",
+        ),
+    )
+
+    setup_choice = forms.ChoiceField(
+        choices=CHOICES_1,
+        widget=forms.Select(
+            attrs={
+                "class": "form-select w-auto",
+                "onChange": "change_visibility()",
+            }
+        ),
+    )
+
+    external_repo_url_import = forms.CharField(
+        label="Respository URL",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                "autocomplete": "github-username",
+            }
+        ),
+    )
+
+    external_repo_username_import = forms.CharField(
+        label="Respository username",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                "autocomplete": "github-username",
+            }
+        ),
+    )
+
+    external_repo_password_token_import = forms.CharField(
+        label="Repository token",
+        help_text="You can get your Github <a href='https://github.com/settings/tokens/new' target='_blank'> token</a> here",
+        required=False,
+        widget=forms.PasswordInput(
+            attrs={
+                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                "autocomplete": "github-token",
+            }
+        ),
+    )
+
+
+class ProjectSetupStepTwoForm(forms.Form):
+    """ProjectSetupStepTwoForm
+
+    Fields:
+        project_name_import_start_anew: name of the project
+    """
+
+    def __init__(self, *args, **kwargs) -> None:
+        """Initialise the fields for the second step of project setup"""
+        super(ProjectSetupStepTwoForm, self).__init__(*args, **kwargs)
+        groups_list: list = []
+        choices_list_1: list = []
+        choices_list_2: list = []
+
+        self.fields["project_name"] = forms.CharField(
+            label="Project name",
+            required=True,
+            widget=forms.TextInput(
+                attrs={
+                    "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                    "autocomplete": "github-username",
+                }
+            ),
+        )
+
+        self.fields["description"] = forms.CharField(
+            required=True,
+            widget=forms.Textarea(
+                attrs={
+                    "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                    "rows": 3,
+                    "autocomplete": "description",
+                }
+            ),
+        )
+
+        groups_list = ProjectGroup.objects.values("id", "name")
+
+        for group in groups_list:
+            choices_list_1.append([group["id"], group["name"]])
+
+        CHOICES_1 = tuple(choices_list_1)
+
+        self.fields["groups"] = forms.MultipleChoiceField(
+            label="Group select",
+            help_text="Press CTRL or Command (&#8984;) to select multiple groups",
+            required=False,
+            choices=CHOICES_1,
+            widget=forms.SelectMultiple(
+                attrs={
+                    "class": "form-select w-auto",
+                    # "style": "height: 80px",
+                }
+            ),
+        )
+
+        # TODO #40 - will need to figure out who you can see to add (some people may want to have membership hidden)
+        members_list = User.objects.values("id", "first_name", "last_name")
+
+        for member in members_list:
+            choices_list_2.append(
+                [
+                    member["id"],
+                    f"{ member['first_name']} { member['last_name']}",
+                ]
+            )
+
+        CHOICES_2 = tuple(choices_list_2)
+
+        self.fields["members"] = forms.MultipleChoiceField(
+            label="Add members ",
+            help_text="Press CTRL or Command (&#8984;) to select multiple members",
+            required=False,
+            choices=CHOICES_2,
+            widget=forms.SelectMultiple(
+                attrs={
+                    "class": "form-select w-auto",
+                    # "style": "height: 80px",
+                }
+            ),
+        )
+
+
+# TODO - might be able to remove this form
 class InstallationForm(forms.Form):
     """For managing initial installation parameters
 
@@ -368,20 +521,20 @@ class PlaceholdersForm(forms.Form):
         [Automatically created]
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, project_id: int, *args, **kwargs) -> None:
         """Find placeholders and initialises web app fields
 
         Searches for placeholders in markdown files in doc folder and creates
         fields for each.
         """
         super(PlaceholdersForm, self).__init__(*args, **kwargs)
-        doc_build: Builder
+        project_build: Builder
         placeholders: dict[str, str] = {}
         placeholder: str = ""
         value: str = ""
 
-        doc_build = Builder(settings.MKDOCS_LOCATION)
-        placeholders = doc_build.get_placeholders()
+        project_build = ProjectBuilder(project_id, settings.MKDOCS_LOCATION)
+        placeholders = project_build.get_placeholders()
 
         for placeholder, value in placeholders.items():
             self.fields[placeholder] = forms.CharField(

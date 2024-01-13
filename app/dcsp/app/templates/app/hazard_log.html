@@ -1,19 +1,28 @@
 {% extends "base.html" %}
 
 {% block main %}
-  <div class="col-md-6 mx-auto">
-    <div class="{{FORM_ELEMENTS_MAX_WIDTH}}">
-      <h1>
-        Please log your hazard here
-      </h1>
-    <div class="text-secondary mb-2">
-      Enter details of the hazard here. On pressing submit, these will be added to Github to then
-      be actioned.
+  <div class="row">
+    <div class="col"></div>
+    <div class="col-12 col-md-6 mx-auto">
+      <h2>
+        Log new hazard
+      </h2>
     </div>
+    <div class="col"></div>
+  </div>
+  <div class="row">
 
-    {% include "error_summary.html" %}
+    {% include "project_side_bar.html" %}
+    
+    <div class="col-12 col-md-6">
+      <div class="text-secondary mb-2">
+        Enter details of the hazard here. On pressing submit, these will be added to Github to then
+        be actioned.
+      </div>
 
-    <form action="/log_hazard" method="post">
+      {% include "error_summary.html" %}
+
+      <form action="/log_hazard" method="post">
         {% csrf_token %}
       
         {% for field in form %}
@@ -25,11 +34,14 @@
         </div>
         {% endfor %}
         
-        <button class="nhsuk-button" data-module="nhsuk-button" type="submit" style="float: right;">
+        <button class="btn btn-primary" type="submit" style="float: right;">
           Submit
         </button>
         
       </form>
     </div>
+    <div class="col">
+      <i>Placeholder</i>
+		</div>
   </div>
 {% endblock %}
