@@ -208,23 +208,17 @@ def start_new_project(request: HttpRequest) -> HttpResponse:
                     ]
 
                     if "github.com/" in external_repo_url:
-                        print("A Github repository")
-                        request.session["repository_type"] = "Github"
+                        # print("A Github repository")
+                        request.session["repository_type"] = "github"
                     elif "gitlab.com/" in external_repo_url:
-                        print("A Gitlab repository")
-                        request.session[
-                            "repository_type"
-                        ] = "A Gitlab repository"
+                        # print("A Gitlab repository")
+                        request.session["repository_type"] = "gitlab"
                     elif "gitbucket" in external_repo_url:
-                        print("A GitBucket repository")
-                        request.session[
-                            "repository_type"
-                        ] = "A GitBucket repository"
+                        # print("A GitBucket repository")
+                        request.session["repository_type"] = "gitbucket"
                     else:
-                        print("another type of repository")
-                        request.session[
-                            "repository_type"
-                        ] = "Some other repository type"
+                        # print("another type of repository")
+                        request.session["repository_type"] = "other"
 
                     context = {
                         "setup_choice": snake_to_title(setup_choice),
@@ -355,11 +349,12 @@ def start_new_project(request: HttpRequest) -> HttpResponse:
             if not build_status:
                 messages.error(
                     request,
-                    f"There was an error with the data you supplied: { build_errors }. Please correct these errors.",
+                    f"There was an error with the data you supplied: '{ build_errors }'. Please correct these errors.",
                 )
 
                 context = {
                     "setup_step": setup_step,
+                    "title": "Error with data supplied",
                 }
 
                 return render(
@@ -513,6 +508,7 @@ def build_project(request: HttpRequest, project_id: str) -> HttpResponse:
                 "form": PlaceholdersForm(project_id_int),
                 "project_id": project_id_int,
             }
+            # return render(request, "test.html")
 
             return render(
                 request, "placeholders_show.html", context | std_context()
@@ -530,19 +526,17 @@ def build_project(request: HttpRequest, project_id: str) -> HttpResponse:
 
                 project_builder.save_placeholders(placeholders)
 
-                messages.success(
-                    request,
-                    "Placeholders saved",
-                )
+                mkdocs = MkdocsControl(project_id)
+                mkdocs_output = mkdocs.build()
+                if mkdocs_output == "":
+                    return render(
+                        request, "500.html", std_context(), status=500
+                    )
 
                 context = {
-                    "host_url": request.get_host().split(":")[0],
                     "project_id": project_id_int,
+                    "mkdocs_output": mkdocs_output,
                 }
-                ##### TODO mkdocs build -d /documentation-pages/project_56
-                """mkdocs = MkdocsControl()
-                if not mkdocs.start(wait=True):
-                    return render(request, "500.html")"""
 
                 return render(
                     request, "placeholders_saved.html", context | std_context()
@@ -562,10 +556,61 @@ def build_project(request: HttpRequest, project_id: str) -> HttpResponse:
 
 
 @login_required
+def project_build_asap(request: HttpRequest, project_id: str) -> HttpResponse:
+    """ """
+    context: dict[str, Any] = {}
+    mkdocs_output_html: str = ""
+
+    if not (request.method == "POST" or request.method == "GET"):
+        return render(request, "405.html", std_context(), status=405)
+
+    if not project_id.isdigit():
+        return render(request, "404.html", std_context(), status=404)
+
+    project_id_int = int(project_id)
+
+    projects = user_accessible_projects(request)
+
+    if not any(project["doc_id"] == project_id_int for project in projects):
+        context = {"message": "You do not have access to this project!"}
+        return render(request, "403.html", context | std_context(), status=403)
+
+    if request.method == "GET":
+        context = {
+            "project_id": project_id,
+        }
+
+        return render(
+            request, "project_build_asap.html", context | std_context()
+        )
+    elif request.method == "POST":
+        mkdocs = MkdocsControl(project_id)
+
+        preprocessor_output = mkdocs.preprocessor()
+        if preprocessor_output == "":
+            return render(request, "500.html", std_context(), status=500)
+
+        build_output = mkdocs.build()
+        if build_output == "":
+            return render(request, "500.html", std_context(), status=500)
+
+        context = {
+            "project_id": project_id,
+            "build_output": f"{ preprocessor_output } {build_output}",
+        }
+
+        return render(
+            request, "project_build_asap.html", context | std_context()
+        )
+
+    # Should never really get here, but added for mypy
+    return render(request, "500.html", std_context(), status=500)
+
+
+@login_required
 def project_documents(request: HttpRequest, project_id: str) -> HttpResponse:
     """ """
     project: Project = Project.objects.get(id=project_id)
-    print(project.owner.first_name)
     members = project.member.all()
     context: dict[str, Any] = {
         "project": project,
@@ -592,25 +637,25 @@ def view_docs(
     context: dict[str, Any] = {}
     document_content = ""
     internal_path: str = ""
+    # redirect_path
+
+    # TODO - error if no project_id supplied, it is not an int and/or not an active project
 
     internal_path = os.path.join(
         "/documentation-pages", f"project_{ project_id}", doc_path
     )
 
-    print(internal_path)
-
     # TODO #41 - may have to convert os.path to Path... all over the shop!
-
     if not os.path.isfile(internal_path) and not os.path.isdir(internal_path):
         return render(request, "404.html", context=std_context(), status=404)
-
-    if os.path.isdir(internal_path):
-        internal_path = os.path.join(internal_path, "index.html")
 
     if internal_path.endswith(".html"):
         file = open(internal_path, "r")
         document_content = file.read()
-        context = {"document_content": document_content}
+        context = {
+            "document_content": document_content,
+            "project_id": project_id,
+        }
         return render(request, "documents_serve.html", context | std_context())
     else:
         content_type = "invalid"
@@ -625,181 +670,6 @@ def view_docs(
         response = HttpResponse(content_type=content_type)
         response["X-Accel-Redirect"] = internal_path
         return response
-
-    # Should never really get here, but added for mypy
-    return render(request, "500.html", std_context(), status=500)
-
-
-@login_required
-def build(request: HttpRequest) -> HttpResponse:
-    """Index page, carrying out steps to initialise a static site
-
-    Acting as a single page application, this function undertakes several
-    steps to set up the mkdocs static site. The state of the installation is
-    stored in an .env file as 'setup_step'. There are 4 steps in the
-    installation process (labelled steps None, 1, 2 and 3).
-
-    - None: Initial step for the installation process. No value stored for the
-    step_step in the .env file. During this step the user is asked if they want
-    a 'stand alone' or an 'integrated' installation.
-        - Stand alone: this setup is very the DCSP app is only used for hazard
-          documentation, with no source code integration. Basically the version
-          control is managed by the DCSP app.
-        - Integrated: the DCSP is integrated into an already version controlled
-          source base, for example along side already written source code.
-    - 1: In this step the user is asked to chose a template for the static
-         website.
-    - 2: In this step the user is asked to enter values for placeholders for the
-         static site.
-    - 3: The static site is now built and mkdocs has been started and the site
-         should be visible.
-
-    Args:
-        request (HttpRequest): request from user
-
-    Returns:
-        HttpResponse: for loading the correct webpage
-    """
-    context: dict[str, Any] = {}
-    placeholders: dict[str, str] = {}
-    p: str = ""
-    setup_step: int = 0
-    template_choice: str = ""
-    form: InstallationForm | TemplateSelectForm | PlaceholdersForm
-    env_m: ENVManipulator
-    mkdocs: MkdocsControl
-    doc_build: Builder
-
-    if not (request.method == "POST" or request.method == "GET"):
-        return render(request, "405.html", std_context(), status=405)
-
-    env_m = ENVManipulator(settings.ENV_LOCATION)
-    setup_step = setup_step_get()
-
-    if setup_step == 0:
-        if request.method == "GET":
-            context = {"form": InstallationForm()}
-
-            return render(
-                request, "installation_method.html", context | std_context()
-            )
-
-        elif request.method == "POST":
-            form = InstallationForm(request.POST)
-            if form.is_valid():
-                env_m.add(
-                    EnvKeysPH.GITHUB_USERNAME.value,
-                    form.cleaned_data["github_username_SA"],
-                )
-                env_m.add(
-                    EnvKeysPH.EMAIL.value,
-                    form.cleaned_data["email_SA"],
-                )
-                env_m.add(
-                    EnvKeysPH.GITHUB_ORGANISATION.value,
-                    form.cleaned_data["github_organisation_SA"],
-                )
-                env_m.add(
-                    EnvKeysPH.GITHUB_REPO.value,
-                    form.cleaned_data["github_repo_SA"],
-                )
-                env_m.add(
-                    EnvKeysPH.GITHUB_TOKEN.value,
-                    form.cleaned_data["github_token_SA"],
-                )
-                env_m.add("setup_step", "1")
-
-                messages.success(request, "Initialisation selections stored")
-
-                context = {"form": TemplateSelectForm()}
-
-                return render(
-                    request, "template_select.html", context | std_context()
-                )
-            else:
-                context = {"form": form}
-
-                return render(
-                    request,
-                    "installation_method.html",
-                    context | std_context(),
-                )
-
-    elif setup_step == 1:
-        if request.method == "GET":
-            context = {"form": TemplateSelectForm()}
-
-            return render(
-                request, "template_select.html", context | std_context()
-            )
-
-        elif request.method == "POST":
-            form = TemplateSelectForm(request.POST)  # type: ignore[assignment]
-            if form.is_valid():
-                env_m.add("setup_step", "2")
-                template_choice = form.cleaned_data["template_choice"]
-
-                doc_build = Builder(settings.MKDOCS_LOCATION)
-                doc_build.copy_templates(template_choice)
-
-                messages.success(
-                    request,
-                    f"{ template_choice } template initiated",
-                )
-
-                context = {"form": PlaceholdersForm()}
-
-                return render(
-                    request, "placeholders_show.html", context | std_context()
-                )
-            else:
-                context = {"form": form}
-
-                return render(
-                    request, "template_select.html", context | std_context()
-                )
-
-    elif setup_step >= 2:
-        if request.method == "GET":
-            context = {"form": PlaceholdersForm()}
-
-            return render(
-                request, "placeholders_show.html", context | std_context()
-            )
-
-        elif request.method == "POST":
-            form = PlaceholdersForm(data=request.POST)  # type: ignore[assignment]
-            if form.is_valid():
-                env_m.add("setup_step", "3")
-
-                doc_build = Builder(settings.MKDOCS_LOCATION)
-                placeholders = doc_build.get_placeholders()
-
-                for p in placeholders:
-                    placeholders[p] = form.cleaned_data[p]
-
-                doc_build.save_placeholders(placeholders)
-
-                messages.success(
-                    request,
-                    "Placeholders saved",
-                )
-
-                context["host_url"] = request.get_host().split(":")[0]
-
-                mkdocs = MkdocsControl()
-                if not mkdocs.start(wait=True):
-                    return render(request, "500.html")
-
-                return render(
-                    request, "placeholders_saved.html", context | std_context()
-                )
-            else:
-                context = {"form": form}
-
-                return render(
-                    request, "placeholders_show.html", context | std_context()
-                )
 
     # Should never really get here, but added for mypy
     return render(request, "500.html", std_context(), status=500)
@@ -1311,8 +1181,8 @@ def std_context() -> dict[str, Any]:
     mkdocs: MkdocsControl
     setup_step: int = 0
 
-    mkdocs = MkdocsControl()
-    mkdoc_running = mkdocs.is_process_running()
+    # mkdocs = MkdocsControl(1)
+    # mkdoc_running = mkdocs.is_process_running()
 
     setup_step = setup_step_get()
 
@@ -1321,7 +1191,7 @@ def std_context() -> dict[str, Any]:
 
     std_context_dict = {
         "START_AFRESH": settings.START_AFRESH,
-        "mkdoc_running": mkdoc_running,
+        # "mkdoc_running": mkdoc_running,
         "docs_available": docs_available,
         "FORM_ELEMENTS_MAX_WIDTH": c.FORM_ELEMENTS_MAX_WIDTH,
     }

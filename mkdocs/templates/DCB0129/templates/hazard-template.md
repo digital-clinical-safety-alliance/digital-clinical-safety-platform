@@ -1,10 +1,3 @@
----
-title: Hazard
----
-This Issue Template is based on the practices described in NHS Digital DCB0129/DCB0160 Clinical Safety Officer training.
-
-The file name of this markdown file will be the hazard number itself.
-
 ### Name
 A short name
 

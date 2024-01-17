@@ -52,13 +52,13 @@ class Project(models.Model):
 
     external_repo_url = models.CharField(max_length=256, blank=True, null=True)
 
-    external_repo_username = models.CharField(
+    """external_repo_username = models.CharField(
         max_length=256, blank=True, null=True
     )
 
     external_repo_password_token = models.CharField(
         max_length=256, blank=True, null=True
-    )
+    )"""
 
     def __str__(self):
         return f"{ self.id } - { self.owner } - { self.name }"

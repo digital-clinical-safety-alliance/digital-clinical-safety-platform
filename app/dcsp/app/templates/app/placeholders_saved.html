@@ -1,26 +1,50 @@
 {% extends "base.html" %}
 
 {% block main %}
-<div class="col-md-6 mx-auto">
-  <div class="{{FORM_ELEMENTS_MAX_WIDTH}}">
-    <legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l" style="width:100%">
-        <h1 class="nhsuk-fieldset__heading" style="width:100%">
-          mkDocs is now ready to use
-        </h1>
-    </legend>
-
-    <p>You have now completed the set up for your clinical safety documentation. 
-      Please clinic on the button below to view these pages</p>
-      
-    <form action="/view_docs/{{ project_id }}/index.html" method="post">
-      {% csrf_token %}
-
-      <div align="right">
-        <button class="btn btn-primary" type="submit" style="float: right;">
-            OPEN MKDOCS
-        </button>
-      </div>
-    </form>
+  <div class="row">
+    <div class="col"></div>
+    <div class="col-12 col-md-6 mx-auto">
+      <h2>Documents published</h2>
+    </div>
+    <div class="col"></div>
   </div>
-</div>
+  <div class="row">
+  
+  {% include "project_side_bar.html" %}
+
+    <div class="col-12 col-md-6">
+
+      {% include "message_error.html" %}
+      
+      {% if mkdocs_output %}
+        <div class="mb-1">
+          <div class="p-2 mb-2 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-1">
+            <strong> MkDocs output </strong> <br>
+            {{ mkdocs_output }}
+          </div>
+        </div>
+      {% endif %}
+
+      <p>You have now completed the set up for your clinical safety documentation. 
+        Please clinic on the button below to view these pages</p>
+        
+      <form action="/view_docs/{{ project_id }}/index.html" method="post">
+        {% csrf_token %}
+
+        <div align="right">
+          <button class="btn btn-primary" type="submit" style="float: right;">
+              OPEN MKDOCS
+          </button>
+        </div>
+      </form>
+    </div>
+    <div class="col">
+			<h5>Latest activity:</h5>
+			<ul>
+				<li>Activity 1</li>
+				<li>Activity 2</li>
+				<li>Activity 3</li>
+			</ul>
+		</div>
+  </div>
 {% endblock %}

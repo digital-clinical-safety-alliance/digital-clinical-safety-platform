@@ -30,6 +30,7 @@ from requests import Response, exceptions
 import os
 import subprocess  # nosec B404
 from typing import Any
+from pathlib import Path
 
 sys.path.append("/dcsp/app/dcsp/")  # TODO temp
 import app.functions.constants as c
@@ -38,16 +39,19 @@ from app.functions.email_functions import EmailFunctions
 
 
 class GitHubController:
-    def __init__(self):
+    def __init__(self, username: str, password_token: str):
         """ """
-        env_location: str = c.ENV_PATH_PLACEHOLDERS
-        dot_values = dotenv_values(env_location)
-        self.github_username = str(dot_values.get("GITHUB_USERNAME") or "")
-        self.github_token = str(dot_values.get("GITHUB_TOKEN") or "")
+        if username == "":
+            raise ValueError("'username' cannot be empty")
+        if password_token == "":
+            raise ValueError("'password_token' cannot be empty")
+
+        self.username: str = username
+        self.password_token: str = password_token
 
     def exists(self, repo_url: str) -> bool:
         """ """
-        g = Github(self.github_username, self.github_token)
+        g = Github(self.username, self.password_token)
 
         # Find the index of the second-to-last forward slash
         index_of_second_last_slash = repo_url.rfind(

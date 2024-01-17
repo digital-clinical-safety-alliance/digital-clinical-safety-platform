@@ -1,3 +1,6 @@
+---
+title: Hazard types
+---
 # Hazard types
 
 ## Patient demographics related

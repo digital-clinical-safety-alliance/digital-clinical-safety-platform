@@ -8,6 +8,7 @@ MAIN_FOLDER: str = "/dcsp/"
 
 TEMPLATES_FOLDER: str = "/dcsp/app/dcsp/app/templates/"
 
+
 TESTS_LOCATION: str = f"{ MAIN_FOLDER }app/dcsp/app/tests/"
 
 ILLEGAL_DIR_CHARS: str = '<>?:"\\|?*,'
@@ -18,7 +19,8 @@ FUNCTIONS_APP: str = f"{ MAIN_FOLDER }app/dcsp/app/functions/"
 # Project path related
 PROJECTS_FOLDER: str = "/projects/"
 # START_AFRESH_PARENT_FOLDER: str = "src/"
-CLINICAL_SAFETY_FOLDER = "CS-documents/"
+CLINICAL_SAFETY_FOLDER: str = "CS-documents/"
+HAZARDS_SUMMARY_FILE: str = "hazards-summary.md"
 
 # For mkdocs_control
 TIME_INTERVAL: float = 0.1
@@ -144,8 +146,9 @@ TESTING_ENV_PATH_GIT: str = (
 
 FORM_ELEMENTS_MAX_WIDTH: str = "max-w-800"
 
-
+# TODO might have to remove 'map'
 MIME_TYPES = {
+    "map": "application/json",
     "html": "text/html",
     "htm": "text/html",
     "shtml": "text/html",

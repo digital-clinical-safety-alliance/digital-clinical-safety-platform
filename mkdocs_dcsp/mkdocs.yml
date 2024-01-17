@@ -1,7 +1,6 @@
 site_name: Digital Clinical Saefty Platform
 site_description: Hazard logging system
 site_author: Digital Clinical Safety Alliance
-site_url: http://0.0.0.0:9000
 
 watch:
   - ../app/dcsp/app
@@ -53,7 +52,6 @@ theme:
 extra:
   generator: false
 
-dev_addr: 0.0.0.0:9000
 
 # Copyright information which is shown in the footer
 copyright: Clinicians-who-code

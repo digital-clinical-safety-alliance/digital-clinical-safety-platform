@@ -1,22 +1,22 @@
 site_name: Digital Clinical Safety Platform
-site_description: Hazard logging system
-site_author: Mark Bailey
-site_url: http://0.0.0.0:9000
+site_description: Clinical hazard mitigation and reporting system
+
+# TODO #42 - Essential to work with "X-Accel-Redirect" and "view_docs"
+use_directory_urls: false
 
 plugins:
   - macros
+  - include-markdown:
+      dedent: true
   - mkdocstrings:
-      watch:
-      - ../app/dcsp/app
       handlers:
         python:
           paths: [../app/dcsp/app, /dcsp/app/dcsp/app]
 
 theme:
   name: material
-  logo: assets/favicon.ico
-  favicon: assets/favicon.ico
-  custom_dir: overrides
+  logo: static/assets/favicon/favicon.ico
+  favicon: static/assets/favicon/favicon.ico
 
   features:
     - navigation.instant
@@ -48,8 +48,6 @@ theme:
 
 extra:
   generator: false
-
-dev_addr: 0.0.0.0:9000
 
 
 # Copyright information which is shown in the footer
@@ -136,10 +134,15 @@ markdown_extensions:
   - pymdownx.superfences
   - toc:
       permalink: true
+  # TODO might remove this
+  - pymdownx.extra
 
-# set extra CSS file
-#extra_css:
-#  - _assets/_stylesheets/extra.css
+
+extra_css:
+  - static/css/dcsp_mkdocs.css
+
+extra_javascript:
+  - static/js/dcsp_mkdocs.js
 
 #extra:
   #project_slug: {{ cookiecutter.__project_slug }}
@@ -152,5 +155,3 @@ markdown_extensions:
   #     link: https://github.com/exampleorgsgithub
 
 INHERIT: ./docs/placeholders.yml
-
-#INHERIT: ./docs/template-configuration.yml

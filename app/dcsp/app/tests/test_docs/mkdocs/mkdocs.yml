@@ -1,7 +1,5 @@
 site_name: Clinical Safety Hazard Documentation 
 site_description: Hazard logging system
-site_author: Mark Bailey
-site_url: http://0.0.0.0:9000
 
 plugins:
   - macros
@@ -43,7 +41,6 @@ theme:
 extra:
   generator: false
 
-dev_addr: 0.0.0.0:9000
 
 
 # Copyright information which is shown in the footer

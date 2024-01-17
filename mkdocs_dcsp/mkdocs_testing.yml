@@ -1,9 +1,6 @@
 site_name: Digital Clinical Safety Platform
 site_description: Hazard logging system
 site_author: Mark Bailey
-site_url: http://0.0.0.0:9000
-
-dev_addr: 0.0.0.0:9000
 
 plugins:
   - mkdocstrings:

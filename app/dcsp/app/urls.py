@@ -13,7 +13,11 @@ urlpatterns = [
         views.build_project,
         name="build_project",
     ),
-    path("build", views.build, name="build"),
+    path(
+        "project_build_asap/<project_id>",
+        views.project_build_asap,
+        name="project_build_asap",
+    ),
     path(
         "start_afresh",
         views.start_afresh,

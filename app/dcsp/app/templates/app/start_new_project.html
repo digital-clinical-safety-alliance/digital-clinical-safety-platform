@@ -22,7 +22,11 @@
       {% endif %}
       Step: {{ setup_step }} of 4
     </div>
+
     <div class="col-12 col-md-6">
+
+      {% include "message_error.html" %}
+
       {% if setup_step == 1 %}
         <div class="accordion max-w-600 mb-3" id="accordionHowWorks">
           <div class="accordion-item">

@@ -50,7 +50,7 @@ Organisational management of Healthcare IT related risks is as per the existing 
 #### Clinical Safety Officer
 
 Clinical Safety Officer Name: {{ clinical_safety_officer_name }}
-Clinical Safety Officer Contact: [{{ clinical_safety_officer_contact }}]({{ clinical_safety_officer_contact }})
+Clinical Safety Officer Contact: TODO CLINICAL SAFETY OFFICER CONTACT
 
 #### Chief Executive Officer
 
@@ -94,7 +94,7 @@ The {{ clinical_safety_team_name }} will issue a Clinical Safety Case Report (CS
 
 ### Hazard Identification
 
-The {{ clinical_safety_team_name }} will conduct hazard identification workshops to identify potential hazards associated with the deployment and use of our Healthcare IT system. The [Clinical Safety Officer](#clinical-safety-officer) will be responsible for facilitating such workshops and ensuring attendance from the {{ clinical_safety_team_name }}. Typically, representatives from the following domains will be required:
+The {{ clinical_safety_team_name }} will conduct hazard identification workshops to identify potential hazards associated with the deployment and use of our Healthcare IT system. The TODO LINK TO CLINICAL SAFETY OFFICER CREDITS PAGE will be responsible for facilitating such workshops and ensuring attendance from the {{ clinical_safety_team_name }}. Typically, representatives from the following domains will be required:
 
 - Technical testing team
 
@@ -142,7 +142,7 @@ Clinical Risk Management activities within the Organisation and theHealthcare IT
 
 ### Security Incident Management Process
 
-Security issues may be responsibly disclosed to [{{ security_responsible_disclosure_email }}]({{ security_responsible_disclosure_email }}) for immediate action. We recognise and respect the essential work of security researchers and will treat your contribution with gratitude and appropriate action. We do not engage in vexatious Computer Misuse Act litigation.
+Security issues may be responsibly disclosed to TODO EMAIL ADDRESS FOR CLINICAL SAFETY OFFICE / TEAM for immediate action. We recognise and respect the essential work of security researchers and will treat your contribution with gratitude and appropriate action. We do not engage in vexatious Computer Misuse Act litigation.
 
 Internally we treat security issues with the highest priority. Once the 'acute phase' of any security threat is handled, we will then follow the Safety Incident Management Process, usually converting to a public GitHub Issue.
 

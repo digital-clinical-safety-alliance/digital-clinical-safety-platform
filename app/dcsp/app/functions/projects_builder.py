@@ -48,26 +48,34 @@ class ProjectBuilder:
     def new_build(self, request: HttpRequest) -> Tuple[bool, str]:
         """ """
         inputs = request.session["inputs"]
-        # new_project
+        new_project: Project
         # group_id
         # project_directory
         # project_parent_folder
         # project_CS_documents
         ghc: GitHubController
+        new_user_project_attribute: UserProjectAttribute
 
         if (
             inputs["setup_choice"] != "start_anew"
             and inputs["setup_choice"] != "import"
         ):
-            raise ValueError("'setup_choice' is incorrectly set")
+            return False, "'setup_choice' is incorrectly set"
 
-        ghc = GitHubController()
-        if "external_repo_url_import" in inputs:
-            if not ghc.exists(inputs["external_repo_url_import"]):
-                return (
-                    False,
-                    f"The external repository '{ inputs['external_repo_url_import'] }' does not exist or is not accessible with your credentials",
-                )
+        if request.session["repository_type"] == "github":
+            ghc = GitHubController(
+                request.session["external_repo_username_import"],
+                request.session["external_repo_password_token_import"],
+            )
+            if "external_repo_url_import" in inputs:
+                if not ghc.exists(inputs["external_repo_url_import"]):
+                    return (
+                        False,
+                        f"The external repository '{ inputs['external_repo_url_import'] }' does not exist or is not accessible with your credentials",
+                    )
+        else:
+            # TODO #44
+            return False, "Code for external repositories is not yet written."
 
         # TODO - need to check user has 'admin' (I think) rights for git push later
 
@@ -79,16 +87,28 @@ class ProjectBuilder:
 
         if inputs["setup_choice"] == "import":
             new_project.external_repo_url = inputs["external_repo_url_import"]
-            new_project.external_repo_username = inputs[
+            """new_project.external_repo_username = inputs[
                 "external_repo_username_import"
             ]
             new_project.external_repo_password_token = inputs[
                 "external_repo_password_token_import"
-            ]
+            ]"""
 
         new_project.save()
         new_project.member.set(User.objects.filter(id__in=inputs["members"]))
         new_project.save()
+
+        new_user_project_attribute = UserProjectAttribute()
+        new_user_project_attribute.user = User.objects.get(id=request.user.id)
+        new_user_project_attribute.project = new_project.id
+
+        if inputs["setup_choice"] == "import":
+            new_user_project_attribute.repo_username = inputs[
+                "external_repo_username_import"
+            ]
+            new_user_project_attribute.repo_password_token = inputs[
+                "external_repo_password_token_import"
+            ]
 
         for group_id in inputs["groups"]:
             group = ProjectGroup.objects.get(id=int(group_id))
@@ -101,7 +121,7 @@ class ProjectBuilder:
         )
 
         if os.path.isdir(project_directory):
-            raise FileExistsError(f"'{ project_directory }' already exists")
+            return False, f"'{ project_directory }' already exists"
 
         Path(project_directory).mkdir(parents=True, exist_ok=True)
 

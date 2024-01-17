@@ -28,12 +28,16 @@
   </h1>
 
   <div class="text-secondary mb-2">
-    Please note: you cannot add placeholders in the meta field (eg between the '---' markers)
+    Please note: you cannot add placeholders in the meta field (eg between the '---' markers).
+    Also, links to other markdown files in the same clinical safety document should point to
+    the file name, not directory.
   </div>
 
   <div class="text-secondary mb-2">
     Add a new page <a href="/md_new">here</a>
   </div>
+
+  {% include "message_error.html" %}
 
   {% include "error_summary.html" %}
 

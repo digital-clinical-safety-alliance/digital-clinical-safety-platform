@@ -1,5 +1,6 @@
 ---
 title: Incident
+number: number
 ---
 
 # Incident name
