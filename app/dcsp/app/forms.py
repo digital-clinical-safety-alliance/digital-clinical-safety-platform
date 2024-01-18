@@ -68,11 +68,14 @@ def validation_response(
     return
 
 
-def md_files() -> list:
+def md_files(project_id: int) -> list:
     """Finds markdown files
 
     Looks for markdown files in MKDOCS_PATH. Resturns a list of paths relative
     to MKDOCS_PATH
+
+    Args:
+        project_id (int): project database id number
 
     Returns:
         list: list of paths of markdown files relative to MKDOCS_PATH
@@ -80,7 +83,7 @@ def md_files() -> list:
     Raises:
         FileNotFoundError: if MKDOCS_PATH is not a valid directory
     """
-    MKDOCS_PATH: str = settings.MKDOCS_DOCS_LOCATION
+    docs_location = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
     root: str = ""
     md_files: list = []
     file: str = ""
@@ -88,16 +91,16 @@ def md_files() -> list:
     md_files_shortened: list[str] = []
     choices_list: list = []
 
-    if not os.path.isdir(MKDOCS_PATH):
+    if not os.path.isdir(docs_location):
         raise FileNotFoundError(
-            f"{ MKDOCS_PATH } if not a valid folder location"
+            f"{ docs_location } if not a valid folder location"
         )
 
-    for root, _, __ in os.walk(MKDOCS_PATH):
+    for root, _, __ in os.walk(docs_location):
         md_files.extend(glob.glob(os.path.join(root, "*.md")))
 
     for file in md_files:
-        md_files_shortened.append(file.replace(MKDOCS_PATH, ""))
+        md_files_shortened.append(file.replace(docs_location, ""))
 
     for file_shortened in md_files_shortened:
         choices_list.append([file_shortened, file_shortened])
@@ -571,14 +574,14 @@ class MDFileSelectForm(forms.Form):
     within their respective subfolders.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, project_id: int, *args, **kwargs) -> None:
         """Initialisation of the selection field
 
         Searches the docs folder and searches for markdown files, noting the
         any subfolders. These are then provided as a selection field.
         """
         super(MDFileSelectForm, self).__init__(*args, **kwargs)
-        CHOICES = tuple(md_files())
+        CHOICES = tuple(md_files(project_id))
 
         self.fields["mark_down_file"] = forms.ChoiceField(
             choices=CHOICES,
@@ -605,29 +608,37 @@ class MDEditForm(forms.Form):
                  curley brackets (eg {{ placeholder }})
     """
 
-    document_name = forms.CharField(
-        label="",
-        widget=forms.HiddenInput(attrs={}),
-    )
+    def __init__(self, project_id: int, *args, **kwargs) -> None:
+        """Initialisation of the selection field
 
-    md_text = forms.CharField(
-        label="Markdown view",
-        required=False,
-        widget=forms.Textarea(
-            attrs={
-                "style": "width:100%; overflow:hidden;",
-                "class": "form-control",
-                "onkeyup": "update_web_view()",
-            }
-        ),
-    )
+        Searches the docs folder and searches for markdown files, noting the
+        any subfolders. These are then provided as a selection field.
+        """
+        super(MDEditForm, self).__init__(*args, **kwargs)
+        self.project_id = project_id
+        self.fields["document_name"] = forms.CharField(
+            label="",
+            widget=forms.HiddenInput(attrs={}),
+        )
+
+        self.fields["md_text"] = forms.CharField(
+            label="Markdown view",
+            required=False,
+            widget=forms.Textarea(
+                attrs={
+                    "style": "width:100%; overflow:hidden;",
+                    "class": "form-control",
+                    "onkeyup": "update_web_view()",
+                }
+            ),
+        )
 
     def clean(self) -> dict:
         """ """
         cleaned_data: Any = self.cleaned_data
         document_name: str = cleaned_data["document_name"]
         md_text: str = cleaned_data["md_text"]
-        md_files_list: list = md_files()
+        md_files_list: list = md_files(self.project_id)
         doc_build: Builder
         linter_results: dict[str, str] = {}
 
@@ -638,16 +649,16 @@ class MDEditForm(forms.Form):
             "Internal error with document_name (hidden attribute)",
         )"""
 
-        # Not, mkdocs directory is not provided as an argument. But this should
+        """# Not, mkdocs directory is not provided as an argument. But this should
         # Be ok just for linting.
         doc_build = Builder()
         linter_results = doc_build.linter_text(md_text)
-        results_readable: str = ""
+        results_readable: str = """
 
         """ if linter_results["overal"] != "pass":
             self.add_error("md_text", "Error with syntax in markdown file")"""
 
-        for key, value in linter_results.items():
+        """for key, value in linter_results.items():
             if value == "pass":
                 results_readable += f"{ key }: {value }</br>"
             else:
@@ -658,7 +669,7 @@ class MDEditForm(forms.Form):
             "md_text",
             linter_results["overal"] == "pass",
             f"There is invalid syntax in the markdown file, please correct:</br> { results_readable }",
-        )
+        )"""
 
         return cleaned_data
 

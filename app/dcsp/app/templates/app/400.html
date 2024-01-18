@@ -1,13 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block main %}
+<h2>400 - Bad request by user!</h2>
 
-{% block main %}
-<h2>
-    400 - Bad request by user!
-</h2>
-
-{% if message %}
-    <p class="fw-bold"> 
-        {{ message }}
-    </p>
-{% endif %}
-{% endblock %}
+{% include "message_error.html" %} {% endblock %}

@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     url = "https://github.com/digital-clinical-safety-alliance/digital-clinical-safety-platform"
 
-    print(gh.exists(url))
+    # print(gh.exists(url))
 
 
 class GitController:

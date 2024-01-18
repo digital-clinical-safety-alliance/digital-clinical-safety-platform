@@ -1,66 +1,83 @@
-{% extends "base.html" %}
-
-{% block main %}
-  <div class="row">
+{% extends "base.html" %} {% block main %}
+<div class="row">
     <div class="col"></div>
     <div class="col-12 col-md-6 mx-auto">
-      <h2>Build documents</h2>
+        <h2>Build documents</h2>
     </div>
     <div class="col"></div>
-  </div>
-  <div class="row">
-  
-  {% include "project_side_bar.html" %}
+</div>
+
+<div class="row">
+    {% include "project_side_bar.html" %}
 
     <div class="col-12 col-md-6">
+        {% include "message_error.html" %}
 
-      {% include "message_error.html" %}
-      
-      <p>
-        Use this page to build the safety documents afresh (useful if you have changed code outside of the 
-        DCSP application).
-      </p>
-      
-      {% if build_output %}
+        <p>
+            Use this page to build the safety documents afresh (useful if you
+            have changed code outside of the DCSP application).
+        </p>
+
+        {% if build_output %}
         <div class="row">
-          <form id="id_form" action="/project_build_asap/{{ project_id }}" method="post">
-            {% csrf_token %}
+            <form
+                id="id_form"
+                action="/project_build_asap/{{ project_id }}"
+                method="post"
+            >
+                {% csrf_token %}
 
-            <div align="right">
-              <button class="btn btn-primary" type="submit" style="float: right;" id="id_button" onclick="submitForm()">
-                  BUILD
-              </button>
-            </div>
-          </form>
+                <div align="right">
+                    <button
+                        class="btn btn-primary"
+                        type="submit"
+                        style="float: right"
+                        id="id_button"
+                        onclick="submitForm()"
+                    >
+                        BUILD
+                    </button>
+                </div>
+            </form>
         </div>
 
         <div class="mb-1">
-          <h4> 
-            Build output
-          </h4>
-          <div class="p-2 mb-2 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-1">
-            {{ build_output | safe }}
-          </div>
+            <h4>Build output</h4>
+            <div
+                class="p-2 mb-2 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-1"
+            >
+                {{ build_output | safe }}
+            </div>
         </div>
-      {% endif %}
+        {% endif %}
 
-      <form id="id_form" action="/project_build_asap/{{ project_id }}" method="post">
-        {% csrf_token %}
+        <form
+            id="id_form"
+            action="/project_build_asap/{{ project_id }}"
+            method="post"
+        >
+            {% csrf_token %}
 
-        <div align="right">
-          <button class="btn btn-primary" type="submit" style="float: right;" id="id_button" onclick="submitForm()">
-              BUILD
-          </button>
-        </div>
-      </form>
+            <div align="right">
+                <button
+                    class="btn btn-primary"
+                    type="submit"
+                    style="float: right"
+                    id="id_button"
+                    onclick="submitForm()"
+                >
+                    BUILD
+                </button>
+            </div>
+        </form>
     </div>
     <div class="col">
-			<h5>Latest activity:</h5>
-			<ul>
-				<li>Activity 1</li>
-				<li>Activity 2</li>
-				<li>Activity 3</li>
-			</ul>
-		</div>
-  </div>
+        <h5>Latest activity:</h5>
+        <ul>
+            <li>Activity 1</li>
+            <li>Activity 2</li>
+            <li>Activity 3</li>
+        </ul>
+    </div>
+</div>
 {% endblock %}

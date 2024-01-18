@@ -1,15 +1,29 @@
-<div class="col-md-6 mx-auto">
-    <div class="{{FORM_ELEMENTS_MAX_WIDTH}}">
-      {% if messages %}
-        <div class="p-3 mb-3 text-bg-warning rounded-3 {{ FORM_ELEMENTS_MAX_WIDTH }}">
-          <ul style="max-width: 100%">
-            {% for message in messages %}
-              <div style="width:100%">
-                <strong><li>{{ message }}</li></strong>
-              </div>
-            {% endfor %}
-          </ul>
-        </div>
-      {% endif %}
-    </div>
-</div>
+{% load custom_filters %}
+
+{% if messages|has_tag:'success' %}
+  <div class="p-3 mb-3 text-bg-warning rounded-3 {{FORM_ELEMENTS_MAX_WIDTH}}">
+    <ul style="max-width: 100%">
+      {% for message in messages %}
+        {% if message.tags == 'success' %}
+          <div style="width:100%">
+            <strong><li>{{ message }}</li></strong>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+{% if messages|has_tag:'error' %}
+  <div class="p-2 mb-3 bg-danger rounded-3 {{FORM_ELEMENTS_MAX_WIDTH}}">
+    <ul style="max-width: 100%">
+      {% for message in messages %}
+        {% if message.tags == 'error' %}
+          <div class="text-light fw-bold" style="width:100%" >
+            {{ message }}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}

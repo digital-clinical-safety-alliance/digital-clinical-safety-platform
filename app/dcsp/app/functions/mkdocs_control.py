@@ -88,10 +88,11 @@ class MkdocsControl:
             )
 
         if not Path(hazards_hazards_dir).is_dir():
+            Path(hazards_hazards_dir).mkdir(parents=True, exist_ok=True)
             return (
-                "<b>Failed preprocessor</b>"
+                "<b>Preprocessor passed with INFO</b>"
                 "<br><hr>"
-                "'{ hazards_hazards_dir }' directory does not exist"
+                "INFO - '{ hazards_hazards_dir }' directory did not exist, now created"
                 "<br><hr>"
             )
 
@@ -102,9 +103,10 @@ class MkdocsControl:
 
         if not len(files_to_check):
             return (
-                "<b>Failed preprocessor</b>"
+                "<b>Preprocessor passed with INFO</b>"
                 "<br><hr>"
-                f"No hazards found in '{ hazards_hazards_dir }' folder"
+                f"INFO - No hazards found in '{ hazards_hazards_dir }' folder. \
+                Hazards summary page could not be created"
                 "<br><hr>"
             )
 

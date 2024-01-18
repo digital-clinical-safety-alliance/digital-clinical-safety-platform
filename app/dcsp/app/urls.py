@@ -9,9 +9,9 @@ from app import views
 urlpatterns = [
     path("", views.index, name="index"),
     path(
-        "build_project/<project_id>",
-        views.build_project,
-        name="build_project",
+        "setup_documents/<project_id>",
+        views.setup_documents,
+        name="setup_documents",
     ),
     path(
         "project_build_asap/<project_id>",
@@ -23,8 +23,8 @@ urlpatterns = [
         views.start_afresh,
         name="start_afresh",
     ),
-    path("md_edit", views.md_edit, name="md_edit"),
-    path("md_saved", views.md_saved, name="md_saved"),
+    path("md_edit/<project_id>", views.md_edit, name="md_edit"),
+    path("md_saved/<project_id>", views.md_saved, name="md_saved"),
     path("md_new", views.md_new, name="md_new"),
     path("hazard_log/<project_id>", views.hazard_log, name="hazard_log"),
     path(

@@ -20,3 +20,42 @@ function submitForm() {
       form.submit();
     }, 0);
 }
+
+
+function change_visibility() {
+  var allElements = document.querySelectorAll('[id]');
+  var installation_type = document.getElementById("id_setup_choice").value;
+  var choice1 = "import"
+  var choice2 = "start_anew"
+
+  for (var i = 0; i < allElements.length; i++) {
+      var element = allElements[i];
+      
+      if (element.id.includes(choice1) || element.id.includes(choice2)) {
+          element.style.display = "none";
+          element.required = false;
+      }
+  }
+
+  if (installation_type === choice1) {
+      for (var i = 0; i < allElements.length; i++) {
+          var element = allElements[i];
+          
+          if (element.id.includes(choice1)) {
+              element.style.display = "block";
+              element.required = true;
+          }
+      }
+  } 
+  else if (installation_type === choice2) {
+      for (var i = 0; i < allElements.length; i++) {
+          var element = allElements[i];
+          
+          if (element.id.includes(choice2)) {
+              element.style.display = "block";
+              element.required = true;
+          }
+      }
+  } 
+};
+

@@ -3,9 +3,9 @@
 {% block main %}
   <div class="row">
     <div class="col"></div>
-    {% if setup_step == 4 %}
+    {% if title %}
       <div class="col-12 col-md-6 mx-auto">
-        <h2>Complete</h2>
+        <h2>{{ title }}</h2>
       </div>
     {% else %}
       <div class="col-12 col-md-6 mx-auto">
@@ -58,50 +58,11 @@
         </div>
       {% endif %}
 
-      <script>
-        function change_visibility() {
-          var allElements = document.querySelectorAll('[id]');
-          var installation_type = document.getElementById("id_setup_choice").value;
-          var choice1 = "import"
-          var choice2 = "start_anew"
-
-          for (var i = 0; i < allElements.length; i++) {
-              var element = allElements[i];
-              
-              if (element.id.includes(choice1) || element.id.includes(choice2)) {
-                  element.style.display = "none";
-                  element.required = false;
-              }
-          }
-
-          if (installation_type === choice1) {
-              for (var i = 0; i < allElements.length; i++) {
-                  var element = allElements[i];
-                  
-                  if (element.id.includes(choice1)) {
-                      element.style.display = "block";
-                      element.required = true;
-                  }
-              }
-          } 
-          else if (installation_type === choice2) {
-              for (var i = 0; i < allElements.length; i++) {
-                  var element = allElements[i];
-                  
-                  if (element.id.includes(choice2)) {
-                      element.style.display = "block";
-                      element.required = true;
-                  }
-              }
-          } 
-        };
-      </script>
-
       {% if inputs_GUI %}
         <h4>You have selected</h4>
         <div class="p-3 mb-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3 {{ FORM_ELEMENTS_MAX_WIDTH }}">
           {% for key, value in inputs_GUI.items %}
-            <p><strong>{{ key }}</strong>: {{ value }}</p>
+            <p><strong>{{ key }}</strong>: {{ value | safe }}</p>
           {% endfor %}
         </div>
         
@@ -119,10 +80,10 @@
           </h4>
         {% endif %}
         
-        <form action="/start_new_project" method="post">
+        <form id="id_form" action="/start_new_project" method="post">
           {% csrf_token %}
           <div align="right">
-            <button class="btn btn-primary ml-auto" type="submit">
+            <button id="id_button" onclick="submitForm()" class="btn btn-primary ml-auto" type="submit">
               Yes
             </button>
             <a class="btn btn-primary ml-auto" href="/start_new_project">
@@ -134,9 +95,14 @@
 
       {% include "error_summary.html" %}
 
+      {% if restart_button %}
+        <a class="btn btn-primary ml-auto" href="/start_new_project">
+          Restart
+        </a>
+      {% endif %}
 
       {% if form %}
-        <form action="/start_new_project" method="post">
+        <form id="id_form" action="/start_new_project" method="post">
           {% csrf_token %}
 
           {% for field in form %}
@@ -161,7 +127,7 @@
           {% endfor %}
 
           <div align="right">
-            <button class="btn btn-primary ml-auto" type="submit">
+            <button id="id_button" onclick="submitForm()" class="btn btn-primary ml-auto" type="submit">
               Submit
             </button>
           </div>

@@ -56,16 +56,18 @@ class ProjectBuilder:
         ghc: GitHubController
         new_user_project_attribute: UserProjectAttribute
 
+        print(inputs)
+
         if (
             inputs["setup_choice"] != "start_anew"
             and inputs["setup_choice"] != "import"
         ):
             return False, "'setup_choice' is incorrectly set"
 
-        if request.session["repository_type"] == "github":
+        if inputs["repository_type"] == "github":
             ghc = GitHubController(
-                request.session["external_repo_username_import"],
-                request.session["external_repo_password_token_import"],
+                inputs["external_repo_username_import"],
+                inputs["external_repo_password_token_import"],
             )
             if "external_repo_url_import" in inputs:
                 if not ghc.exists(inputs["external_repo_url_import"]):
@@ -100,7 +102,7 @@ class ProjectBuilder:
 
         new_user_project_attribute = UserProjectAttribute()
         new_user_project_attribute.user = User.objects.get(id=request.user.id)
-        new_user_project_attribute.project = new_project.id
+        new_user_project_attribute.project = new_project
 
         if inputs["setup_choice"] == "import":
             new_user_project_attribute.repo_username = inputs[
@@ -109,6 +111,8 @@ class ProjectBuilder:
             new_user_project_attribute.repo_password_token = inputs[
                 "external_repo_password_token_import"
             ]
+
+        new_user_project_attribute.save()
 
         for group_id in inputs["groups"]:
             group = ProjectGroup.objects.get(id=int(group_id))

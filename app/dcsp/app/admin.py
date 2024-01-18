@@ -39,3 +39,5 @@ class ProjectAdmin(admin.ModelAdmin):
 admin.site.register(Project, ProjectAdmin)
 
 admin.site.register(ProjectGroup)
+
+admin.site.register(UserProjectAttribute)

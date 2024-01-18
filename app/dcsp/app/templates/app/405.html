@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 
 {% block main %}
-<h2>
-    405 - Bad request type!
-</h2>
+    <h2>
+        405 - Bad request type!
+    </h2>
+
+    {% include "message_error.html" %}
+
 {% endblock %}

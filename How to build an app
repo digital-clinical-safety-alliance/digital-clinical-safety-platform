@@ -48,7 +48,7 @@
 
 Notes:
 If Docker cannot build the container (eg "network [network long name] not found), try this:
->> docker-compose up --force-recreate -d
+>> docker compose -f docker-compose-dev.yml up --force-recreate -d
 
 
 # Mkdocs on Github
