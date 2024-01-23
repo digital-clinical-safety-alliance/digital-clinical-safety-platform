@@ -14,6 +14,21 @@ def starts_with(messages, tag):
     return messages.startswith(tag)
 
 
-@register.filter
+@register.filter(name="get")
 def get(mapping, key):
     return mapping.get(key, "")
+
+
+@register.filter(name="split")
+def split(value, index):
+    """
+    Custom filter to return the nth element of a split using pipe '|'
+    as separator.
+
+    Usage: {{ your_string_variable|split:"index" }}
+    """
+    if value:
+        elements = value.split("|")
+        if 0 <= index < len(elements):
+            return elements[index]
+    return ""

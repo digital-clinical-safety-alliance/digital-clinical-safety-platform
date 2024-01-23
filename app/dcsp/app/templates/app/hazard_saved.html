@@ -6,7 +6,7 @@
   <div class="row">
     <div class="col"></div>
     <div class="col-12 col-md-6 mx-auto">
-      <h2>Create new hazard</h2>
+      <h2>Hazard saved</h2>
     </div>
     <div class="col"></div>
   </div>
@@ -19,39 +19,7 @@
 
       {% include "message_error.html" %}
 
-      {% include "error_summary.html" %}
-
-      <!-- For the multiselect field -->
-      <link rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
  
-      <form action="{% url 'hazard_new' project_id %}" method="post">
-        {% csrf_token %}
-
-        {% for field in form %}
-          {% if field.name|starts_with:'-' %}
-            <hr class="border border-danger border-2 opacity-50">
-            {{ field }}
-          {% else %}
-            <div class="mb-3">
-              <label for="id_{{ field.name }}">{{ field.label }}</label>
-              <br>
-              {{ field }}
-              {% if field.help_text %}
-
-                {% include "modal.html" %}
-
-              {% endif %}
-            </div>
-          {% endif %}
-        {% endfor %}
- 
-        <button class="btn btn-primary right" type="submit">Create hazard</button>
- 
-      </form>
     </div>
     <div class="col">
       <i>Placeholder</i>

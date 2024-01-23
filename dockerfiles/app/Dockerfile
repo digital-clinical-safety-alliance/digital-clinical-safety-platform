@@ -11,11 +11,14 @@ RUN xargs apt-get -y install <packages.txt
 COPY requirements.txt /dcsp
 RUN pip install -r requirements.txt
 
-# Copy modified files across to utilise "Harzard" headings in docstrings
-#COPY ../../overwrites/requirements.txt /dcsp
+# Copy modified files across to utilise "Hazard" headings in docstrings
+COPY mkdocs_overwrite.py /dcsp
+COPY overwrites/ /dcsp/overwrites/
+RUN python3 mkdocs_overwrite.py
 
 # Chown all the files to user.
 # NB: Need to create identical group and user on the production site
+# user and group 1001 enables access on github actions
 ARG UNAME=dcspuser
 ARG FOLDER=/dcsp
 ARG UID=1001
@@ -25,5 +28,5 @@ RUN groupadd -g $GID -o $UNAME
 RUN useradd -m -u $UID -g $GID -o -s /bin/bash $UNAME
 RUN chown -R $UNAME $FOLDER
 RUN chmod -R g+rw $FOLDER
-#USER $UNAME
+USER $UNAME
 

@@ -691,106 +691,107 @@ class HazardNewForm(forms.Form):
         """
         super(HazardNewForm, self).__init__(*args, **kwargs)
         project: ProjectBuilder = ProjectBuilder(project_id)
-        labels: list = project.available_hazard_labels("name_only")
-        labels_choices: list = []
-        hazard_template: dict[str, str] = project.hazard_file_read()
-        altered_key: str = ""
-        count: int = 0
+        hazard_template: list[dict[str, Any]] = project.hazard_file_read()
+        field_type: str = ""
+        help_text: str = ""
+        labels_for_calculations: dict[str, str] = {}
 
-        for label in labels:
-            labels_choices.append([label, label])
-        CHOICES = tuple(labels_choices)
+        for index, field in enumerate(hazard_template):
+            help_text = ""
 
-        for key, value in hazard_template.items():
-            if key[0] == "-":
-                self.fields[key] = forms.CharField(
+            if field["field_type"] == "horizontal_line":
+                self.fields[field["heading"]] = forms.CharField(
                     label="",
                     required=False,
                     widget=forms.HiddenInput(attrs={}),
                 )
-            else:
-                altered_key = key.replace("#", "").strip()
 
-                self.fields[key] = forms.CharField(
-                    label=altered_key,
+            elif field["field_type"] == "select":
+                help_text = field["text"].replace("\n", "<br>")
+                self.fields[field["heading"]] = forms.ChoiceField(
+                    label=field["gui_label"],
+                    choices=field["choices"],
+                    help_text=f"{index}|{help_text}",
+                    widget=forms.Select(
+                        attrs={
+                            "class": "form-select w-auto",
+                        }
+                    ),
+                )
+
+                if "labels" in field:
+                    self.labels_for_calculations[
+                        f"id_{ field['heading'] }"
+                    ] = field["labels"]
+
+            elif field["field_type"] == "multiselect":
+                help_text = field["text"].replace("\n", "<br>")
+                self.fields[field["heading"]] = forms.MultipleChoiceField(
+                    label=field["gui_label"],
+                    required=False,
+                    choices=field["choices"],
+                    help_text=f"{index}|{help_text}",
+                    widget=forms.SelectMultiple(
+                        attrs={
+                            "class": "selectpicker",
+                            "style": "height: 150px",
+                            "multiple": "true",
+                        }
+                    ),
+                )
+
+            elif field["field_type"] == "calculate":
+                labels_for_calculations = {}
+
+                help_text = field["text"].replace("\n", "<br>")
+                self.fields[field["heading"]] = forms.CharField(
+                    label=f"{ field['gui_label'] } (read only)",
+                    required=False,
+                    help_text=f"{index}|{help_text}",
+                    widget=forms.TextInput(
+                        attrs={
+                            "class": "form-control",
+                            "disabled": "disabled",
+                        }
+                    ),
+                )
+
+                # Match only labels that are required for this calculation field
+                for label in field["labels"]:
+                    for key, value in self.labels_for_calculations.items():
+                        for label2 in value:
+                            if label2 == label:
+                                labels_for_calculations[key] = value
+
+                self.calculation_field.append(
+                    {
+                        "id": f"id_{ field['heading'] }",
+                        "monitor_labels": labels_for_calculations,
+                        "choices": field["choices"],
+                    },
+                )
+
+            elif field["field_type"] == "text_area":
+                self.fields[field["heading"]] = forms.CharField(
+                    label=field["gui_label"],
                     required=False,
                     widget=forms.Textarea(
                         attrs={
                             "class": "form-control",
                             "rows": 3,
-                            "placeholder": value,
+                            "placeholder": field["text"],
                         }
                     ),
                 )
 
-        self.fields["labels"] = forms.MultipleChoiceField(
-            label="Hazard labels",
-            choices=CHOICES,
-            widget=forms.SelectMultiple(
-                attrs={
-                    "class": "selectpicker",
-                    "style": "height: 150px",
-                    "multiple": "true",
-                }
-            ),
-        )
+            else:
+                # TODO #48 - need a soft fail here
+                raise ValueError(
+                    f"'field_type' has wrong value of '{ field_type }'"
+                )
 
-
-class LogHazardForm_OLD(forms.Form):
-    """Allows user to log a new hazard
-
-    Form for adding a new hazard for the clinical safety case.
-    """
-
-    def __init__(self, *args, **kwargs) -> None:
-        """Initialise the log hazard form
-
-        Gets available hazard labels and creates fields for a new hazard log.
-
-        Fields:
-            title: title of the new hazard.
-            body: main text of the hazard.
-            labels: hazard labels.
-        """
-        super(LogHazardForm, self).__init__(*args, **kwargs)
-        gc: GitController = GitController(env_location=settings.ENV_LOCATION)
-        available_labels: list[dict[str, str]] | list[
-            str
-        ] = gc.available_hazard_labels("name_only")
-        labels_choices: list = []
-
-        for label in available_labels:
-            labels_choices.append([label, label])
-
-        CHOICES = tuple(labels_choices)
-
-        self.fields["title"] = forms.CharField(
-            widget=forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                }
-            ),
-        )
-
-        self.fields["body"] = forms.CharField(
-            widget=forms.Textarea(
-                attrs={
-                    "class": "form-control",
-                    "style": "height: 150px",
-                }
-            ),
-        )
-
-        self.fields["labels"] = forms.MultipleChoiceField(
-            label="Label (press CTRL / CMD and select several as needed)",
-            choices=CHOICES,
-            widget=forms.SelectMultiple(
-                attrs={
-                    "class": "form-select w-auto",
-                    "style": "height: 150px",
-                }
-            ),
-        )
+    labels_for_calculations: dict[str, str] = {}
+    calculation_field: list[dict[str, str]] = []
 
 
 class HazardCommentForm(forms.Form):

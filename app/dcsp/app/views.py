@@ -948,16 +948,26 @@ def hazard_new(
 
     if request.method == "POST":
         form = HazardNewForm(project_id, request.POST)
-        print(request.POST)
+        # print(request.POST)
         if form.is_valid():
             project_builder = ProjectBuilder(int(project_id))
             hazard_create_outcome = project_builder.hazard_create(request)
 
-            return HttpResponse(
-                f"creating hazard file - { hazard_create_outcome }"
+            context = {
+                "project_id": project_id,
+                "form": HazardNewForm(project_id),
+            }
+            return render(
+                request, "hazard_saved.html", context | std_context()
             )
+
         else:
-            return HttpResponse("opps line 959")
+            # TODO - need better error messaging per field
+            context = {
+                "form": form,
+                "project_id": project_id,
+            }
+            return render(request, "hazard_new.html", context | std_context())
 
     # For mypy
     return render(request, "500.html", status=500)

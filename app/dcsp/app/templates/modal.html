@@ -1,0 +1,34 @@
+{% load custom_filters %}
+
+<!-- Button trigger modal -->
+<div type="button"
+     class="form-text text-muted"
+     id="id_help_text_{{ field.name }}">
+    <a class="link-offset-1 "
+       data-bs-toggle="modal"
+       data-bs-target="#id_modal_{{ field.help_text|split:0 }}">More info</a>
+</div>
+ 
+<!-- Modal -->
+<div class="modal fade"
+     id="id_modal_{{ field.help_text|split:0 }}"
+     tabindex="-1"
+     aria-labelledby="modal_{{ field.help_text|split:0 }}Label"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5"
+                    id="modal_{{ field.help_text|split:0 }}Label">{{ field.label }}</h1>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">{{ field.help_text|split:1|safe }}</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

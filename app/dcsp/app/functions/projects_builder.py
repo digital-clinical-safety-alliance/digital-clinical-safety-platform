@@ -12,7 +12,7 @@ from fnmatch import fnmatch
 import re
 import yaml
 import shutil
-from typing import TextIO, Pattern, Tuple
+from typing import TextIO, Pattern, Tuple, Any
 from django.http import HttpRequest
 from pathlib import Path
 from git import Repo
@@ -24,6 +24,7 @@ import app.functions.constants as c
 
 from app.functions.env_manipulation import ENVManipulator
 from app.functions.git_control import GitHubController
+from app.functions.text_manipulation import kebab_to_title
 
 from ..models import (
     User,
@@ -58,6 +59,7 @@ class ProjectBuilder:
         self.project_id = project_id
         self.template_directory: str = template_directory
         self.project_CS_documents = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }"
+        self.CS_documents_docs: str = f"{ self.project_CS_documents }docs/"
         self.placeholders_yml_path = (
             f"{ self.project_CS_documents }/docs/placeholders.yml"
         )
@@ -293,14 +295,14 @@ class ProjectBuilder:
                 "This function is not allowed for a new-build project (with no primary key)"
             )
 
-        for path, _, files in os.walk(self.project_CS_documents):
+        for path, _, files in os.walk(self.CS_documents_docs):
             for name in files:
                 if fnmatch(name, "*.md"):
                     files_to_check.append(os.path.join(path, name))
 
         if not len(files_to_check):
             raise FileNotFoundError(
-                f"No files found in mkdocs '{ self.project_CS_documents }' folder"
+                f"No files found in mkdocs '{ self.CS_documents_docs }' folder"
             )
 
         for file in files_to_check:
@@ -322,7 +324,9 @@ class ProjectBuilder:
             placeholder = placeholder.replace("}}", "")
             placeholder = placeholder.strip()
             # print(f"**{ stored_placeholders }**")
-            placeholders_clean[p] = stored_placeholders.get(p, "")
+            placeholders_clean[placeholder] = stored_placeholders.get(
+                placeholder, ""
+            )
 
         return placeholders_clean
 
@@ -438,9 +442,17 @@ class ProjectBuilder:
         if details == "full":
             return label_yml
         else:
+            """print(label_yml)
             for label_definition in label_yml:
-                label_names_only.append(label_definition["name"].lower())
-            return label_names_only
+                label_names_only.append(label_definition["name"].lower())"""
+
+            return [
+                "fine",
+                "okay",
+                "hmm",
+                "not so good",
+                "terrible",
+            ]  # label_names_only
 
     def verify_hazard_label(self, label: str) -> bool:
         """Checks if a label name is valid
@@ -468,15 +480,22 @@ class ProjectBuilder:
 
         return False
 
-    def hazard_file_read(self, non_template_path: str = "") -> dict[str, str]:
+    def hazard_file_read(
+        self, non_template_path: str = ""
+    ) -> list[dict[str, Any]]:
         """ """
         lines: list = []
-        content_dict: dict[str, str] = {}
-        current_key: str = ""
-        line_new_key: str = ""
+        content_list: list[dict[str, Any]] = []
+        heading: str = ""
+        headed: bool = False
+        horizontal_line: str = ""
+        horizontal_line_numbered: str = ""
         MAX_LOOP: int = 100
         templates_location: str = ""
         hazard_file_path: str = ""
+        text_list: str = ""
+        choices_list: list = []
+        choices_dict_split: dict = {}
 
         if non_template_path == "":
             templates_location: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }templates/"
@@ -499,44 +518,143 @@ class ProjectBuilder:
         lines = contents.split("\n")
 
         for line in lines:
-            # print(line)
-            if re.match(r"^#", line):
-                current_key = line
+            line = line.strip()
 
-                if line in content_dict:
+            if re.match(r"^#", line):
+                heading = line
+                headed = True
+
+                if not any(d["heading"] == heading for d in content_list):
+                    content_list.append(
+                        {
+                            "field_type": "text_area",  # This is changed later if needed
+                            "heading": heading,
+                            "gui_label": self._create_gui_label(heading),
+                            "text": "",
+                        }
+                    )
+
+                else:
                     for x in range(2, MAX_LOOP):
-                        line_new_key = f"{ line } [{ x }]"
-                        if not line_new_key in content_dict:
-                            content_dict[line_new_key] = f"{ line } "
+                        heading_numbered = f"{ line } [{ x }]"
+                        if not any(
+                            d["heading"] == heading_numbered
+                            for d in content_list
+                        ):
+                            content_list.append(
+                                {
+                                    "field_type": "text_area",
+                                    "heading": heading_numbered.strip(),
+                                    "gui_label": self._create_gui_label(
+                                        heading
+                                    ),
+                                    "text": "",
+                                }
+                            )
                             break
                         if x == MAX_LOOP:
                             # TODO #46 - need a soft fail state and user update
                             raise ValueError("For loop over { MAX_LOOP }!")
-                else:
-                    content_dict[line] = ""
+
             elif re.match(r"^-", line):
-                if line in content_dict:
+                horizontal_line = line
+                headed = False
+
+                if not any(
+                    d["heading"] == horizontal_line for d in content_list
+                ):
+                    content_list.append(
+                        {
+                            "field_type": "horizontal_line",
+                            "heading": horizontal_line,
+                        }
+                    )
+                else:
                     for x in range(2, MAX_LOOP):
-                        line_new_key = f"{ line } [{ x }]"
-                        if not line_new_key in content_dict:
-                            content_dict[line_new_key] = ""
+                        horizontal_line_numbered = (
+                            f"{ horizontal_line } [{ x }]"
+                        )
+
+                        if not any(
+                            d["heading"] == horizontal_line_numbered
+                            for d in content_list
+                        ):
+                            content_list.append(
+                                {
+                                    "field_type": "horizontal_line",
+                                    "heading": horizontal_line_numbered,
+                                }
+                            )
                             break
                         if x == MAX_LOOP:
                             # TODO #46 - need a soft fail state and user update
                             raise ValueError(f"For loop over { MAX_LOOP }!")
+
+            elif headed and line:
+                if line[0] == "[":
+                    pattern = r"\[([^\]]+)\]"
+                    matches = re.findall(pattern, line)
+                    content_list[-1]["labels"] = []
+                    for argument in matches:
+                        argument = argument.strip()
+                        if argument == "select":
+                            content_list[-1]["field_type"] = "select"
+                        elif argument == "multiselect":
+                            content_list[-1]["field_type"] = "multiselect"
+                        elif argument == "calculate":
+                            content_list[-1]["field_type"] = "calculate"
+                        else:
+                            content_list[-1]["labels"].append(argument)
                 else:
-                    content_dict[line] = ""
-                current_key = ""
-            elif current_key:
-                content_dict[current_key] += f"{ line } "
+                    content_list[-1]["text"] += f"{ line.strip() }\n"
 
-        content_dict = {
-            key.strip(): value.strip() for key, value in content_dict.items()
-        }
+        for index, element in enumerate(content_list):
+            choice_name = ""
+            choices_dict_split = {}
 
-        return content_dict
+            if element["field_type"] == "select":
+                choices_list = [("", "")]
+            else:
+                choices_list = []
 
-    def hazard_create(self, request) -> bool:
+            for key, value in element.items():
+                if key != "labels":
+                    content_list[index][key] = value.strip()
+
+            if (
+                element["field_type"] == "select"
+                or element["field_type"] == "multiselect"
+            ):
+                text_list = element["text"].split("\n")
+
+                for choice in text_list:
+                    choice_name = choice.split(":")[0]
+                    choices_list.append([choice_name, choice_name])
+                    content_list[index]["choices"] = tuple(choices_list)
+
+            elif element["field_type"] == "calculate":
+                choices_list = element["text"].split("\n")
+
+                for choice in choices_list:
+                    choice_split = choice.split("[")
+                    choices_dict_split[
+                        choice_split[0]
+                    ] = f"[{ choice_split[1] }"
+
+                content_list[index]["choices"] = choices_dict_split
+
+        return content_list
+
+    def _create_gui_label(self, string: str) -> str:
+        """ """
+        # print(string)
+
+        string = string.replace("#", "")
+        string = string.strip()
+        string = kebab_to_title(string)
+        return string
+
+    def hazard_create(self, request) -> dict[str, Any]:
         """ """
         hazards_directory: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/hazards/hazards/"
         files_to_check: list[str] = []
@@ -548,6 +666,7 @@ class ProjectBuilder:
         }
         hazard_file: TextIO
         pattern: Pattern
+        results: dict[str, Any] = []
 
         if not Path(hazards_directory).is_dir():
             Path(hazards_directory).mkdir(parents=True, exist_ok=True)
@@ -580,7 +699,12 @@ class ProjectBuilder:
         project.last_modified = timezone.now()
         project.save()
 
-        return True
+        results = {
+            "pass": True,
+            "hazard_number": hazard_number,
+        }
+
+        return results
 
 
 class Builder:
