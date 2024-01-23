@@ -1,6 +1,18 @@
 ### Name
 A short name
 
+### General Utility label
+multiple select
+
+### Likelihood scoring
+multiple select
+
+### Severity scoring
+multiple select
+
+### Risk scoring
+Automatically calculated
+
 ### Description
 A general description of the Hazard. Keep it short. Detail goes below.
 
@@ -21,11 +33,14 @@ List any pre-existing controls that can mitigate the hazard.
 
 -----
 
-**Assignment**: Assign this Hazard to its Owner. Default owner is the Clinical Safety Officer [ a person ]
+### Assignment
+Assign this Hazard to its Owner. Default owner is the Clinical Safety Officer [ a person ]
 
-**Labelling**: Add labels according to Severity. Likelihood and Risk Level
+### Labelling
+Add labels according to Severity. Likelihood and Risk Level
 
-**Project**: Add to the Project 'Clinical Risk Management'
+### Project
+Add to the Project 'Clinical Risk Management'
 
 * Subsequent discussion can be used to mitigate the Hazard, reducing the likelihood (or less commonly reducing the severity) of the Harm.
 * If Harm is reduced then you can change the labels to reflect this and reclassify the Risk Score.
@@ -41,3 +56,6 @@ Include a repeat analysis of **Severity** and **Likelihood**. Include the ultima
 
 ### Hazard Status
 Either 'open', 'transferred' or 'closed'.
+
+### Residual Hazard Risk Assessment
+BLAH

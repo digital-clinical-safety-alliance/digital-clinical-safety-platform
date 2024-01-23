@@ -37,10 +37,10 @@ import app.functions.constants as c
 from app.functions.constants import GhCredentials
 
 sys.path.append(c.FUNCTIONS_APP)
-from app.functions.docs_builder import Builder
 from app.functions.git_control import GitController
 from app.functions.email_functions import EmailFunctions
 from app.functions.projects_builder import ProjectBuilder
+from pathlib import Path
 
 
 def validation_response(
@@ -484,15 +484,15 @@ class TemplateSelectForm(forms.Form):
         template_choice: pick the template to use for hazard documentation.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, project_id: int, *args, **kwargs) -> None:
         """Initialise with available templates
 
         Searches in the templates folder for template sub-folders and provides
         these as options in a selection field for the user.
         """
         super(TemplateSelectForm, self).__init__(*args, **kwargs)
-        doc_build: Builder = Builder(settings.MKDOCS_LOCATION)
-        templates: list[str] = doc_build.get_templates()
+        project: ProjectBuilder = ProjectBuilder()
+        templates: list[str] = project.get_templates()
         template: str = ""
         choices_list: list = []
 
@@ -531,12 +531,11 @@ class PlaceholdersForm(forms.Form):
         fields for each.
         """
         super(PlaceholdersForm, self).__init__(*args, **kwargs)
-        project_build: Builder
         placeholders: dict[str, str] = {}
         placeholder: str = ""
         value: str = ""
 
-        project_build = ProjectBuilder(project_id, settings.MKDOCS_LOCATION)
+        project_build = ProjectBuilder(project_id)
         placeholders = project_build.get_placeholders()
 
         for placeholder, value in placeholders.items():
@@ -639,7 +638,7 @@ class MDEditForm(forms.Form):
         document_name: str = cleaned_data["document_name"]
         md_text: str = cleaned_data["md_text"]
         md_files_list: list = md_files(self.project_id)
-        doc_build: Builder
+        # doc_build: Builder
         linter_results: dict[str, str] = {}
 
         """validation_response(
@@ -674,7 +673,70 @@ class MDEditForm(forms.Form):
         return cleaned_data
 
 
-class LogHazardForm(forms.Form):
+class HazardNewForm(forms.Form):
+    """Allows user to log a new hazard
+
+    Form for adding a new hazard for the clinical safety case.
+    """
+
+    def __init__(self, project_id: int, *args, **kwargs) -> None:
+        """Initialise the hazard log form
+
+        Gets available hazard labels and creates fields for a new hazard log.
+
+        Fields:
+            title: title of the new hazard.
+            body: main text of the hazard.
+            labels: hazard labels.
+        """
+        super(HazardNewForm, self).__init__(*args, **kwargs)
+        project: ProjectBuilder = ProjectBuilder(project_id)
+        labels: list = project.available_hazard_labels("name_only")
+        labels_choices: list = []
+        hazard_template: dict[str, str] = project.hazard_file_read()
+        altered_key: str = ""
+        count: int = 0
+
+        for label in labels:
+            labels_choices.append([label, label])
+        CHOICES = tuple(labels_choices)
+
+        for key, value in hazard_template.items():
+            if key[0] == "-":
+                self.fields[key] = forms.CharField(
+                    label="",
+                    required=False,
+                    widget=forms.HiddenInput(attrs={}),
+                )
+            else:
+                altered_key = key.replace("#", "").strip()
+
+                self.fields[key] = forms.CharField(
+                    label=altered_key,
+                    required=False,
+                    widget=forms.Textarea(
+                        attrs={
+                            "class": "form-control",
+                            "rows": 3,
+                            "placeholder": value,
+                        }
+                    ),
+                )
+
+        self.fields["labels"] = forms.MultipleChoiceField(
+            label="Hazard labels",
+            choices=CHOICES,
+            widget=forms.SelectMultiple(
+                attrs={
+                    "class": "selectpicker",
+                    "style": "height: 150px",
+                    "multiple": "true",
+                }
+            ),
+        )
+
+
+class LogHazardForm_OLD(forms.Form):
     """Allows user to log a new hazard
 
     Form for adding a new hazard for the clinical safety case.

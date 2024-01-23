@@ -14,8 +14,12 @@ import subprocess  # nosec B404
 from pathlib import Path
 from fnmatch import fnmatch
 import re
+from jinja2 import Environment, FileSystemLoader
+
+from django.template.loader import render_to_string
 
 import app.functions.constants as c
+from app.functions.projects_builder import ProjectBuilder
 
 
 class MkdocsControl:
@@ -66,18 +70,21 @@ class MkdocsControl:
         """
         hazards_dir: str = f"{ self.documents_directory }docs/hazards/"
         hazards_hazards_dir: str = f"{ hazards_dir }hazards/"
+        hazard_template_dir: str = f"{ self.documents_directory }templates/"
         files_to_check: list[str] = []
-        hazard_summary: str = (
-            "---" "title: Hazards summary" "---" "# Hazards Summary"
-        )
         # file
         # hazard_file
-        # hazard_contents
+        contents_str: str = ""
         # file_name
         # hazard_name
         # hazard_number
         # hazard_name_match
         warnings: str = ""
+        hazards: list[dict] = []
+        project: ProjectBuilder
+        new_key: str = ""
+        contents_dict: dict = {}
+        contents_dict_snake_eye: dict = {}
 
         if not Path(hazards_dir).is_dir():
             return (
@@ -101,6 +108,17 @@ class MkdocsControl:
                 if fnmatch(name, "*.md"):
                     files_to_check.append(os.path.join(path, name))
 
+        def get_file_number(file_path):
+            try:
+                return int(file_path.split("-")[-1].split(".")[0])
+            except (ValueError, IndexError):
+                return float(
+                    "inf"
+                )  # Return a large number if no valid file number is found
+
+        # Sort the list of file paths based on the file numbers
+        files_to_check = sorted(files_to_check, key=get_file_number)
+
         if not len(files_to_check):
             return (
                 "<b>Preprocessor passed with INFO</b>"
@@ -114,7 +132,7 @@ class MkdocsControl:
 
         for file in files_to_check:
             hazard_file = open(file, "r")
-            hazard_contents = hazard_file.read()
+            contents_str = hazard_file.read()
             file_name = Path(file).stem
 
             try:
@@ -125,28 +143,45 @@ class MkdocsControl:
             except:
                 hazard_number = "[Number not defined]"
 
-            hazard_name_match = re.search(
-                r"### Name\n(.*?)\n", hazard_contents, re.DOTALL
-            )
-            if hazard_name_match:
-                hazard_name = hazard_name_match.group(1)
-            else:
-                hazard_name = "[Name undefined]"
+            project = ProjectBuilder(self.project_id)
+            contents_dict: dict[str, str] = project.hazard_file_read(file)
 
-            hazard_summary += (
-                "<details markdown='1'>"
-                "<summary>Hazard { hazard_number } - { hazard_name }</summary>"
-                "{ hazard_contents }"
-                "</details>"
+            contents_dict_snake_eye = {}
+            # Convert keys to snake_eye
+            for key, value in contents_dict.items():
+                new_key = key.replace("#", "")
+                new_key = new_key.strip()
+                new_key = new_key.replace(" ", "_")
+
+                contents_dict_snake_eye[new_key] = value
+
+            hazards.append(
+                {
+                    "number": hazard_number,
+                    "contents_str": contents_str,
+                    "contents_dict": contents_dict_snake_eye,
+                }
             )
+
+        # Specify the path to the template file and create a Jinja environment
+        env = Environment(loader=FileSystemLoader(hazard_template_dir))
+
+        # Load the template by name
+        template = env.get_template("hazard_summary.md")
+
+        # Define the context data
+        context = {"hazards": hazards}
+
+        # Render the template with the context data
+        md_content = template.render(context)
 
         summary_file = open(f"{ hazards_dir }{ c.HAZARDS_SUMMARY_FILE}", "w")
-        summary_file.write(hazard_summary)
+        summary_file.write(md_content)
         summary_file.close()
 
         if warnings:
             return (
-                "<b>Successful preprocessor step</b>"
+                "<b>Successful preprocessor step with WARNINGS</b>"
                 "<br><hr>"
                 f"{ warnings }"
                 "<br><hr>"
@@ -184,7 +219,7 @@ class MkdocsControl:
         if command_output.returncode == 0:
             command_output_html += "<b>Successful mkdocs build</b>"
         else:
-            command_output_html += "<b>Build errors!</b>"
+            command_output_html += "<b>Mkdocs build errors!</b>"
 
         command_output_html += "<br><hr>"
 

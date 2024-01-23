@@ -11,7 +11,7 @@ Functions:
     md_edit: placeholder
     md_saved: placeholder
     md_new: placeholder
-    hazard_log: placeholder
+    hazard_new: placeholder
     hazard_comment: placeholder
     hazards_open: placeholder
     mkdoc_redirect: placeholder
@@ -73,7 +73,7 @@ from .forms import (
     PlaceholdersForm,
     MDEditForm,
     MDFileSelectForm,
-    LogHazardForm,
+    HazardNewForm,
     UploadToGithubForm,
     HazardCommentForm,
 )
@@ -135,7 +135,7 @@ def project_access(func):
 
         return func(
             request,
-            project_id,
+            project_id_int,
             setup_step,
         )
 
@@ -154,7 +154,9 @@ def index(request: HttpRequest) -> HttpResponse:
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    context: dict[str, Any] = {}
+    context: dict[str, Any] = {
+        "NON_EXISTENT_VARIABLE": "NON_EXISTENT_VARIABLE"
+    }
 
     if request.method != "GET":
         return render(request, "405.html", std_context(), status=405)
@@ -181,30 +183,20 @@ def member_landing_page(request: HttpRequest) -> HttpResponse:
     """
     context: dict[str, Any] = {}
     # projects
-    # viewed_projects
+    viewed_documents: bool = False
 
     if request.method != "GET":
         return render(request, "405.html", std_context(), status=405)
 
     projects = user_accessible_projects(request)
 
-    viewed_projects = any(
+    viewed_documents = any(
         record.get("doc_last_accessed") is not None for record in projects
     )
 
-    void_all_through = any(
-        all(value is None for value in doc.values()) for doc in projects
-    )
-
-    # TODO - will figure out why this state '[{'doc_id': None, 'doc_name': None, 'doc_last_accessed': None}]'
-    # occurs
-    if void_all_through:
-        projects = {}
-        # raise ValueError(f"VOID all through found again!")
-
     context = {
         "available_projects": projects,
-        "viewed_projects": viewed_projects,
+        "viewed_documents": viewed_documents,
     }
 
     return render(request, "member_landing_page.html", context | std_context())
@@ -244,6 +236,7 @@ def start_new_project(request: HttpRequest) -> HttpResponse:
         setup_step = 1
         request.session.pop("repository_type", None)
         request.session["project_setup_step"] = setup_step
+        request.session["inputs"] = {}
 
         context = {
             "setup_step": setup_step,
@@ -471,7 +464,7 @@ def start_new_project(request: HttpRequest) -> HttpResponse:
 @login_required
 @project_access
 def setup_documents(
-    request: HttpRequest, project_id: str, setup_step: int
+    request: HttpRequest, project_id: int, setup_step: int
 ) -> HttpResponse:
     """Build page, carrying out steps to initialise a static site
 
@@ -517,7 +510,7 @@ def setup_documents(
     if setup_step == 0:
         if request.method == "GET":
             context = {
-                "form": TemplateSelectForm(),
+                "form": TemplateSelectForm(project_id_int),
                 "project_id": project_id_int,
             }
 
@@ -526,7 +519,7 @@ def setup_documents(
             )
 
         elif request.method == "POST":
-            form = TemplateSelectForm(request.POST)  # type: ignore[assignment]
+            form = TemplateSelectForm(project_id_int, request.POST)  # type: ignore[assignment]
             if form.is_valid():
                 project_builder.configuration_set("setup_step", 1)
                 template_choice = form.cleaned_data["template_choice"]
@@ -563,6 +556,7 @@ def setup_documents(
             context = {
                 "form": PlaceholdersForm(project_id_int),
                 "project_id": project_id_int,
+                "project_name": Project.objects.get(id=project_id).name,
             }
             # return render(request, "test.html")
 
@@ -588,6 +582,7 @@ def setup_documents(
 
                 context = {
                     "project_id": project_id,
+                    "project_name": Project.objects.get(id=project_id).name,
                 }
 
                 return render(
@@ -597,6 +592,7 @@ def setup_documents(
                 context = {
                     "form": form,
                     "project_id": project_id_int,
+                    "project_name": Project.objects.get(id=project_id).name,
                 }
 
                 return render(
@@ -610,7 +606,7 @@ def setup_documents(
 @login_required
 @project_access
 def project_build_asap(
-    request: HttpRequest, project_id: str, setup_step: int
+    request: HttpRequest, project_id: int, setup_step: int
 ) -> HttpResponse:
     """ """
     context: dict[str, Any] = {}
@@ -619,17 +615,19 @@ def project_build_asap(
     if request.method == "GET":
         context = {
             "project_id": project_id,
+            "project_name": Project.objects.get(id=project_id).name,
         }
 
         return render(
             request, "project_build_asap.html", context | std_context()
         )
     elif request.method == "POST":
-        build_output = build_documents(request, project_id)
+        build_output = build_documents(int(project_id), force=True)
 
         context = {
             "project_id": project_id,
             "build_output": build_output,
+            "project_name": Project.objects.get(id=project_id).name,
         }
 
         return render(
@@ -643,7 +641,7 @@ def project_build_asap(
 @login_required
 @project_access
 def project_documents(
-    request: HttpRequest, project_id: str, setup_step
+    request: HttpRequest, project_id: int, setup_step: int
 ) -> HttpResponse:
     """Shows the project main page
 
@@ -655,14 +653,15 @@ def project_documents(
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    project_id_int: int = 0
-
     project: Project = Project.objects.get(id=project_id)
     members = project.member.all()
+    groups: ProjectGroup = ProjectGroup.objects.filter(project_access=project)
     context: dict[str, Any] = {
         "project": project,
         "members": members,
+        "groups": groups,
         "project_id": project_id,
+        "project_name": project.name,
     }
     return render(request, "project_documents.html", context | std_context())
 
@@ -729,7 +728,7 @@ def view_docs(
 @project_access
 def md_edit(
     request: HttpRequest,
-    project_id: str,
+    project_id: int,
     setup_step: int,
 ) -> HttpResponse:
     """Function for editing of markdown files in the static site
@@ -804,7 +803,7 @@ def md_edit(
 @login_required
 @project_access
 def md_saved(
-    request: HttpRequest, project_id: str, setup_step: int
+    request: HttpRequest, project_id: int, setup_step: int
 ) -> HttpResponse:
     """Saves the markdown file
 
@@ -918,7 +917,10 @@ def md_new(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
-def hazard_log(request: HttpRequest, project_id: str) -> HttpResponse:
+@project_access
+def hazard_new(
+    request: HttpRequest, project_id: int, stepup_step: int
+) -> HttpResponse:
     """Log hazards
 
     --- TODO
@@ -930,20 +932,39 @@ def hazard_log(request: HttpRequest, project_id: str) -> HttpResponse:
         HttpResponse: for loading the correct webpage
     """
     context: dict[str, Any] = {"project_id": project_id}
+    form: HazardNewForm
+    project_builder: ProjectBuilder
+    hazard_create_outcome: bool = False
 
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", std_context(), status=405)
 
     if request.method == "GET":
-        context = {"project_id": project_id}
-        return render(request, "hazard_log.html", context | std_context())
+        context = {
+            "project_id": project_id,
+            "form": HazardNewForm(project_id),
+        }
+        return render(request, "hazard_new.html", context | std_context())
+
+    if request.method == "POST":
+        form = HazardNewForm(project_id, request.POST)
+        print(request.POST)
+        if form.is_valid():
+            project_builder = ProjectBuilder(int(project_id))
+            hazard_create_outcome = project_builder.hazard_create(request)
+
+            return HttpResponse(
+                f"creating hazard file - { hazard_create_outcome }"
+            )
+        else:
+            return HttpResponse("opps line 959")
 
     # For mypy
     return render(request, "500.html", status=500)
 
 
 @login_required
-def hazard_log_old(request: HttpRequest) -> HttpResponse:
+def hazard_new_old(request: HttpRequest) -> HttpResponse:
     """Logs hazards as issues on GitHub
 
     Creates a hazard as an issue on GitHub
@@ -964,7 +985,7 @@ def hazard_log_old(request: HttpRequest) -> HttpResponse:
 
     if request.method == "GET":
         context = {"form": LogHazardForm()}
-        return render(request, "hazard_log.html", context | std_context())
+        return render(request, "hazard_new.html", context | std_context())
 
     if request.method == "POST":
         form = LogHazardForm(request.POST)
@@ -975,7 +996,7 @@ def hazard_log_old(request: HttpRequest) -> HttpResponse:
             gc = GitController()
 
             try:
-                gc.hazard_log(
+                gc.hazard_new(
                     hazard["title"], hazard["body"], hazard["labels"]
                 )
             except Exception as error:
@@ -987,7 +1008,7 @@ def hazard_log_old(request: HttpRequest) -> HttpResponse:
                 context = {"form": LogHazardForm(initial=request.POST)}
 
                 return render(
-                    request, "hazard_log.html", context | std_context()
+                    request, "hazard_new.html", context | std_context()
                 )
             else:
                 messages.success(
@@ -996,11 +1017,11 @@ def hazard_log_old(request: HttpRequest) -> HttpResponse:
                 )
                 context = {"form": LogHazardForm()}
                 return render(
-                    request, "hazard_log.html", context | std_context()
+                    request, "hazard_new.html", context | std_context()
                 )
         else:
             context = {"form": form}
-            return render(request, "hazard_log.html", context | std_context())
+            return render(request, "hazard_new.html", context | std_context())
 
     # Should never really get here, but added for mypy
     return render(request, "500.html", std_context(), status=500)
@@ -1373,7 +1394,13 @@ def user_accessible_projects(request: HttpRequest) -> list[dict[str, str]]:
         key=lambda x: (x["doc_last_accessed"] or datetime.min, x["doc_id"]),
         reverse=True,
     )
-
+    # TODO #45 - figure out why {'doc_id': None, 'doc_name': None, 'doc_last_accessed': None} and stop it.
+    documents_sorted = [
+        item
+        for item in documents_sorted
+        if item
+        != {"doc_id": None, "doc_name": None, "doc_last_accessed": None}
+    ]
     return documents_sorted
 
 
@@ -1400,7 +1427,7 @@ def placeholders(project_id: str) -> str:
     return json.dumps(placeholders)
 
 
-def build_documents(project_id: int) -> str:
+def build_documents(project_id: int, force: bool = False) -> str:
     """Build the documents static pages
 
     Builds the documents static pages if any documents have been modified since
@@ -1420,8 +1447,13 @@ def build_documents(project_id: int) -> str:
     last_build = project.last_built
     last_modified = project.last_modified
 
-    if last_modified < last_build:
-        return ""
+    if (
+        isinstance(last_modified, datetime)
+        and isinstance(last_build, datetime)
+        and not force
+    ):
+        if last_modified < last_build:
+            return ""
 
     preprocessor_output = mkdocs.preprocessor()
     if preprocessor_output == "":

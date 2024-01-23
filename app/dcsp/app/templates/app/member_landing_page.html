@@ -4,9 +4,7 @@
   <div class="row">
     <div class="col"></div>
     <div class="col-12 col-md-6 mx-auto">
-      <h2>
-        Safety documents
-      </h2>
+      <h2>Safety documents</h2>
     </div>
     <div class="col"></div>
   </div>
@@ -14,66 +12,74 @@
   <div class="row">
     <div class="col">
       <div class="pb-2">
-        <a class="" data-bs-toggle="collapse" href="#collapseGroup" role="button" aria-expanded="false" aria-controls="collapseGroup">
-          Groups
-        </a>
+        <a class=""
+           data-bs-toggle="collapse"
+           href="#collapseGroup"
+           role="button"
+           aria-expanded="false"
+           aria-controls="collapseGroup">Groups</a>
       </div>
       <div class="collapse" id="collapseGroup">
         <div class="">
-          &nbsp;&nbsp;<a href="/">Group 1</a></br>
-          &nbsp;&nbsp;<a href="/">Group 2</a></br>
-          &nbsp;&nbsp;<a href="/">Group 3</a></br>
-        </div>
-      </div>
-      {% if available_projects %}
-        <div class="pt-2 pb-2">
-          <a data-bs-toggle="collapse" href="#collapseDocuments" role="button" aria-expanded="false" aria-controls="collapseDocuments">
-            Documents
-          </a>
-        </div>
-        <div class="collapse" id="collapseDocuments">
-          {% for doc in available_projects %}
-            &nbsp;&nbsp;<a href="/project_documents/{{ doc.doc_id }}">{{ doc.doc_name }}</a></br> 
-          {% endfor %}
-        </div>
-      {% else %}
-      <div class="pt-2 pb-2 disabled_link">
-        Documents
-      </div>
-      {% endif %}
-      <div class="pt-2 pb-2">
-        <a href="/start_new_project">New document</a>
-      </div>
-    </div>
-
-    <div class="col-12 col-md-6">
-
-      {% include "message_error.html" %}
-      
-      <h5>Last viewed documents</h5>
-      <p>Below are the last documents you have been working on. Please clink on a document
-        to continue editing it.
-      </p>
-      {% if viewed_documents %}
-        <h5>Recently edited documents:</h5>
-        {% for doc in available_projects %}
-          {% if doc.doc_last_accessed != None %}
-            <p><a href="/do" class="card-link">{{ doc.doc_name }}</a></p>    
-          {% endif %}  
-        {% endfor %}
-      {% endif %}
-
-      <h5>Data testing:</h5>
-      Owner: {{ owner }}
-    </div>
-    <div class="col">
-      <h5>Latest activity:</h5>
-      <ul>
-        <li>Activity 1</li>
-        <li>Activity 2</li>
-        <li>Activity 3</li>
-      </ul>
-    </div>
+          &nbsp;&nbsp;<a href="/">Group 1</a>
+        </br>
+        &nbsp;&nbsp;<a href="/">Group 2</a>
+      </br>
+      &nbsp;&nbsp;<a href="/">Group 3</a>
+    </br>
   </div>
-    
-{% endblock %}
+</div>
+
+{% if available_projects %}
+  <div class="pt-2 pb-2">
+    <a data-bs-toggle="collapse"
+       href="#collapseDocuments"
+       role="button"
+       aria-expanded="false"
+       aria-controls="collapseDocuments">Documents</a>
+  </div>
+  <div class="collapse" id="collapseDocuments">
+    {% for doc in available_projects %}
+      &nbsp;&nbsp;<a href="{% url 'project_documents' doc.doc_id %}">{{ doc.doc_name }}</a>
+    </br>
+  {% endfor %}
+</div>
+{% else %}
+<div class="pt-2 pb-2 disabled_link">Documents</div>
+{% endif %}
+<div class="pt-2 pb-2">
+  <a href="{% url 'start_new_project' %}">New project</a>
+</div>
+</div>
+
+<div class="col-12 col-md-6">
+
+  {% include "message_error.html" %}
+
+  {% if viewed_documents %}
+    <h5>Last viewed documents</h5>
+    <p>
+      Below are the last documents you have been working on. Please clink on a document
+      to continue editing it.
+    </p>
+    {% for doc in available_projects %}
+      {% if doc.doc_last_accessed != None %}
+        <p>
+          <a class="card-link" href="{% url 'project_documents' doc.doc_id %}">{{ doc.doc_name }}</a>
+        </p>
+      {% endif %}
+ 
+    {% endfor %}
+  {% endif %}
+</div>
+<div class="col">
+  <h5>Latest activity:</h5>
+  <ul>
+    <li>Activity 1</li>
+    <li>Activity 2</li>
+    <li>Activity 3</li>
+  </ul>
+</div>
+</div>
+ 
+{% endblock main %}

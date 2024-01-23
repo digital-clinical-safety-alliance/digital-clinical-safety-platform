@@ -16,7 +16,9 @@ from typing import TextIO, Pattern, Tuple
 from django.http import HttpRequest
 from pathlib import Path
 from git import Repo
+from django.utils import timezone
 
+from django.shortcuts import get_object_or_404
 
 import app.functions.constants as c
 
@@ -35,9 +37,24 @@ from ..models import (
 class ProjectBuilder:
     # TODO - will need to change the template directory to not inclue the name mkdocs
     def __init__(
-        self, project_id: int = 0, template_directory: str = c.MKDOCS_TEMPLATES
+        self,
+        project_id: int = 0,
+        template_directory: str = c.DOCUMENT_TEMPLATES,
     ) -> None:
         """ """
+        self.project_id: int = 0
+        self.template_directory: str = ""
+        self.project_CS_documents: str = ""
+        self.placeholders_yml_path: str = ""
+        self.disallow_edits: bool = False
+
+        if project_id == 0:
+            self.disallow_edits = True
+        elif project_id < 0:
+            raise ValueError(
+                f"'project_id' '{ project_id }' is not a positive integer"
+            )
+
         self.project_id = project_id
         self.template_directory: str = template_directory
         self.project_CS_documents = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }"
@@ -55,8 +72,6 @@ class ProjectBuilder:
         # project_CS_documents
         ghc: GitHubController
         new_user_project_attribute: UserProjectAttribute
-
-        print(inputs)
 
         if (
             inputs["setup_choice"] != "start_anew"
@@ -77,7 +92,10 @@ class ProjectBuilder:
                     )
         else:
             # TODO #44
-            return False, "Code for external repositories is not yet written."
+            return (
+                False,
+                "Code for other external repositories is not yet written.",
+            )
 
         # TODO - need to check user has 'admin' (I think) rights for git push later
 
@@ -146,11 +164,45 @@ class ProjectBuilder:
 
         return True, "All passed"
 
+    def get_templates(self) -> list[str]:
+        """Get the different types of templates available
+
+        Looks in the template folder for subfolders, which it lists as
+        "templates". Technically a template is a collection of markdown files.
+
+        Returns:
+            list[str]: a list of templates in alphabetical order.
+
+        Raises:
+            FileNotFoundError: if no template subfolder found in templates main
+                               folder.
+        """
+        templates: list[str] = []
+
+        # Example of 'list comprehesion'
+        templates = [
+            directory
+            for directory in os.listdir(self.template_directory)
+            if os.path.isdir(self.template_directory + directory)
+        ]
+
+        if not templates:
+            raise FileNotFoundError(
+                f"No templates folders found in '{ self.template_directory }' template directory"
+            )
+
+        return sorted(templates, key=str.lower)
+
     def configuration_get(self) -> dict[str, str]:
         """ """
         configration_file: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }config.ini"
         config: ENVManipulator = ENVManipulator(configration_file)
         setup_step: None | str = None
+
+        if self.disallow_edits:
+            raise SyntaxError(
+                "This function is not allowed for a new-build project (with no primary key)"
+            )
 
         setup_step = config.read("setup_step")
         if not setup_step.isdigit():
@@ -163,6 +215,12 @@ class ProjectBuilder:
         """ """
         configration_file: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }config.ini"
         config: ENVManipulator = ENVManipulator(configration_file)
+
+        if self.disallow_edits:
+            raise SyntaxError(
+                "This function is not allowed for a new-build project (with no primary key)"
+            )
+
         config.add(key, str(value))
         return
 
@@ -184,6 +242,11 @@ class ProjectBuilder:
             f"{ self.template_directory }{ template_chosen }"
         )
         # project_CS_doc
+
+        if self.disallow_edits:
+            raise SyntaxError(
+                "This function is not allowed for a new-build project (with no primary key)"
+            )
 
         if not os.path.isdir(template_chosen_path):
             raise FileNotFoundError(
@@ -221,9 +284,14 @@ class ProjectBuilder:
         files: list[str] = []
         name: str = ""
         file: str = ""
-        f: TextIO
+        file_ptr: TextIO
         doc_Regex: Pattern[str]
-        p: str = ""
+        placeholder: str = ""
+
+        if self.disallow_edits:
+            raise SyntaxError(
+                "This function is not allowed for a new-build project (with no primary key)"
+            )
 
         for path, _, files in os.walk(self.project_CS_documents):
             for name in files:
@@ -236,23 +304,23 @@ class ProjectBuilder:
             )
 
         for file in files_to_check:
-            f = open(file, "r")
+            file_ptr = open(file, "r")
             doc_Regex = re.compile(r"\{\{.*?\}\}", flags=re.S)
 
-            placeholders_sub = doc_Regex.findall(f.read())
+            placeholders_sub = doc_Regex.findall(file_ptr.read())
 
-            for p in placeholders_sub:
-                if p not in placeholders_raw:
-                    placeholders_raw.append(p)
-            f.close()
+            for placeholder in placeholders_sub:
+                if placeholder not in placeholders_raw:
+                    placeholders_raw.append(placeholder)
+            file_ptr.close()
 
         if os.path.exists(self.placeholders_yml_path):
             stored_placeholders = self.read_placeholders()
 
-        for p in placeholders_raw:
-            p = p.replace("{{", "")
-            p = p.replace("}}", "")
-            p = p.strip()
+        for placeholder in placeholders_raw:
+            placeholder = placeholder.replace("{{", "")
+            placeholder = placeholder.replace("}}", "")
+            placeholder = placeholder.strip()
             # print(f"**{ stored_placeholders }**")
             placeholders_clean[p] = stored_placeholders.get(p, "")
 
@@ -274,6 +342,11 @@ class ProjectBuilder:
         placeholders_extra: dict = {"extra": placeholders}
         file: TextIO
 
+        if self.disallow_edits:
+            raise SyntaxError(
+                "This function is not allowed for a new-build project (with no primary key)"
+            )
+
         with open(self.placeholders_yml_path, "w") as file:
             yaml.dump(placeholders_extra, file)
         return
@@ -294,6 +367,11 @@ class ProjectBuilder:
         return_dict: dict[str, str] = {}
         file: TextIO
 
+        if self.disallow_edits:
+            raise SyntaxError(
+                "This function is not allowed for a new-build project (with no primary key)"
+            )
+
         if not os.path.isfile(self.placeholders_yml_path):
             raise FileNotFoundError(
                 f"'{ self.placeholders_yml_path }' is not a valid path"
@@ -308,8 +386,201 @@ class ProjectBuilder:
             raise ValueError(
                 "Error with placeholders yaml file, likely 'extra' missing from file"
             )
-
         return return_dict
+
+    def available_hazard_labels(self, details: str = "full") -> list:
+        """Provides a list of available hazard labels
+
+        Reads from the labels yaml file and returns a list of valid hazard labels
+
+        Args:
+            details (str): full = all details of all hazard labels. name_only =
+                           names only of all hazard labels.
+
+        Returns:
+            list: either a list[dict[str,str]] if "full" details are requested or
+                  else a list[str] if names_only requested.
+
+        Raises:
+            ValueError: if details argument is not "full" or "name_only"
+            FileNotFoundError: if a bad file path is given for the labels yaml.
+        """
+        label_yml: list[dict[str, str]]
+        label_names_only: list[str] = []
+        templates_location: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }templates/"
+        labels_path = f"{templates_location}{ c.HAZARD_LABELS_FILE }"
+
+        if self.disallow_edits:
+            raise SyntaxError(
+                "This function is not allowed for a new-build project (with no primary key)"
+            )
+
+        if details != "full" and details != "name_only":
+            raise ValueError(
+                f"'{ details }' is not a valid option for return values of hazard labels"
+            )
+
+        if not Path(labels_path).is_file():
+            print(f"'{ labels_path }' does not exists")
+
+        """file_labels = open(labels_path, "r")
+        labels = file_labels.read()
+        return labels"""
+
+        try:
+            with open(labels_path, "r") as file:
+                label_yml = yaml.safe_load(file)
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Labels.yml does not exist at '{ labels_path }'"
+            )
+
+        if details == "full":
+            return label_yml
+        else:
+            for label_definition in label_yml:
+                label_names_only.append(label_definition["name"].lower())
+            return label_names_only
+
+    def verify_hazard_label(self, label: str) -> bool:
+        """Checks if a label name is valid
+
+        Checking against all known valid hazard labels, checks if label name
+        supplied is valid.
+
+        Args:
+            label (str): label to be examined.
+
+        Returns:
+            bool: True if a valid label, False if not.
+        """
+        issues_yml: list = self.available_hazard_labels("name_only")
+        label_name: str = ""
+
+        if self.disallow_edits:
+            raise SyntaxError(
+                "This function is not allowed for a new-build project (with no primary key)"
+            )
+
+        for label_name in issues_yml:
+            if label.lower() in label_name.lower():
+                return True
+
+        return False
+
+    def hazard_file_read(self, non_template_path: str = "") -> dict[str, str]:
+        """ """
+        lines: list = []
+        content_dict: dict[str, str] = {}
+        current_key: str = ""
+        line_new_key: str = ""
+        MAX_LOOP: int = 100
+        templates_location: str = ""
+        hazard_file_path: str = ""
+
+        if non_template_path == "":
+            templates_location: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }templates/"
+            hazard_file_path = (
+                f"{templates_location}{ c.HAZARD_TEMPLATE_FILE }"
+            )
+        else:
+            hazard_file_path = non_template_path
+
+        if self.disallow_edits:
+            raise SyntaxError(
+                "This function is not allowed for a new-build project (with no primary key)"
+            )
+
+        if not Path(hazard_file_path).is_file():
+            raise FileExistsError(f"'{ hazard_file_path }' does not exists")
+
+        file_template = open(hazard_file_path, "r")
+        contents = file_template.read()
+        lines = contents.split("\n")
+
+        for line in lines:
+            # print(line)
+            if re.match(r"^#", line):
+                current_key = line
+
+                if line in content_dict:
+                    for x in range(2, MAX_LOOP):
+                        line_new_key = f"{ line } [{ x }]"
+                        if not line_new_key in content_dict:
+                            content_dict[line_new_key] = f"{ line } "
+                            break
+                        if x == MAX_LOOP:
+                            # TODO #46 - need a soft fail state and user update
+                            raise ValueError("For loop over { MAX_LOOP }!")
+                else:
+                    content_dict[line] = ""
+            elif re.match(r"^-", line):
+                if line in content_dict:
+                    for x in range(2, MAX_LOOP):
+                        line_new_key = f"{ line } [{ x }]"
+                        if not line_new_key in content_dict:
+                            content_dict[line_new_key] = ""
+                            break
+                        if x == MAX_LOOP:
+                            # TODO #46 - need a soft fail state and user update
+                            raise ValueError(f"For loop over { MAX_LOOP }!")
+                else:
+                    content_dict[line] = ""
+                current_key = ""
+            elif current_key:
+                content_dict[current_key] += f"{ line } "
+
+        content_dict = {
+            key.strip(): value.strip() for key, value in content_dict.items()
+        }
+
+        return content_dict
+
+    def hazard_create(self, request) -> bool:
+        """ """
+        hazards_directory: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/hazards/hazards/"
+        files_to_check: list[str] = []
+        hazard_number: int = 1
+        fields: dict = {
+            key: value
+            for key, value in request.POST.items()
+            if key.startswith("#") or key.startswith("-")
+        }
+        hazard_file: TextIO
+        pattern: Pattern
+
+        if not Path(hazards_directory).is_dir():
+            Path(hazards_directory).mkdir(parents=True, exist_ok=True)
+
+        for path, _, files in os.walk(hazards_directory):
+            for name in files:
+                if fnmatch(name, "*.md"):
+                    files_to_check.append(name)
+
+        if files_to_check:
+            numbers = [
+                int(re.search(r"\d+", file_name).group())
+                for file_name in files_to_check
+                if re.search(r"\d+", file_name)
+            ]
+            hazard_number = max(numbers) + 1
+
+        pattern = re.compile(r"\s*\[\d+\]$")
+
+        hazard_file = open(
+            f"{ hazards_directory }hazard-{ hazard_number }.md", "w"
+        )
+        for key, value in fields.items():
+            hazard_file.write(f"{ re.sub(pattern, '', key) }\n")
+            hazard_file.write(f"{ value }\n\n")
+
+        hazard_file.close()
+
+        project = get_object_or_404(Project, id=self.project_id)
+        project.last_modified = timezone.now()
+        project.save()
+
+        return True
 
 
 class Builder:

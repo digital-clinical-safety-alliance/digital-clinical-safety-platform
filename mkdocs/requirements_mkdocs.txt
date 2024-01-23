@@ -1,5 +1,0 @@
-mkdocs 
-mkdocstrings
-mkdocstrings-python
-mkdocs-material 
-mkdocs-macros-plugin

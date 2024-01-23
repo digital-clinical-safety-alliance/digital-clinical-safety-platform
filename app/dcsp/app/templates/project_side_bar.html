@@ -1,5 +1,8 @@
 <div class="col">
     <div class="pb-2">
+        <b>{{ project_name }}</b>
+    </div>
+    <div class="pb-2">
         <a class="link-offset-1" href="{% url 'project_documents' project_id %}">Overview</a>
     </div>
     <div class="pb-2">
@@ -17,7 +20,7 @@
         <a class="link-offset-1" href="{% url 'md_edit' project_id %}">Edit document</a>
     </div>
     <div class="pb-2">
-        <a class="link-offset-1" href="{% url 'hazard_log' project_id %}">Log hazard</a>
+        <a class="link-offset-1" href="{% url 'hazard_new' project_id %}">New hazard</a>
     </div>
     <div class="pb-2">
         <a class="link-offset-1">View hazards</a>

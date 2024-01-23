@@ -84,3 +84,7 @@
     opacity: 0.5;
     text-decoration: none;
 }
+
+.right {
+    float: right;
+}

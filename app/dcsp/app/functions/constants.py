@@ -30,7 +30,8 @@ MAX_WAIT: int = 100
 # For mkDocs
 MKDOCS: str = f"{ MAIN_FOLDER }mkdocs/"
 MKDOCS_DOCS: str = f"{ MKDOCS }docs/"
-MKDOCS_TEMPLATES: str = f"{ MKDOCS }templates/"
+MKDOCS_TEMPLATES: str = f"{ MAIN_FOLDER }templates/"
+DOCUMENT_TEMPLATES: str = f"{ MAIN_FOLDER }templates/"
 MKDOCS_PLACEHOLDER_YML: str = f"{ MKDOCS_DOCS }placeholders.yml"
 
 # .env
@@ -103,6 +104,10 @@ class EnvKeysPH(Enum):
     GITHUB_ORGANISATION = "GITHUB_ORGANISATION"
     GITHUB_REPO = "GITHUB_REPO"
     GITHUB_TOKEN = "GITHUB_TOKEN"  # nosec B105
+
+
+HAZARD_TEMPLATE_FILE: str = "hazard-template.md"
+HAZARD_LABELS_FILE: str = "hazard-labels.yml"
 
 
 TEMPLATE_HAZARD_COMMENT = """This Issue Template is based on the practices described in NHS Digital DCB0129/DCB0160 Clinical Safety Officer training.

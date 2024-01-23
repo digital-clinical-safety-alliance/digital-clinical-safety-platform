@@ -26,7 +26,7 @@ urlpatterns = [
     path("md_edit/<project_id>", views.md_edit, name="md_edit"),
     path("md_saved/<project_id>", views.md_saved, name="md_saved"),
     path("md_new", views.md_new, name="md_new"),
-    path("hazard_log/<project_id>", views.hazard_log, name="hazard_log"),
+    path("hazard_new/<project_id>", views.hazard_new, name="hazard_new"),
     path(
         "hazard_comment/<hazard_number>",
         views.hazard_comment,

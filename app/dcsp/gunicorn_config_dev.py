@@ -1,16 +1,21 @@
 # gunicorn_config.py
 import os
 import glob
+from fnmatch import fnmatch
 
 import app.functions.constants as c
 
 
 def find_html_files(folder_path: str) -> list[str]:
-    html_files = []
-    for root, dirs, files in os.walk(folder_path):
-        html_files.extend(glob.glob(os.path.join(root, "*.html")))
+    """ """
+    files_to_check = []
 
-    return html_files
+    for path, _, files in os.walk(folder_path):
+        for name in files:
+            if fnmatch(name, "*.html") or fnmatch(name, "*.md"):
+                files_to_check.append(os.path.join(path, name))
+
+    return files_to_check
 
 
 # The address and port to bind to

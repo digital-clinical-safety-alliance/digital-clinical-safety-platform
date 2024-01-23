@@ -13,9 +13,12 @@ services:
     #  - "9000:9000"
     volumes:
       - ./:/dcsp
-      # TODO #36 - This will need to be converted into a volume at some point
+      # TODO #36 - These will need to be converted into a volume at some point
       - ../projects:/projects
       - ../documentation-pages:/documentation-pages
+      #- ../mkdocstrings:/usr/local/lib/python3.10/dist-packages/mkdocstrings
+      #- ../mkdocstrings_handlers:/usr/local/lib/python3.10/dist-packages/mkdocstrings_handlers
+      #- ../griffe:/usr/local/lib/python3.10/dist-packages/griffe
     env_file:
       - .env
     working_dir: /dcsp/app
@@ -23,7 +26,7 @@ services:
       - dcsp-postgres
     networks: 
       - cross-site
-    entrypoint: bash PID_1.sh
+    entrypoint: bash PID_1_loop.sh
 
   dcsp-postgres:
     image: postgres:latest

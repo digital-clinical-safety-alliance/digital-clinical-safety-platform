@@ -19,7 +19,6 @@ theme:
   name: material
   logo: assets/favicon.ico
   favicon: assets/favicon2.ico
-  custom_dir: overrides
 
   features:
     - navigation.instant
