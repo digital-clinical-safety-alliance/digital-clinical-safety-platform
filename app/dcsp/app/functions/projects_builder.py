@@ -480,6 +480,29 @@ class ProjectBuilder:
 
         return False
 
+    def entry_exists(self, entry_type: str, id: str) -> bool:
+        """Checks if an entry of certain type exists
+
+        Args:
+            type (str): named type of entry
+            id (int): the id to be assessed if an associated entry exists
+
+        Returns:
+            bool: true if the entry of certain type exists.
+        """
+        directory_to_check: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/{ entry_type }s/{ entry_type }s/"
+        file_to_find: str = f"{ entry_type }-{ id }.md"
+
+        if not id.isdigit():
+            return False
+
+        for path, _, files in os.walk(directory_to_check):
+            for name in files:
+                if fnmatch(name, file_to_find):
+                    if file_to_find == name:
+                        return True
+        return False
+
     def hazard_file_read(
         self, non_template_path: str = ""
     ) -> list[dict[str, Any]]:
@@ -496,6 +519,7 @@ class ProjectBuilder:
         text_list: str = ""
         choices_list: list = []
         choices_dict_split: dict = {}
+        potential_number: str = ""
 
         if non_template_path == "":
             templates_location: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }templates/"
@@ -629,7 +653,7 @@ class ProjectBuilder:
 
                 for choice in text_list:
                     choice_name = choice.split(":")[0]
-                    choices_list.append([choice_name, choice_name])
+                    choices_list.append([choice, choice_name])
                     content_list[index]["choices"] = tuple(choices_list)
 
             elif element["field_type"] == "calculate":
@@ -643,6 +667,19 @@ class ProjectBuilder:
 
                 content_list[index]["choices"] = choices_dict_split
 
+            if "text" in element:
+                content_list[index]["number"] = []
+                lines = element["text"].split("\n")
+
+                for line in lines:
+                    potential_number = line.split(
+                        c.MKDOCS_TEMPLATE_NUMBER_DELIMITER
+                    )[0]
+                    potential_number = potential_number.strip()
+                    if potential_number.isdigit():
+                        content_list[index]["number"].append(potential_number)
+
+        # print(content_list)
         return content_list
 
     def _create_gui_label(self, string: str) -> str:
@@ -654,19 +691,20 @@ class ProjectBuilder:
         string = kebab_to_title(string)
         return string
 
-    def hazard_create(self, request) -> dict[str, Any]:
+    def entry_create(
+        self,
+        form_data: dict[str, str],
+        entry_type: str = "hazard",
+        id: str = "new",
+    ) -> dict[str, Any]:
         """ """
-        hazards_directory: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/hazards/hazards/"
+        TESTING_CREATION: bool = False
+        hazards_directory: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/{ entry_type }s/{ entry_type }s/"
         files_to_check: list[str] = []
-        hazard_number: int = 1
-        fields: dict = {
-            key: value
-            for key, value in request.POST.items()
-            if key.startswith("#") or key.startswith("-")
-        }
         hazard_file: TextIO
         pattern: Pattern
         results: dict[str, Any] = []
+        id_int: int = 0
 
         if not Path(hazards_directory).is_dir():
             Path(hazards_directory).mkdir(parents=True, exist_ok=True)
@@ -676,22 +714,39 @@ class ProjectBuilder:
                 if fnmatch(name, "*.md"):
                     files_to_check.append(name)
 
-        if files_to_check:
-            numbers = [
-                int(re.search(r"\d+", file_name).group())
-                for file_name in files_to_check
-                if re.search(r"\d+", file_name)
-            ]
-            hazard_number = max(numbers) + 1
+        if id == "new":
+            if TESTING_CREATION:
+                id = 1
+            elif files_to_check:
+                numbers = (
+                    [  # TODO may have to change to pattern = r"-([0-9]+)\.md"
+                        int(re.search(r"\d+", file_name).group())
+                        for file_name in files_to_check
+                        if re.search(r"\d+", file_name)
+                    ]
+                )
+                id_int = max(numbers) + 1
 
+        elif id.isdigit() and self.entry_exists(entry_type, id):
+            id_int = int(id)
+        else:
+            results = {
+                "pass": False,
+            }
+
+            return results
+
+        # Used to remove number in square brackets (eg "[2]") at end of keys
         pattern = re.compile(r"\s*\[\d+\]$")
 
-        hazard_file = open(
-            f"{ hazards_directory }hazard-{ hazard_number }.md", "w"
-        )
-        for key, value in fields.items():
+        hazard_file = open(f"{ hazards_directory }hazard-{ id_int }.md", "w")
+        for key, value in form_data.items():
             hazard_file.write(f"{ re.sub(pattern, '', key) }\n")
-            hazard_file.write(f"{ value }\n\n")
+            if isinstance(value, list):
+                for item in value:
+                    hazard_file.write(f"{ item}\n\n")
+            else:
+                hazard_file.write(f"{ value }\n\n")
 
         hazard_file.close()
 
@@ -701,10 +756,92 @@ class ProjectBuilder:
 
         results = {
             "pass": True,
-            "hazard_number": hazard_number,
+            "id": id_int,
+            "name": next(iter(form_data.values())),
+            "hazard_url": f"/hazards/hazards/hazard-{ id_int }.html",
         }
 
         return results
+
+    def hazards_all_get(self) -> list[str]:
+        """Get all of the hazards for the project
+
+        Returns:
+            list[str]: A list of all hazards found for a project.
+        """
+
+        if self.disallow_edits:
+            raise SyntaxError(
+                "This function is not allowed for a new-build project (with no primary key)"
+            )
+
+        documents_directory = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }"
+        hazards_dir: str = f"{ documents_directory }docs/hazards/"
+        hazards_hazards_dir: str = f"{ hazards_dir }hazards/"
+        hazard_template_dir: str = f"{ documents_directory }templates/"
+        hazard_file_contents: list[str] = []
+        hazards_list: list = []
+        hazard_with_attributes: list = []
+
+        for path, _, files in os.walk(hazards_hazards_dir):
+            for name in files:
+                if fnmatch(name, "*.md"):
+                    hazard_file_contents.append(os.path.join(path, name))
+
+        hazard_file_contents = sorted(hazard_file_contents, reverse=True)
+
+        for file in hazard_file_contents:
+            pattern = r"-([0-9]+)\.md"
+
+            matches = re.search(pattern, file)
+
+            # print(matches.group(1))
+            # TODO #50 need to handel a bad file name eg hazard-abc.md
+            hazard_with_attributes = [
+                {"file": file, "number": matches.group(1)}
+            ]
+            hazard_with_attributes.extend(self.hazard_file_read(file))
+            hazards_list.append(hazard_with_attributes)
+
+            print(hazards_list)
+        return hazards_list
+
+    def form_initial(self, entry_type: str, id: int) -> dict:
+        """Return data for initialising a django form
+
+        Args:
+            entry_type (str): the data/template type (eg hazard, incident, compliance
+                        sign off).
+            id (int): the id of the type.
+
+        Returns:
+            dict: dictionary of the fields initial values
+        """
+        if self.disallow_edits:
+            raise SyntaxError(
+                "This function is not allowed for a new-build project (with no primary key)"
+            )
+        file_path: str = ""
+        data: list[dict[str, str]] = []
+        data_initial: dict = {}
+
+        file_path = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/{ entry_type }s/{ entry_type }s/{ entry_type }-{ id }.md"
+        template = self.hazard_file_read()
+        data = self.hazard_file_read(file_path)
+
+        for field_data in data:
+            for field_template in template:
+                if field_data["heading"] == field_template["heading"]:
+                    if field_template["field_type"] == "multiselect":
+                        selected_options = field_data["text"].split("\n")
+                        data_initial[field_data["heading"]] = selected_options
+                    elif field_template["field_type"] != "horizontal_line":
+                        print(field_data["heading"])
+                        data_initial[field_data["heading"]] = field_data[
+                            "text"
+                        ]
+
+        return data_initial
 
 
 class Builder:

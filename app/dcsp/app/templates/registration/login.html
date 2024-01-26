@@ -8,37 +8,47 @@
 
   {% if next %}
     {% if user.is_authenticated %}
-    <p style='color:red; font-weight: bold;'>Your account doesn't have access to this page. To proceed,
-      please login with an account that has access.</p>
+      <p style='color:red; font-weight: bold;'>
+        Your account doesn't have access to this page. To proceed,
+        please login with an account that has access.
+      </p>
     {% else %}
-    <p style='color:red; font-weight: bold;'>Please login to see this page.</p>
+      <p style='color:red; font-weight: bold;'>Please login to see this page.</p>
     {% endif %}
   {% endif %}
 
   <form method="post" action="{% url 'login' %}">
     {% csrf_token %}
     <div class="mb-3">
-    <label class="form-label" for="id_username" id="id_label_username">
-            {{ form.username.label_tag }}
-    </label>
-    <input type="text" class="form-control max-w-400" name="username" autofocus autocapitalize="none" autocomplete="username" required="" id="id_username">
+      <label class="form-label" for="id_username" id="id_label_username">{{ form.username.label_tag }}</label>
+      <input type="text"
+             class="form-control max-w-400 field-color-dcsp font-dcsp border-info"
+             name="username"
+             autofocus
+             autocapitalize="none"
+             autocomplete="username"
+             required=""
+             id="id_username">
     </div>
 
     <div class="mb-3">
-    <label class="form-label" for="id_password" id="id_label_password">
-            {{ form.password.label_tag }}
-    </label>
-    <input type="password" class="form-control max-w-400" name="password" autocomplete="current-password" required="" id="id_password">
+      <label class="form-label" for="id_password" id="id_label_password">{{ form.password.label_tag }}</label>
+      <input type="password"
+             class="form-control max-w-400 field-color-dcsp font-dcsp border-info"
+             name="password"
+             autocomplete="current-password"
+             required=""
+             id="id_password">
     </div>
     <div align="right">
-        <button class="btn btn-primary ml-auto" type="submit">
-          Login
-        </button>
+      <button class="btn btn-secondary ml-auto" type="submit">Login</button>
     </div>
     <input type="hidden" name="next" value="{{ next }}">
   </form>
 
   {# Assumes you set up the password_reset view in your URLconf #}
-  <p><a href="{% url 'password_reset' %}">Lost password?</a></p>
+  <p>
+    <a href="{% url 'password_reset' %}">Lost password?</a>
+  </p>
 
 {% endblock %}

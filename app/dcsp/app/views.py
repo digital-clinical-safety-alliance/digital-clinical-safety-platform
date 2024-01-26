@@ -11,7 +11,7 @@ Functions:
     md_edit: placeholder
     md_saved: placeholder
     md_new: placeholder
-    hazard_new: placeholder
+    entry_update: placeholder
     hazard_comment: placeholder
     hazards_open: placeholder
     mkdoc_redirect: placeholder
@@ -133,11 +133,7 @@ def project_access(func):
         project_config = project_builder.configuration_get()
         setup_step = project_config["setup_step"]
 
-        return func(
-            request,
-            project_id_int,
-            setup_step,
-        )
+        return func(request, project_id_int, setup_step, *args, **kwargs)
 
     return wrapper
 
@@ -692,11 +688,13 @@ def view_docs(
         "/documentation-pages", f"project_{ project_id}", doc_path
     )
 
-    # TODO #41 - may have to convert os.path to Path... all over the shop!
-    if not os.path.isfile(internal_path) and not os.path.isdir(internal_path):
-        return render(request, "404.html", context=std_context(), status=404)
-
     build_documents(int(project_id))
+
+    # TODO #41 - may have to convert os.path to Path... all over the shop!
+    if not os.path.isfile(
+        internal_path
+    ):  # and not os.path.isdir(internal_path):
+        return render(request, "404.html", context=std_context(), status=404)
 
     if internal_path.endswith(".html"):
         file = open(internal_path, "r")
@@ -749,16 +747,17 @@ def md_edit(
     form: MDFileSelectForm
     context: dict[str, Any] = {}
     form_fields: dict[str, str] = {}
-    docs_location: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+    docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
 
     if setup_step < 2:
         return redirect(f"/setup_documents/{ project_id }")
 
     if request.method == "GET":
-        if not os.path.isdir(docs_location):
+        # TODO - perhaps a message that docs folder is missing should be presented.
+        if not os.path.isdir(docs_dir):
             return render(request, "500.html", std_context(), status=500)
 
-        for _, __, files in os.walk(docs_location):
+        for _, __, files in os.walk(docs_dir):
             for name in files:
                 if fnmatch(name, "*.md"):
                     md_file = name
@@ -766,8 +765,6 @@ def md_edit(
                     break
             if loop_exit:
                 break
-
-        # return HttpResponse(md_file)
 
     elif request.method == "POST":
         form = MDFileSelectForm(project_id, data=request.POST)
@@ -782,7 +779,7 @@ def md_edit(
             }
             return render(request, "md_edit.html", context | std_context())
 
-    with open(f"{ docs_location }{ md_file }", "r") as file:
+    with open(f"{ docs_dir }{ md_file }", "r") as file:
         form_fields = {"md_text": file.read(), "document_name": md_file}
 
     context = {
@@ -918,8 +915,12 @@ def md_new(request: HttpRequest) -> HttpResponse:
 
 @login_required
 @project_access
-def hazard_new(
-    request: HttpRequest, project_id: int, stepup_step: int
+def entry_update(
+    request: HttpRequest,
+    project_id: int,
+    setup_step: int,
+    entry_type: str,
+    id_new: str,
 ) -> HttpResponse:
     """Log hazards
 
@@ -934,107 +935,163 @@ def hazard_new(
     context: dict[str, Any] = {"project_id": project_id}
     form: HazardNewForm
     project_builder: ProjectBuilder
-    hazard_create_outcome: bool = False
+    entry_create_outcome: bool = False
 
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", std_context(), status=405)
 
+    project = ProjectBuilder(project_id)
+
+    if id_new != "new":
+        if not project.entry_exists(entry_type, id_new):
+            return render(request, "404.html", std_context(), status=404)
+
     if request.method == "GET":
-        context = {
-            "project_id": project_id,
-            "form": HazardNewForm(project_id),
-        }
-        return render(request, "hazard_new.html", context | std_context())
+        if id_new == "new":
+            context = {
+                "project_id": project_id,
+                "form": HazardNewForm(project_id),
+                "MKDOCS_TEMPLATE_NUMBER_DELIMITER": c.MKDOCS_TEMPLATE_NUMBER_DELIMITER,
+                "entry_type": entry_type,
+                "id_new": id_new,
+            }
+            return render(
+                request, "entry_update.html", context | std_context()
+            )
+
+        else:
+            print(id_new)
+            form_initial = project.form_initial("hazard", int(id_new))
+            print(form_initial)
+            context = {
+                "project_id": project_id,
+                "form": HazardNewForm(project_id, initial=form_initial),
+                "MKDOCS_TEMPLATE_NUMBER_DELIMITER": c.MKDOCS_TEMPLATE_NUMBER_DELIMITER,
+                "entry_type": entry_type,
+                "id_new": id_new,
+            }
+            return render(
+                request, "entry_update.html", context | std_context()
+            )
 
     if request.method == "POST":
         form = HazardNewForm(project_id, request.POST)
         # print(request.POST)
         if form.is_valid():
             project_builder = ProjectBuilder(int(project_id))
-            hazard_create_outcome = project_builder.hazard_create(request)
+            # print(form.cleaned_data)
+
+            entry_create_outcome = project_builder.entry_create(
+                form.cleaned_data, entry_type, id_new
+            )
 
             context = {
                 "project_id": project_id,
                 "form": HazardNewForm(project_id),
+                "entry_create_outcome": entry_create_outcome,
+                "MKDOCS_TEMPLATE_NUMBER_DELIMITER": c.MKDOCS_TEMPLATE_NUMBER_DELIMITER,
+                "entry_type": entry_type,
+                "id_new": id_new,
             }
-            return render(
-                request, "hazard_saved.html", context | std_context()
-            )
+            return render(request, "entry_saved.html", context | std_context())
 
         else:
             # TODO - need better error messaging per field
             context = {
                 "form": form,
                 "project_id": project_id,
+                "entry_type": entry_type,
+                "id_new": id_new,
             }
-            return render(request, "hazard_new.html", context | std_context())
+            return render(
+                request, "entry_update.html", context | std_context()
+            )
 
     # For mypy
     return render(request, "500.html", status=500)
 
 
 @login_required
-def hazard_new_old(request: HttpRequest) -> HttpResponse:
-    """Logs hazards as issues on GitHub
+@project_access
+def entry_select(
+    request: HttpRequest, project_id: int, setup_step: int
+) -> HttpResponse:
+    """Hazard selection to edit
 
-    Creates a hazard as an issue on GitHub
+    Show selection of hazards that can be edited
 
     Args:
         request (HttpRequest): request from user
+        project_id (int): primary key of the project
 
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    context: dict[str, Any] = {}
-    gc: GitController
-    form: LogHazardForm
-    hazard: dict[str, Any] = {}
+    context: dict[str, Any] = {"project_id": project_id}
+    form: HazardNewForm
+    project_builder: ProjectBuilder
+    hazards: bool = False
+
+    if not request.method == "GET":
+        return render(request, "405.html", std_context(), status=405)
+
+    if request.method == "GET":
+        project_builder = ProjectBuilder(int(project_id))
+        hazards = project_builder.hazards_all_get()
+
+        context = {
+            "project_id": project_id,
+            "hazards": hazards,
+        }
+        return render(request, "entry_select.html", context | std_context())
+
+    # For mypy
+    return render(request, "500.html", status=500)
+
+
+@login_required
+@project_access
+def entry_edit(
+    request: HttpRequest, project_id: int, setup_step: int, hazard_id: str
+) -> HttpResponse:
+    """Hazard selection to edit
+
+    Show selection of hazards that can be edited
+
+    Args:
+        request (HttpRequest): request from user
+        project_id (int): primary key of the project
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
+    context: dict[str, Any] = {"project_id": project_id}
+    form: HazardNewForm
+    project_builder: ProjectBuilder
+    hazards: bool = False
+    project: ProjectBuilder
+    form_initial: dict
 
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", std_context(), status=405)
 
+    # TODO need to check if hazard_id exists
+
     if request.method == "GET":
-        context = {"form": LogHazardForm()}
-        return render(request, "hazard_new.html", context | std_context())
+        print(hazard_id)
+        project = ProjectBuilder(project_id)
+        form_initial = project.form_initial("hazard", hazard_id)
 
-    if request.method == "POST":
-        form = LogHazardForm(request.POST)
-        if form.is_valid():
-            hazard["title"] = form.cleaned_data["title"]
-            hazard["body"] = form.cleaned_data["body"]
-            hazard["labels"] = form.cleaned_data["labels"]
-            gc = GitController()
+        print(form_initial)
+        context = {
+            "project_id": project_id,
+            "form": HazardNewForm(project_id, initial=form_initial),
+            "MKDOCS_TEMPLATE_NUMBER_DELIMITER": c.MKDOCS_TEMPLATE_NUMBER_DELIMITER,
+        }
+        return render(request, "entry_edit.html", context | std_context())
 
-            try:
-                gc.hazard_new(
-                    hazard["title"], hazard["body"], hazard["labels"]
-                )
-            except Exception as error:
-                messages.error(
-                    request,
-                    f"Error returned from logging hazard - '{ error }'",
-                )
-
-                context = {"form": LogHazardForm(initial=request.POST)}
-
-                return render(
-                    request, "hazard_new.html", context | std_context()
-                )
-            else:
-                messages.success(
-                    request,
-                    f"Hazard has been uploaded to GitHub",
-                )
-                context = {"form": LogHazardForm()}
-                return render(
-                    request, "hazard_new.html", context | std_context()
-                )
-        else:
-            context = {"form": form}
-            return render(request, "hazard_new.html", context | std_context())
-
-    # Should never really get here, but added for mypy
-    return render(request, "500.html", std_context(), status=500)
+    # For mypy
+    return render(request, "500.html", status=500)
 
 
 @login_required
@@ -1452,6 +1509,7 @@ def build_documents(project_id: int, force: bool = False) -> str:
     build_output: str = ""
     last_build: datetime
     last_modified: datetime
+    preprocessor_output: str = ""
 
     project = get_object_or_404(Project, id=project_id)
     last_build = project.last_built

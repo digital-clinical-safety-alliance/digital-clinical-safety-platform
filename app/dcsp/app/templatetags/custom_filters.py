@@ -32,3 +32,9 @@ def split(value, index):
         if 0 <= index < len(elements):
             return elements[index]
     return ""
+
+
+@register.filter(name="remove_first_element")
+def remove_first_element(mapping):
+    """Remove the first item in a list"""
+    return mapping[1:]

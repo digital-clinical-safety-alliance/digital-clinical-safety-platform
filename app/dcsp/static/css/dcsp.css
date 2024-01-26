@@ -88,3 +88,76 @@
 .right {
     float: right;
 }
+
+.left {
+    float: left;
+}
+
+.no-pointer-cursor {
+  cursor: auto;
+}
+
+.pointer-cursor {
+    cursor: pointer;
+}
+
+.background-dcsp {
+    background-color:#1e2129;
+}
+
+.bar-dcsp {
+    background-color: #4051b5;
+}
+
+.footer-dcsp {
+    background-color: #16181dde;
+}
+
+.font-dcsp, .link-dcsp {
+    color: #e2e4e9d1;
+    font-family: Roboto, -apple-system;
+    -webkit-font-smoothing: antialiased;
+}
+
+.link-dcsp {
+    text-decoration: none;
+}
+
+.link-dcsp:hover {
+    color: #5679d4d1;
+}
+
+.font-main-size-dcsp {
+    font-size: 14px;
+}
+
+.font-white-dcsp, .link-white-dcsp, .title-dcsp {
+    color: #ffffff;
+    font-family: Roboto, -apple-system;
+}
+
+.link-white-dcsp:hover {
+    color: #56d4bdd1;
+}
+
+.field-color-dcsp {
+    background-color: #424a48d1;
+}
+
+.title-dcsp {
+    font-size: 20px;
+}
+
+.form-control::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: #e2e4e9d1;
+    opacity: 1; /* Firefox */
+}
+
+.form-control:-ms-input-placeholder { /* Internet Explorer 10-11 */
+    color: #e2e4e9d1;
+}
+
+.form-control::-ms-input-placeholder { /* Microsoft Edge */
+    color: #e2e4e9d1;
+}
+

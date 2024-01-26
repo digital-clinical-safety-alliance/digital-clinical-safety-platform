@@ -83,8 +83,8 @@ class MkdocsControl:
         hazards: list[dict] = []
         project: ProjectBuilder
         new_key: str = ""
-        contents_dict: dict = {}
-        contents_dict_snake_eye: dict = {}
+        contents_list: dict = {}
+        contents_list_snake_eye: dict = {}
 
         if not Path(hazards_dir).is_dir():
             return (
@@ -108,16 +108,8 @@ class MkdocsControl:
                 if fnmatch(name, "*.md"):
                     files_to_check.append(os.path.join(path, name))
 
-        def get_file_number(file_path):
-            try:
-                return int(file_path.split("-")[-1].split(".")[0])
-            except (ValueError, IndexError):
-                return float(
-                    "inf"
-                )  # Return a large number if no valid file number is found
-
         # Sort the list of file paths based on the file numbers
-        files_to_check = sorted(files_to_check, key=get_file_number)
+        files_to_check = sorted(files_to_check, key=self.get_file_number)
 
         if not len(files_to_check):
             return (
@@ -144,22 +136,13 @@ class MkdocsControl:
                 hazard_number = "[Number not defined]"
 
             project = ProjectBuilder(self.project_id)
-            contents_dict: dict[str, str] = project.hazard_file_read(file)
-
-            contents_dict_snake_eye = {}
-            # Convert keys to snake_eye
-            for key, value in contents_dict.items():
-                new_key = key.replace("#", "")
-                new_key = new_key.strip()
-                new_key = new_key.replace(" ", "_")
-
-                contents_dict_snake_eye[new_key] = value
+            contents_list: dict[str, str] = project.hazard_file_read(file)
 
             hazards.append(
                 {
                     "number": hazard_number,
                     "contents_str": contents_str,
-                    "contents_dict": contents_dict_snake_eye,
+                    "contents_list": contents_list,
                 }
             )
 
@@ -167,7 +150,7 @@ class MkdocsControl:
         env = Environment(loader=FileSystemLoader(hazard_template_dir))
 
         # Load the template by name
-        template = env.get_template("hazard_summary.md")
+        template = env.get_template("hazard-summary.md")
 
         # Define the context data
         context = {"hazards": hazards}
@@ -188,6 +171,27 @@ class MkdocsControl:
             )
         else:
             return "<b>Successful preprocessor step</b>" "<br><hr>"
+
+    def get_file_number(self, file_path: str) -> int | float:
+        """Get the file number
+
+        Args:
+             file_path (str): the string of the file to get a value from
+
+        Returns:
+            int | float: int returned of number, otherwise a very large float is
+                         returned. # TODO #49 - may change this!
+        """
+        try:
+            return int(
+                file_path.split("-")[-1].split(
+                    c.MKDOCS_TEMPLATE_NUMBER_DELIMITER
+                )[0]
+            )
+        except (ValueError, IndexError):
+            return float(
+                "inf"
+            )  # Return a large number if no valid file number is found
 
     def build(self) -> str:
         """ """

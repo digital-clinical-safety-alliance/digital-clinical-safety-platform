@@ -20,16 +20,21 @@
           href="/static/assets/favicons/favicon-16x16.png">
 
   </head>
-  <body class="bg-info bg-gradient bg-opacity-25">
+  <body class="background-dcsp font-dcsp">
 
-    <nav class="navbar navbar-expand-lg bg-primary bg-gradient border border-black">
+    <nav class="navbar navbar-expand-lg bar-dcsp">
       <div class="container-fluid">
-        <a class="navbar-brand pad_10" href="/">
-          <img src="/static/assets/favicons/favicon.ico"
-               alt="DCSP icon"
-               style="width:50px;
-                      height:50px">
-        </a>
+        <div class="d-flex align-items-center">
+          <a href="/">
+            <img src="/static/assets/favicons/favicon.ico"
+                 alt="DCSP icon"
+                 style="width:25px;
+                        height:25px">
+ 
+          </a>
+          <div class="px-3"></div>
+          <div class="title-dcsp">Digital Clinical Safety Plateform</div>
+        </div>
         <button class="navbar-toggler"
                 type="button"
                 data-bs-toggle="collapse"
@@ -43,57 +48,63 @@
           <ul class="navbar-nav">
             {% if not request.user.is_authenticated %}
               <li class="nav-item">
-                <a class="nav-link" href="/">Home</a>
+                <a class="nav-link link-white-dcsp" href="/">Home</a>
               </li>
             {% endif %}
 
             {% if request.user.is_authenticated %}
               {% if nav_top %}
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'project_documents' project_id %}">Overview</a>
+                  <a class="nav-link link-white-dcsp"
+                     href="{% url 'project_documents' project_id %}">Overview</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'view_docs' project_id 'index.html' %}">Published view</a>
+                  <a class="nav-link link-white-dcsp"
+                     href="{% url 'view_docs' project_id 'index.html' %}">Published view</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'project_build_asap' project_id %}">Build ASAP</a>
+                  <a class="nav-link link-white-dcsp"
+                     href="{% url 'project_build_asap' project_id %}">Build ASAP</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'setup_documents' project_id %}">Placeholders</a>
+                  <a class="nav-link link-white-dcsp"
+                     href="{% url 'setup_documents' project_id %}">Placeholders</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'md_edit' project_id %}">Edit document</a>
+                  <a class="nav-link link-white-dcsp"
+                     href="{% url 'md_edit' project_id %}">Edit document</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'hazard_new' project_id %}">New hazard</a>
+                  <a class="nav-link link-white-dcsp"
+                     href="{% url 'entry_update' project_id 'hazard' 'new' %}">New hazard</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link">View hazards</a>
+                  <a class="nav-link link-white-dcsp">View hazards</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link">Submit incident</a>
+                  <a class="nav-link link-white-dcsp">Submit incident</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link">View incidents</a>
+                  <a class="nav-link link-white-dcsp">View incidents</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link">Compliance signoff</a>
+                  <a class="nav-link link-white-dcsp">Compliance signoff</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link">Repository save</a>
+                  <a class="nav-link link-white-dcsp">Repository save</a>
                 </li>
               {% endif %}
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'settings'}">settings</a>
+                <a class="nav-link link-white-dcsp" href="{% url 'settings'}">settings</a>
               </li>
             {% endif %}
 
 
             <li class="nav-item">
               {% if request.user.is_authenticated %}
-                <a class="nav-link" href="/accounts/logout">logout</a>
+                <a class="nav-link link-white-dcsp" href="/accounts/logout">logout</a>
               {% else %}
-                <a class="nav-link" href="/accounts/login">login</a>
+                <a class="nav-link link-white-dcsp" href="/accounts/login">login</a>
               {% endif %}
             </li>
           </ul>
@@ -121,7 +132,7 @@
 
         {% if request.user.is_authenticated %}
           {% if START_AFRESH %}
-            Developer: <a href="/start_afresh">Start afresh!</a>
+            Developer: <a class="link-dcsp" href="/start_afresh">Start afresh!</a>
           {% else %}
             Production environment
           {% endif %}
@@ -130,20 +141,8 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-header bg-primary bg-gradient border border-black">Extra details</div>
-      <div class="card-body">
-        <p>
-          <a href="/" class="card-link">Placeholder 1</a>
-        </p>
-        <p>
-          <a href="/" class="card-link">Placeholder 2</a>
-        </p>
-        <p>
-          <a href="/" class="card-link">Placeholder 3</a>
-        </p>
-
-      </div>
+    <div class="card border border-0">
+      <div class="font-dcsp card-body footer-dcsp">Placeholder</div>
     </div>
 
     <script src="/static/js/dcsp.js"></script>

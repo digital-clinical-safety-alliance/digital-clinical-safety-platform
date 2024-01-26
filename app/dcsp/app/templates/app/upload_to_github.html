@@ -2,44 +2,37 @@
 
 {% block main %}
   <div class="col-md-6 mx-auto">
-    <div class="{{FORM_ELEMENTS_MAX_WIDTH}}">
-      <legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l" style="width:100%">
-          <h1 class="nhsuk-fieldset__heading" style="width:100%">
-            Upload to Github
-          </h1>
+    <div class="{{ FORM_ELEMENTS_MAX_WIDTH }}">
+      <legend class="nhsuk-fieldset__legend nhsuk-fieldset__legend--l"
+              style="width:100%">
+        <h1 class="nhsuk-fieldset__heading" style="width:100%">Upload to Github</h1>
       </legend>
 
       {% include "message_error.html" %}
 
-      <div class="text-secondary mb-2">
-        Please enter a comment and then press submit to upload to github
-      </div>
+      <div class="text-secondary mb-2">Please enter a comment and then press submit to upload to github</div>
 
       <form action="/upload_to_github" method="post">
-          {% csrf_token %}
+        {% csrf_token %}
 
-          {% for field in form %}
+        {% for field in form %}
           <div class="mb-3">
-            <label class="form-label" for="id_{{ field.name }}" id="id_label_{{ field.name }}">
-              {{ field.label | safe }}
-            </label>
+            <label class="form-label"
+                   for="id_{{ field.name }}"
+                   id="id_label_{{ field.name }}">{{ field.label | safe }}</label>
             {% if not field.errors %}
               {{ field }}
             {% else %}
               {{ field }}
               {% for error in field.errors %}
-                <div id="id_{{ field.name }}" class="invalid-feedback">
-                {{ error|escape }}
-                </div>
+                <div id="id_{{ field.name }}" class="invalid-feedback">{{ error|escape }}</div>
               {% endfor %}
             {% endif %}
           </div>
         {% endfor %}
 
 
-        <button class="btn btn-primary" type="submit" style="float: right;">
-            SUBMIT
-        </button>
+        <button class="btn btn-secondary" type="submit" style="float: right;">SUBMIT</button>
       </form>
     </div>
   </div>

@@ -19,7 +19,7 @@
 
  
       <div class="mb-1">
-        <div class="p-2 mb-2 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-1">
+        <div class="p-2 mb-2 field-color-dcsp font-dcsp border border-info rounded-1">
           <strong>Description</strong>
           <br>
           {{ project.description }}
@@ -27,7 +27,7 @@
       </div>
 
       <div class="mb-1">
-        <div class="p-2 mb-2 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-1">
+        <div class="p-2 mb-2 field-color-dcsp font-dcsp border border-info rounded-1">
           <strong>Owner</strong>
           <br>
           {{ project.owner.first_name }} {{ project.owner.last_name }}
@@ -35,7 +35,7 @@
       </div>
 
       <div class="mb-1">
-        <div class="p-2 mb-2 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-1">
+        <div class="p-2 mb-2 field-color-dcsp font-dcsp border border-info rounded-1">
           <strong>Members</strong>
           <br>
           {% if members %}
@@ -50,7 +50,7 @@
       </div>
 
       <div class="mb-1">
-        <div class="p-2 mb-2 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-1">
+        <div class="p-2 mb-2 field-color-dcsp font-dcsp border border-info rounded-1">
           <strong>Groups</strong>
           <br>
           {% if groups %}
@@ -65,7 +65,7 @@
       </div>
 
       <div class="mb-1">
-        <div class="p-2 mb-2 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-1">
+        <div class="p-2 mb-2 field-color-dcsp font-dcsp border border-info rounded-1">
           <strong>External repository</strong>
           <br>
           {{ project.external_repo_url }}

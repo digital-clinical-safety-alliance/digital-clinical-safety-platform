@@ -127,7 +127,7 @@ class ProjectSetupInitialForm(forms.Form):
         choices=CHOICES_1,
         widget=forms.Select(
             attrs={
-                "class": "form-select w-auto",
+                "class": "form-select w-auto field-color-dcsp font-dcsp border-info",
                 "onChange": "change_visibility()",
             }
         ),
@@ -138,7 +138,7 @@ class ProjectSetupInitialForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
                 "autocomplete": "github-username",
             }
         ),
@@ -149,7 +149,7 @@ class ProjectSetupInitialForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
                 "autocomplete": "github-username",
             }
         ),
@@ -157,11 +157,11 @@ class ProjectSetupInitialForm(forms.Form):
 
     external_repo_password_token_import = forms.CharField(
         label="Repository token",
-        help_text="You can get your Github <a href='https://github.com/settings/tokens/new' target='_blank'> token</a> here",
+        help_text="You can get your Github <a class='link-dcsp' href='https://github.com/settings/tokens/new' target='_blank'> token here</a>",
         required=False,
         widget=forms.PasswordInput(
             attrs={
-                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
                 "autocomplete": "github-token",
             }
         ),
@@ -187,7 +187,7 @@ class ProjectSetupStepTwoForm(forms.Form):
             required=True,
             widget=forms.TextInput(
                 attrs={
-                    "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                    "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
                     "autocomplete": "github-username",
                 }
             ),
@@ -197,7 +197,7 @@ class ProjectSetupStepTwoForm(forms.Form):
             required=True,
             widget=forms.Textarea(
                 attrs={
-                    "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                    "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
                     "rows": 3,
                     "autocomplete": "description",
                 }
@@ -306,7 +306,7 @@ class InstallationForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
                 "autocomplete": "github-username",
             }
         ),
@@ -317,7 +317,7 @@ class InstallationForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
             }
         ),
     )
@@ -327,7 +327,7 @@ class InstallationForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
             }
         ),
     )
@@ -337,7 +337,7 @@ class InstallationForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
             }
         ),
     )
@@ -347,7 +347,7 @@ class InstallationForm(forms.Form):
         required=False,
         widget=forms.PasswordInput(
             attrs={
-                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
                 "autocomplete": "github-token",
             }
         ),
@@ -358,7 +358,7 @@ class InstallationForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "class": f"form-control { c.FORM_ELEMENTS_MAX_WIDTH }",
+                "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
             }
         ),
     )
@@ -542,7 +542,11 @@ class PlaceholdersForm(forms.Form):
             self.fields[placeholder] = forms.CharField(
                 required=False,
                 initial=value,
-                widget=forms.TextInput(attrs={"class": "form-control"}),
+                widget=forms.TextInput(
+                    attrs={
+                        "class": "form-control field-color-dcsp font-dcsp border-info"
+                    }
+                ),
             )
 
     def clean(self) -> dict:
@@ -586,7 +590,7 @@ class MDFileSelectForm(forms.Form):
             choices=CHOICES,
             widget=forms.Select(
                 attrs={
-                    "class": "form-select w-auto",
+                    "class": "form-select w-auto field-color-dcsp font-dcsp border-info",
                     "onChange": "form.submit()",
                 }
             ),
@@ -626,7 +630,7 @@ class MDEditForm(forms.Form):
             widget=forms.Textarea(
                 attrs={
                     "style": "width:100%; overflow:hidden;",
-                    "class": "form-control",
+                    "class": "form-control field-color-dcsp font-dcsp border-info",
                     "onkeyup": "update_web_view()",
                 }
             ),
@@ -677,7 +681,17 @@ class HazardNewForm(forms.Form):
     """Allows user to log a new hazard
 
     Form for adding a new hazard for the clinical safety case.
+
+    Args:
+        labels_for_calculations: (dict[str, str]): for all of the available labels
+        calculation_field: (list[dict[str, str]]): list of values to help a
+                                                   calculate field calculate its
+                                                   value based on other labelled
+                                                   fields
     """
+
+    labels_for_calculations: dict[str, str] = {}
+    calculation_field: list[dict[str, str]] = []
 
     def __init__(self, project_id: int, *args, **kwargs) -> None:
         """Initialise the hazard log form
@@ -714,7 +728,7 @@ class HazardNewForm(forms.Form):
                     help_text=f"{index}|{help_text}",
                     widget=forms.Select(
                         attrs={
-                            "class": "form-select w-auto",
+                            "class": "form-select w-auto field-color-dcsp font-dcsp border-info",
                         }
                     ),
                 )
@@ -733,8 +747,7 @@ class HazardNewForm(forms.Form):
                     help_text=f"{index}|{help_text}",
                     widget=forms.SelectMultiple(
                         attrs={
-                            "class": "selectpicker",
-                            "style": "height: 150px",
+                            "class": "selectpicker field-color-dcsp font-dcsp border-info",
                             "multiple": "true",
                         }
                     ),
@@ -750,8 +763,8 @@ class HazardNewForm(forms.Form):
                     help_text=f"{index}|{help_text}",
                     widget=forms.TextInput(
                         attrs={
-                            "class": "form-control",
-                            "disabled": "disabled",
+                            "class": "form-control field-color-dcsp font-dcsp border-info no-pointer-cursor",
+                            "readonly": "readonly",
                         }
                     ),
                 )
@@ -774,10 +787,11 @@ class HazardNewForm(forms.Form):
             elif field["field_type"] == "text_area":
                 self.fields[field["heading"]] = forms.CharField(
                     label=field["gui_label"],
+                    # initial="test data",
                     required=False,
                     widget=forms.Textarea(
                         attrs={
-                            "class": "form-control",
+                            "class": "form-control field-color-dcsp font-dcsp border-info",
                             "rows": 3,
                             "placeholder": field["text"],
                         }
@@ -789,9 +803,6 @@ class HazardNewForm(forms.Form):
                 raise ValueError(
                     f"'field_type' has wrong value of '{ field_type }'"
                 )
-
-    labels_for_calculations: dict[str, str] = {}
-    calculation_field: list[dict[str, str]] = []
 
 
 class HazardCommentForm(forms.Form):
@@ -806,7 +817,7 @@ class HazardCommentForm(forms.Form):
     comment = forms.CharField(
         widget=forms.Textarea(
             attrs={
-                "class": "form-control",
+                "class": "form-control field-color-dcsp font-dcsp border-info",
                 "style": "height: 500px",
                 "onkeyup": "update_web_view()",
             }
@@ -826,7 +837,7 @@ class UploadToGithubForm(forms.Form):
     comment = forms.CharField(
         widget=forms.Textarea(
             attrs={
-                "class": "form-control",
+                "class": "form-control field-color-dcsp font-dcsp border-info",
                 "style": "height: 150px",
             }
         ),

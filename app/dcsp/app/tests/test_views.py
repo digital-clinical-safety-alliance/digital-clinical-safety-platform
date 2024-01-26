@@ -365,27 +365,27 @@ class HazardLogTest(TestCase):
     def setUp(self):
         login_and_start_afresh(self)
 
-    def test_hazard_new_bad_method(self):
-        response = self.client.delete("/hazard_new")
+    def test_entry_new_bad_method(self):
+        response = self.client.delete("/entry_new")
         self.assertEqual(response.status_code, 405)
 
-    def test_hazard_new_get(self):
+    def test_entry_new_get(self):
         pass  # TODO - needs finishing
 
-    def test_hazard_new_get_template_correct(self):
+    def test_entry_new_get_template_correct(self):
         shutil.copyfile(c.TESTING_ENV_PATH_GIT, c.TESTING_ENV_PATH_DJANGO)
-        response = self.client.get("/hazard_new")
+        response = self.client.get("/entry_new")
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "hazard_new.html")
+        self.assertTemplateUsed(response, "entry_new.html")
 
-    def test_hazard_new_post(self):
+    def test_entry_new_post(self):
         pass
 
     def test_logged_out(self):
         self.client.logout()
-        response = self.client.get("/hazard_new")
+        response = self.client.get("/entry_new")
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/accounts/login/?next=/hazard_new")
+        self.assertRedirects(response, "/accounts/login/?next=/entry_new")
 
 
 # @tag("run")

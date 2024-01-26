@@ -3,34 +3,34 @@
 {% block main %}
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
-        function update_web_view() {
-            var placeholders = {{ placeholders | safe }};
-            var md_text = document.getElementById("id_md_text");
-            var web_view = document.getElementById("id_web_view");
-            var event = new Event("change");
-            //var inputString = md_text.value
-            var inputString = md_text.value.replace(/---[\s\S]*?---/, '');
-            for (var key in placeholders) {
-                {% verbatim %}
-                    var placeholder = "{{ " + key + " }}";
-                {% endverbatim %}
-                var value = "<span class='text-body-tertiary'>" + placeholders[key] + "</span>";
-                inputString = inputString.replaceAll(placeholder, value)
-            }
-
-            web_view.innerHTML = marked.parse(inputString);
-            web_view.dispatchEvent(event);
-
-            web_view.style.height = "auto";
-            md_text.style.height = "auto";
-
-            var web_viewHeight = web_view.scrollHeight;
-            var md_textHeight = md_text.scrollHeight;
-
-            var maxHeight = Math.max(web_viewHeight, md_textHeight);
-            web_view.style.height = maxHeight + "px";
-            md_text.style.height = maxHeight + "px";
+    function update_web_view() {
+        var placeholders = {{ placeholders | safe }};
+        var md_text = document.getElementById("id_md_text");
+        var web_view = document.getElementById("id_web_view");
+        var event = new Event("change");
+        //var inputString = md_text.value
+        var inputString = md_text.value.replace(/---[\s\S]*?---/, '');
+        for (var key in placeholders) {
+            {% verbatim %}
+                var placeholder = "{{ " + key + " }}";
+            {% endverbatim %}
+            var value = "<span class='text-black'>" + placeholders[key] + "</span>";
+            inputString = inputString.replaceAll(placeholder, value)
         }
+
+        web_view.innerHTML = marked.parse(inputString);
+        web_view.dispatchEvent(event);
+
+        web_view.style.height = "auto";
+        md_text.style.height = "auto";
+
+        var web_viewHeight = web_view.scrollHeight;
+        var md_textHeight = md_text.scrollHeight;
+
+        var maxHeight = Math.max(web_viewHeight, md_textHeight);
+        web_view.style.height = maxHeight + "px";
+        md_text.style.height = maxHeight + "px";
+    }
     </script>
 
     <h2>Edit</h2>
@@ -59,7 +59,7 @@
                     {% endfor %}
                 </div>
             </form>
- 
+
             <form action="/md_saved/{{ project_id }}" method="post">
                 {% csrf_token %}
                 <input type="hidden" id="id_document_name" value="{{ document_name }}" />
@@ -80,14 +80,15 @@
                             <label class="form-label" for="id_web_view">
                                 <b>Web view</b>
                             </label>
-                            <div class="form-control" id="id_web_view"></div>
+                            <div class="form-control field-color-dcsp font-dcsp border-info"
+                                 id="id_web_view"></div>
                         </div>
                     </div>
                 </div>
-                <button class="btn btn-primary" type="submit" style="float: right">Save</button>
+                <button class="btn btn-secondary" type="submit" style="float: right">Save</button>
             </form>
             <script>
-    // Need this function call here to stop page jittering
-    update_web_view();
+            // Need this function call here to stop page jittering
+            update_web_view();
             </script>
         {% endblock %}

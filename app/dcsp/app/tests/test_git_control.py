@@ -523,23 +523,23 @@ class GitControllerTest(TestCase):
         pass
 
     @tag("git")
-    def test_hazard_new(self):
+    def test_entry_new(self):
         gc = GitController(
             github_repo=d.REPO_NAME_CURRENT,
             env_location=c.TESTING_ENV_PATH_GIT,
         )
-        gc.hazard_new("title", "body", ["hazard"])
+        gc.entry_new("title", "body", ["hazard"])
         # TODO - should really check hazard was created
         close_all_issues()
 
     @tag("git")
-    def test_hazard_new_label_bad(self):
+    def test_entry_new_label_bad(self):
         gc = GitController(
             github_repo=d.REPO_NAME_CURRENT,
             env_location=c.TESTING_ENV_PATH_GIT,
         )
         with self.assertRaises(ValueError) as error:
-            gc.hazard_new("title", "body", [d.LABEL_NAME_BAD])
+            gc.entry_new("title", "body", [d.LABEL_NAME_BAD])
 
         self.assertEqual(
             str(error.exception),
@@ -547,13 +547,13 @@ class GitControllerTest(TestCase):
         )
 
     @tag("git")
-    def test_hazard_new_repo_bad(self):
+    def test_entry_new_repo_bad(self):
         gc = GitController(
             github_repo=d.REPO_BAD_NAME,
             env_location=c.TESTING_ENV_PATH_GIT,
         )
         with self.assertRaises(ValueError) as error:
-            gc.hazard_new("title", "body", ["hazard"])
+            gc.entry_new("title", "body", ["hazard"])
 
         dot_values = dotenv_values(c.TESTING_ENV_PATH_GIT)
         self.assertEqual(
@@ -620,7 +620,7 @@ class GitControllerTest(TestCase):
             github_repo=d.REPO_NAME_CURRENT,
             env_location=c.TESTING_ENV_PATH_GIT,
         )
-        gc.hazard_new("title", "body", ["hazard"])
+        gc.entry_new("title", "body", ["hazard"])
 
         open_hazard = gc.hazards_open()[0]
         self.assertTrue(open_hazard["title"], "title")
@@ -636,7 +636,7 @@ class GitControllerTest(TestCase):
         )
 
         with self.assertRaises(ValueError) as error:
-            gc.hazard_new("title", "body", ["hazard"])
+            gc.entry_new("title", "body", ["hazard"])
 
         dot_values = dotenv_values(c.TESTING_ENV_PATH_GIT)
         self.assertEqual(
@@ -660,7 +660,7 @@ class GitControllerTest(TestCase):
             github_repo=d.REPO_NAME_CURRENT,
             env_location=c.TESTING_ENV_PATH_GIT,
         )
-        gc.hazard_new("title", "body", ["hazard"])
+        gc.entry_new("title", "body", ["hazard"])
 
         hazard_number = gc.hazards_open()[0]["number"]
         gc.add_comment_to_hazard(

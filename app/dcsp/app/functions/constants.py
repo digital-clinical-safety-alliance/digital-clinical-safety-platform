@@ -33,6 +33,7 @@ MKDOCS_DOCS: str = f"{ MKDOCS }docs/"
 MKDOCS_TEMPLATES: str = f"{ MAIN_FOLDER }templates/"
 DOCUMENT_TEMPLATES: str = f"{ MAIN_FOLDER }templates/"
 MKDOCS_PLACEHOLDER_YML: str = f"{ MKDOCS_DOCS }placeholders.yml"
+MKDOCS_TEMPLATE_NUMBER_DELIMITER: str = "-"
 
 # .env
 ENV_PATH = f"{ MAIN_FOLDER }.env"

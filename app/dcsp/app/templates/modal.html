@@ -1,12 +1,12 @@
 {% load custom_filters %}
 
 <!-- Button trigger modal -->
-<div type="button"
-     class="form-text text-muted"
-     id="id_help_text_{{ field.name }}">
-    <a class="link-offset-1 "
-       data-bs-toggle="modal"
-       data-bs-target="#id_modal_{{ field.help_text|split:0 }}">More info</a>
+<div id="id_help_text_{{ field.name }}">
+    <div class="d-inline">
+        <a class="link-dcsp pointer-cursor"
+           data-bs-toggle="modal"
+           data-bs-target="#id_modal_{{ field.help_text|split:0 }}">More info</a>
+    </div>
 </div>
  
 <!-- Modal -->

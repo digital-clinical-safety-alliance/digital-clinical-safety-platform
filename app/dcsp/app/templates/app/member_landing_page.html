@@ -12,7 +12,7 @@
   <div class="row">
     <div class="col">
       <div class="pb-2">
-        <a class=""
+        <a class="link-dcsp"
            data-bs-toggle="collapse"
            href="#collapseGroup"
            role="button"
@@ -21,18 +21,19 @@
       </div>
       <div class="collapse" id="collapseGroup">
         <div class="">
-          &nbsp;&nbsp;<a href="/">Group 1</a>
+          &nbsp;&nbsp;<a class="link-dcsp" href="/">Group 1</a>
         </br>
-        &nbsp;&nbsp;<a href="/">Group 2</a>
+        &nbsp;&nbsp;<a class="link-dcsp" href="/">Group 2</a>
       </br>
-      &nbsp;&nbsp;<a href="/">Group 3</a>
+      &nbsp;&nbsp;<a class="link-dcsp" href="/">Group 3</a>
     </br>
   </div>
 </div>
 
 {% if available_projects %}
   <div class="pt-2 pb-2">
-    <a data-bs-toggle="collapse"
+    <a class="link-dcsp"
+       data-bs-toggle="collapse"
        href="#collapseDocuments"
        role="button"
        aria-expanded="false"
@@ -40,7 +41,7 @@
   </div>
   <div class="collapse" id="collapseDocuments">
     {% for doc in available_projects %}
-      &nbsp;&nbsp;<a href="{% url 'project_documents' doc.doc_id %}">{{ doc.doc_name }}</a>
+      &nbsp;&nbsp;<a class="link-dcsp" href="{% url 'project_documents' doc.doc_id %}">{{ doc.doc_name }}</a>
     </br>
   {% endfor %}
 </div>
@@ -48,7 +49,7 @@
 <div class="pt-2 pb-2 disabled_link">Documents</div>
 {% endif %}
 <div class="pt-2 pb-2">
-  <a href="{% url 'start_new_project' %}">New project</a>
+  <a class="link-dcsp" href="{% url 'start_new_project' %}">New project</a>
 </div>
 </div>
 
@@ -65,7 +66,7 @@
     {% for doc in available_projects %}
       {% if doc.doc_last_accessed != None %}
         <p>
-          <a class="card-link" href="{% url 'project_documents' doc.doc_id %}">{{ doc.doc_name }}</a>
+          <a class="link-dcsp" href="{% url 'project_documents' doc.doc_id %}">{{ doc.doc_name }}</a>
         </p>
       {% endif %}
  

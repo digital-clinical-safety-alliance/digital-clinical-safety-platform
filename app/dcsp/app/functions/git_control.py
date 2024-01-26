@@ -537,7 +537,7 @@ class GitController:
             child.wait()
         return True
 
-    def hazard_new(self, title: str, body: str, labels: list[str]) -> None:
+    def entry_update(self, title: str, body: str, labels: list[str]) -> None:
         """Uses GitHub issues to log a new hazard
 
         Hazards are logged as issues on GitHub
