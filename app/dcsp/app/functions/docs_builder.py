@@ -74,7 +74,7 @@ class Builder:
         self.placeholders_yml_path = str(placeholders_yml_path)
         return None
 
-    def get_templates(self) -> list[str]:
+    def document_templates_get(self) -> list[str]:
         """Get the different types of templates available
 
         Looks in the template folder for subfolders, which it lists as

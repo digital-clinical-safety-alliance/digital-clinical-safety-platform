@@ -13,13 +13,44 @@ function submitForm() {
     var submitBtn = document.getElementById('id_button');
     var loadingIcon = document.getElementById('loading-icon');
 
+    save_button_pressed = true;
+
     loadingIcon.classList.add('show');
     submitBtn.disabled = true;
+    
+    form.submit();
+};
 
-    setTimeout(function() {
-      form.submit();
-    }, 0);
-}
+
+function url_click(url) {
+    const links = document.querySelectorAll('[id^="id_link"]');
+    //var link = document.getElementById(link_id);
+    var loadingIcon = document.getElementById('loading-icon');
+
+    links.forEach(element => {
+        element.style.pointerEvents = 'none'; // Disable the link
+      });
+    //link.style.pointerEvents = 'none'; // Disable the link
+    loadingIcon.classList.add('show');
+
+    window.location.href = url;
+};
+
+
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        const links = document.querySelectorAll('[id^="id_link"]');
+        //var link = document.getElementById('id_link');
+        var loadingIcon = document.getElementById('loading-icon');
+        
+        links.forEach(element => {
+            element.style.pointerEvents = ''; // Enable link
+          });
+
+        //link.style.pointerEvents = ''; // Enable link
+        loadingIcon.classList.remove('show');
+    }
+});
 
 
 function change_visibility() {

@@ -1,0 +1,34 @@
+{% load custom_filters %}
+
+<div class="col d-sm-none d-md-none d-lg-block d-xl-block">
+    <div class="pb-2 font-dcsp">
+        <b>{{ project_name }}</b>
+    </div>
+    <div class="pb-2">
+        <a class="link-dcsp" href="{% url 'project_documents' project_id %}">Overview</a>
+    </div>
+    <div class="pb-2">
+        <a class="link-dcsp"
+           id="id_link_project_side_bar_left"
+           onclick="url_click('{% url "view_docs" project_id "index.html" %}')">Published view</a>
+    </div>
+    <div class="pb-2">
+        <a class="link-dcsp" href="{% url 'project_build_asap' project_id %}">Build ASAP</a>
+    </div>
+    <div class="pb-2">
+        <a class="link-dcsp" href="{% url 'setup_documents' project_id %}">Placeholders</a>
+    </div>
+    <div class="pb-2">
+        Document:
+        <a class="link-dcsp" href="{% url 'document_new' project_id %}">New</a>
+        <a class="link-dcsp" href="{% url 'document_update' project_id %}">Edit</a>
+    </div>
+    {% for entry in entry_templates %}
+        <div class="pb-2">
+            {{ entry|kebab_to_title }}:
+            <a class="link-dcsp"
+               href="{% url 'entry_update' project_id entry 'new' %}">New</a>
+            <a class="link-dcsp" href="{% url 'entry_select' project_id %}">Edit</a>
+        </div>
+    {% endfor %}
+</div>

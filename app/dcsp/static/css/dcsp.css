@@ -105,6 +105,10 @@
     background-color:#1e2129;
 }
 
+.padding-20-dcsp {
+    padding-left: 20px;
+}
+
 .bar-dcsp {
     background-color: #4051b5;
 }
@@ -113,17 +117,22 @@
     background-color: #16181dde;
 }
 
-.font-dcsp, .link-dcsp {
-    color: #e2e4e9d1;
+.font-dcsp, .link-dcsp, .field-color-dcsp:focus, .font-black-dcsp, .link-black-dcsp,
+.font-white-dcsp, .link-white-dcsp, .title-dcsp  {
     font-family: Roboto, -apple-system;
+}
+
+.font-dcsp, .link-dcsp, .field-color-dcsp:focus {
+    color: #e2e4e9d1;
     -webkit-font-smoothing: antialiased;
 }
 
-.link-dcsp {
+.link-dcsp, .link-white-dcsp {
     text-decoration: none;
+    cursor: pointer;
 }
 
-.link-dcsp:hover {
+.link-dcsp:hover, .font-black-dcsp:hover {
     color: #5679d4d1;
 }
 
@@ -131,16 +140,27 @@
     font-size: 14px;
 }
 
-.font-white-dcsp, .link-white-dcsp, .title-dcsp {
+.font-18-dcsp {
+    font-size: 18px;
+}
+
+.font-white-dcsp, .link-white-dcsp, .title-dcsp, .link-black-dcsp:hover {
     color: #ffffff;
-    font-family: Roboto, -apple-system;
+}
+
+.font-black-dcsp, .link-black-dcsp {
+    color: #000000;
+}
+
+.link-white-dcsp {
+    cursor: pointer;
 }
 
 .link-white-dcsp:hover {
     color: #56d4bdd1;
 }
 
-.field-color-dcsp {
+.field-color-dcsp, .field-color-dcsp:focus {
     background-color: #424a48d1;
 }
 

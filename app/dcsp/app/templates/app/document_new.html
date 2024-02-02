@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block main %}
+    <div class="row">
+        <div class="col"></div>
+        <div class="col-12 col-md-6 mx-auto font-dcsp">
+            <h2>Create a new document</h2>
+        </div>
+        <div class="col"></div>
+    </div>
+    <div class="row">
+
+        {% include "project_side_bar_left.html" %}
+
+        <div class="col-12 col-md-6">
+
+            {% include "message_error.html" %}
+
+            {% include "error_summary.html" %}
+
+            <form id="id_form"
+                  action="{% url 'document_new' project_id %}"
+                  method="post">
+                {% csrf_token %}
+	
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label"
+                               for="id_{{ field.name }}"
+                               id="id_label_{{ field.name }}">{{ field.label | safe }}</label>
+                        {{ field }}
+                        {% if field.help_text %}{{ field.help_text }}{% endif %}
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <div id="id_{{ field.name }}" class="invalid-feedback">{{ error|escape }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <button id="id_button"
+                        onclick="submitForm()"
+                        class="btn btn-secondary right"
+                        type="submit">Save</button>
+
+            </form>
+        </div>
+	
+
+        {% include "project_side_bar_right.html" %}
+
+    </div>
+ 
+{% endblock main %}

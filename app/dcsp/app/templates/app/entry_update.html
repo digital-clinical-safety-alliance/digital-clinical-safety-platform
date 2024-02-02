@@ -12,7 +12,7 @@
   </div>
   <div class="row">
 
-    {% include "project_side_bar.html" %}
+    {% include "project_side_bar_left.html" %}
 
  
     <div class="col-12 col-md-6">
@@ -33,9 +33,14 @@
         {% csrf_token %}
 
         {% for field in form %}
+ 
           {% if field.name|starts_with:'-' %}
             <hr class="border border-primary border-2 opacity-50">
             {{ field }}
+
+          {% elif field.is_hidden %}
+            {{ field }}
+
           {% else %}
             <div class="mb-3">
               <label for="id_{{ field.name }}">{{ field.label }}</label>
@@ -56,10 +61,10 @@
         {% endif %}
       </form>
     </div>
-    <div class="col">
-      <i>Placeholder</i>
-	
-    </div>
+ 
+
+    {% include "project_side_bar_right.html" %}
+
   </div>
 
   <script>

@@ -8,3 +8,6 @@ a single set of safety 'Documents'. These safety documents are build from
 an 'Entry'. This can be viewed as follows:
 
 Project -> Documents -> Templates -> Entry
+
+## Minimum files
+* An `index.md` in the `docs` folder

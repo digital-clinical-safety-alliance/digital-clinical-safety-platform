@@ -11,8 +11,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [../app/dcsp/app, /dcsp/app/dcsp/app]
-# TODO #47 - will need to only allow certain paths in the above list
+          paths: [] # Define paths here for your code
 
 theme:
   name: material
@@ -154,4 +153,4 @@ extra_javascript:
   #   - icon: fontawesome/brands/github
   #     link: https://github.com/exampleorgsgithub
 
-INHERIT: ./docs/placeholders.yml
+INHERIT: ./placeholders.yml

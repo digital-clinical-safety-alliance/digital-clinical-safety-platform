@@ -19,13 +19,11 @@ urlpatterns = [
         name="project_build_asap",
     ),
     path(
-        "start_afresh",
-        views.start_afresh,
-        name="start_afresh",
+        "document_update/<project_id>",
+        views.document_update,
+        name="document_update",
     ),
-    path("md_edit/<project_id>", views.md_edit, name="md_edit"),
-    path("md_saved/<project_id>", views.md_saved, name="md_saved"),
-    path("md_new", views.md_new, name="md_new"),
+    path("document_new/<project_id>", views.document_new, name="document_new"),
     path(
         "entry_update/<project_id>/<entry_type>/<id_new>",
         views.entry_update,

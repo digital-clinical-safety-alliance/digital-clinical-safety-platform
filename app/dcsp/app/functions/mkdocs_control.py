@@ -9,7 +9,7 @@ Classes:
 import psutil
 import time as t
 import os
-from typing import TextIO
+from typing import TextIO, Any
 import subprocess  # nosec B404
 from pathlib import Path
 from fnmatch import fnmatch
@@ -20,6 +20,7 @@ from django.template.loader import render_to_string
 
 import app.functions.constants as c
 from app.functions.projects_builder import ProjectBuilder
+from app.functions.doctring_manipulation import DocstringManipulation
 
 
 class MkdocsControl:
@@ -34,7 +35,7 @@ class MkdocsControl:
         self.project_id: int = 0
         self.process_name: str = "mkdocs"
         self.process_arg1: str = "serve"
-        self.project_path: str = ""
+        self.documentation_pages: str = ""
         self.project_folder: str = ""
 
         if not isinstance(project_id, int):
@@ -50,115 +51,173 @@ class MkdocsControl:
                 f"'project_id of '{ project_id }' must be 1 or more"
             )
 
-        self.project_path = f"/documentation-pages/project_{ self.project_id }"
+        self.documentation_pages = (
+            f"/documentation-pages/project_{ self.project_id }"
+        )
 
-        if not Path(self.project_path).is_dir():
-            Path(self.project_path).mkdir(parents=True, exist_ok=True)
+        if not Path(self.documentation_pages).is_dir():
+            Path(self.documentation_pages).mkdir(parents=True, exist_ok=True)
 
-        self.documents_directory = f"{ projects_folder }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }"
+        self.project_folder = f"{ projects_folder }project_{ project_id }/"
 
+        self.documents_directory = (
+            f"{ self.project_folder }{ c.CLINICAL_SAFETY_FOLDER }"
+        )
+
+        # TODO #56 - was this meant to check projects_folder or project_folder (not the s)
         if not Path(projects_folder).is_dir():
             raise FileExistsError(f"'{ projects_folder }' does not exist")
 
         return
 
-    def preprocessor(self) -> str:
-        """Adds all hazard to the hazards-template page
+    def preprocessor(self, entry_type: str = "hazard") -> str:
+        """Adds all entry to the entries-summary page
 
         Returns:
             str: a string of outcomes from function, formatted for html
         """
-        hazards_dir: str = f"{ self.documents_directory }docs/hazards/"
-        hazards_hazards_dir: str = f"{ hazards_dir }hazards/"
-        hazard_template_dir: str = f"{ self.documents_directory }templates/"
+        entries_dir: str = f"{ self.documents_directory }docs/{ entry_type }s/"
+        entries_entries_dir: str = f"{ entries_dir }{ entry_type }s/"
+        entry_template_dir: str = f"{ self.documents_directory }templates/"
         files_to_check: list[str] = []
+        docstring: DocstringManipulation()
         # file
-        # hazard_file
+        # entry_file
         contents_str: str = ""
         # file_name
-        # hazard_name
-        # hazard_number
-        # hazard_name_match
+        # entry_name
+        # entry_number
+        # entry_name_match
         warnings: str = ""
-        hazards: list[dict] = []
+        entries: list[dict] = []
         project: ProjectBuilder
-        new_key: str = ""
-        contents_list: dict = {}
-        contents_list_snake_eye: dict = {}
+        contents_list: dict[str, str] = {}
+        entry_form: dict[str, Any]
+        icon_html: str = ""
+        code_html: str = ""
+        referenced_hazards: list[dict[str, Any]] = []
+        function_hazards: list[str] = []
 
-        if not Path(hazards_dir).is_dir():
+        if not Path(entries_dir).is_dir():
             return (
                 "<b>Failed preprocessor</b>"
                 "<br><hr>"
-                f"'{ hazards_dir }' directory does not exist"
+                f"'{ entries_dir }' directory does not exist"
                 "<br><hr>"
             )
 
-        if not Path(hazards_hazards_dir).is_dir():
-            Path(hazards_hazards_dir).mkdir(parents=True, exist_ok=True)
+        if not Path(entries_entries_dir).is_dir():
+            Path(entries_entries_dir).mkdir(parents=True, exist_ok=True)
             return (
                 "<b>Preprocessor passed with INFO</b>"
                 "<br><hr>"
-                "INFO - '{ hazards_hazards_dir }' directory did not exist, now created"
+                f"INFO - '{ entries_entries_dir }' directory did not exist, now created"
                 "<br><hr>"
             )
 
-        for path, _, files in os.walk(hazards_hazards_dir):
+        for path, _, files in os.walk(entries_entries_dir):
             for name in files:
                 if fnmatch(name, "*.md"):
                     files_to_check.append(os.path.join(path, name))
 
         # Sort the list of file paths based on the file numbers
-        files_to_check = sorted(files_to_check, key=self.get_file_number)
+        files_to_check = sorted(files_to_check, reverse=True)
 
         if not len(files_to_check):
             return (
                 "<b>Preprocessor passed with INFO</b>"
                 "<br><hr>"
-                f"INFO - No hazards found in '{ hazards_hazards_dir }' folder. \
-                Hazards summary page could not be created"
+                f"INFO - No entries found in '{ entries_entries_dir }' folder."
+                "Entries summary page could not be created"
                 "<br><hr>"
             )
 
-        # TODO - should check there are no files with same hazard number (eg hazard-1 and hazard-01 and hazard-001)
+        # TODO - should check there are no files with same entry number (eg hazard-1 and hazard-01 and hazard-001)
+
+        docstring = DocstringManipulation(self.project_id)
+        referenced_hazards = docstring.docstring_all()
 
         for file in files_to_check:
-            hazard_file = open(file, "r")
-            contents_str = hazard_file.read()
+            icon_html = ""
+            function_hazards = []
+
+            entry_file = open(file, "r")
+            contents_str = entry_file.read()
             file_name = Path(file).stem
 
             try:
-                hazard_number = file_name.split("-")[1]
-                if not hazard_number.isdigit():
-                    hazard_number = "[Non-digit hazard number]"
-                    warnings += f"WARNING - A non-digit 'number' in hazard file name '{ file_name }'"
+                entry_number = file_name.split("-")[1]
+                if not entry_number.isdigit():
+                    entry_number = "[Non-digit entry number]"
+                    warnings += f"WARNING - A non-digit 'number' in entry file name '{ file_name }'"
             except:
-                hazard_number = "[Number not defined]"
+                entry_number = "[Number not defined]"
+
+            for function_info in referenced_hazards:
+                for hazard in function_info["hazards"]:
+                    if hazard["hazard_number"] == entry_number:
+                        function_hazards.append(function_info["doc_file_path"])
+
+                        # print(entry_number)
+                        # print(function_hazards)
 
             project = ProjectBuilder(self.project_id)
-            contents_list: dict[str, str] = project.hazard_file_read(file)
+            contents_list = project.entry_read_with_field_types(file)
 
-            hazards.append(
+            for field in contents_list:
+                if field["field_type"] == "icon":
+                    env = Environment(
+                        loader=FileSystemLoader(entry_template_dir)
+                    )
+                    template = env.get_template(f"{ entry_type }-icons.md")
+                    context = {"contents_list": contents_list}
+                    icon_html = template.render(context)
+                    icon_html = f"{ icon_html }\n<!-- [iconend] -->"
+
+                elif field["field_type"] == "code":
+                    code_html = ""
+
+                    for function in referenced_hazards:
+                        for hazard in function["hazards"]:
+                            if hazard["hazard_number"] == entry_number:
+                                code_html += f"[{ function['function_name'] }](../../{ function['doc_file_path'] }#hazards)\n"
+
+                    code_html = code_html.rstrip("\n")
+
+                    if not code_html:
+                        code_html = "Hazard not mentioned in code source"
+
+            entry_form = project.entry_file_read_to_form(
+                contents_list, icon_html, code_html
+            )
+
+            project.entry_update(entry_form, entry_type, entry_number)
+            pattern = re.compile(
+                r"<!--\s*\[icon\]\s*-->.*?<!--\s*\[iconend\]\s*-->",
+                re.DOTALL,
+            )
+            contents_str = re.sub(pattern, "", contents_str)
+            contents_str = contents_str.replace("../../", "../")
+            icon_html = icon_html.replace("../../", "../")
+            icon_html = icon_html.replace(
+                'class="icon-large"', 'class="icon-small"'
+            )
+
+            entries.append(
                 {
-                    "number": hazard_number,
+                    "number": entry_number,
                     "contents_str": contents_str,
                     "contents_list": contents_list,
+                    "icon_html": icon_html,
                 }
             )
 
-        # Specify the path to the template file and create a Jinja environment
-        env = Environment(loader=FileSystemLoader(hazard_template_dir))
-
-        # Load the template by name
-        template = env.get_template("hazard-summary.md")
-
-        # Define the context data
-        context = {"hazards": hazards}
-
-        # Render the template with the context data
+        # Creating the summary
+        env = Environment(loader=FileSystemLoader(entry_template_dir))
+        template = env.get_template(f"{ entry_type }-summary.md")
+        context = {"entries": entries}
         md_content = template.render(context)
-
-        summary_file = open(f"{ hazards_dir }{ c.HAZARDS_SUMMARY_FILE}", "w")
+        summary_file = open(f"{ entries_dir }{ entry_type }-summary.md", "w")
         summary_file.write(md_content)
         summary_file.close()
 
@@ -171,27 +230,6 @@ class MkdocsControl:
             )
         else:
             return "<b>Successful preprocessor step</b>" "<br><hr>"
-
-    def get_file_number(self, file_path: str) -> int | float:
-        """Get the file number
-
-        Args:
-             file_path (str): the string of the file to get a value from
-
-        Returns:
-            int | float: int returned of number, otherwise a very large float is
-                         returned. # TODO #49 - may change this!
-        """
-        try:
-            return int(
-                file_path.split("-")[-1].split(
-                    c.MKDOCS_TEMPLATE_NUMBER_DELIMITER
-                )[0]
-            )
-        except (ValueError, IndexError):
-            return float(
-                "inf"
-            )  # Return a large number if no valid file number is found
 
     def build(self) -> str:
         """ """
@@ -235,82 +273,4 @@ class MkdocsControl:
         stderr_result = command_output.stderr.replace("\n", "<br>")
         command_output_html += f"<b>Stderr:</b> { stderr_result }"
 
-        # print(command_output.stderr.encode("utf-8"))
-
-        # print(command_output)
-
         return command_output_html
-
-    def is_process_running(self) -> bool:
-        """Checks if there is an instance of an mkdocs serve running
-
-        Returns:
-            bool: True is running, False if not running
-        """
-        process: psutil.Process  # TODO can this be initialised to something?
-
-        for process in psutil.process_iter(["pid", "name"]):
-            if process.info["name"] == self.process_name:  # type: ignore[attr-defined]
-                return True
-        return False
-
-    # TODO: need to have error managment in this function
-    def start(self, wait: bool = False) -> bool:
-        """Tests if an instance of mkdocs serve is running
-
-        Args:
-            wait (bool): set to True to wait for the mkdocs instance to start before
-                  exiting the method.
-
-        Returns:
-            bool: when wait = True, if mkdocs does not start up in alloated
-                  time, False is returned.
-        """
-        n: int = 0
-        file: TextIO
-
-        if not self.is_process_running():
-            # Needed to use shell script to stop blocking and the creation of
-            # zombies
-            os.chdir(self.cwd_sh)
-            file = open("mkdocs_serve.sh", "w")
-            file.write("#!/bin/bash\n")
-            file.write("mkdocs serve > /dev/null 2>&1 &")
-            file.close()
-            subprocess.Popen(
-                ["/usr/bin/sh", f"{ self.cwd_sh }mkdocs_serve.sh"], shell=False
-            )  # nosec B603
-
-            if wait:
-                while not self.is_process_running():
-                    t.sleep(c.TIME_INTERVAL)
-                    n += 1
-                    if n > c.MAX_WAIT:
-                        return False
-        return True
-
-    def stop(self, wait: bool = False) -> bool:
-        """Stops all instances of mkdocs serve that are running
-
-        Args:
-            wait (bool): set to True to wait for the mkdocs instance to stop before
-                  exiting the method.
-
-        Returns:
-            bool: when wait = True, if mkdocs does not stop in alloated
-                  time, False is returned
-        """
-        process: psutil.Process
-        n: int = 0
-
-        for process in psutil.process_iter(["pid", "name"]):
-            if process.info["name"] == self.process_name:  # type: ignore[attr-defined]
-                process.kill()
-                # subprocess.Popen(["pkill", "-f", self.process_name])
-                if wait:
-                    while self.is_process_running():
-                        t.sleep(c.TIME_INTERVAL)
-                        n += 1
-                        if n > c.MAX_WAIT:
-                            return False
-        return True

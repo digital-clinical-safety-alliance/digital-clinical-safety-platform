@@ -17,6 +17,8 @@ from django.http import HttpRequest
 from pathlib import Path
 from git import Repo
 from django.utils import timezone
+from functools import wraps
+import glob
 
 from django.shortcuts import get_object_or_404
 
@@ -25,6 +27,7 @@ import app.functions.constants as c
 from app.functions.env_manipulation import ENVManipulator
 from app.functions.git_control import GitHubController
 from app.functions.text_manipulation import kebab_to_title
+from app.functions.general_fuctions import list_to_string
 
 from ..models import (
     User,
@@ -40,29 +43,60 @@ class ProjectBuilder:
     def __init__(
         self,
         project_id: int = 0,
-        template_directory: str = c.DOCUMENT_TEMPLATES,
+        template_dir: str = c.DOCUMENT_TEMPLATES,
     ) -> None:
         """ """
         self.project_id: int = 0
-        self.template_directory: str = ""
-        self.project_CS_documents: str = ""
-        self.placeholders_yml_path: str = ""
-        self.disallow_edits: bool = False
+        self.template_dir: str = ""
+        self.safety_dir: str = ""
+        self.placeholders_yaml: str = ""
+        self.new_build: bool = False
 
         if project_id == 0:
-            self.disallow_edits = True
+            self.new_build = True
         elif project_id < 0:
             raise ValueError(
                 f"'project_id' '{ project_id }' is not a positive integer"
             )
 
         self.project_id = project_id
-        self.template_directory: str = template_directory
-        self.project_CS_documents = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }"
-        self.CS_documents_docs: str = f"{ self.project_CS_documents }docs/"
-        self.placeholders_yml_path = (
-            f"{ self.project_CS_documents }/docs/placeholders.yml"
-        )
+        self.template_dir: str = template_dir
+        self.safety_dir = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }"
+        self.documents_yaml = f"{ self.safety_dir }documents.yml"
+        self.docs_dir: str = f"{ self.safety_dir }docs/"
+        self.placeholders_yaml = f"{ self.docs_dir }placeholders.yml"
+        self.templates_dir: str = f"{ self.safety_dir }templates/"
+
+        return
+
+    def new_build_prohibit(func):
+        """A decorator checking if a method can be used
+
+        If used, this decorator only allows a method to be used if a project_id is specified
+
+        functions:
+            wrapper: checks if
+        """
+
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            """Wraps around the page function.
+
+            Args:
+                request (HttpRequest):
+                project_id (str): datanase primary key for project
+
+            Returns:
+                HttpResponse | func: error responses or runs func.
+            """
+            if self.new_build:
+                raise SyntaxError(
+                    "This function is not allowed for a new-build project (with no primary key)"
+                )
+
+            return func(self, *args, **kwargs)
+
+        return wrapper
 
     def new_build(self, request: HttpRequest) -> Tuple[bool, str]:
         """ """
@@ -166,7 +200,7 @@ class ProjectBuilder:
 
         return True, "All passed"
 
-    def get_templates(self) -> list[str]:
+    def document_templates_get(self) -> list[str]:
         """Get the different types of templates available
 
         Looks in the template folder for subfolders, which it lists as
@@ -195,37 +229,31 @@ class ProjectBuilder:
 
         return sorted(templates, key=str.lower)
 
+    @new_build_prohibit
     def configuration_get(self) -> dict[str, str]:
         """ """
-        configration_file: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }config.ini"
+        configration_file: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }setup.ini"
         config: ENVManipulator = ENVManipulator(configration_file)
         setup_step: None | str = None
 
-        if self.disallow_edits:
-            raise SyntaxError(
-                "This function is not allowed for a new-build project (with no primary key)"
-            )
-
         setup_step = config.read("setup_step")
+
         if not setup_step.isdigit():
             setup_step = "0"
             config.add("setup_step", setup_step)
 
         return {"setup_step": int(setup_step)}
 
+    @new_build_prohibit
     def configuration_set(self, key: str, value: str) -> None:
         """ """
-        configration_file: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }config.ini"
+        configration_file: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }setup.ini"
         config: ENVManipulator = ENVManipulator(configration_file)
-
-        if self.disallow_edits:
-            raise SyntaxError(
-                "This function is not allowed for a new-build project (with no primary key)"
-            )
 
         config.add(key, str(value))
         return
 
+    @new_build_prohibit
     def copy_templates(self, template_chosen: str) -> None:
         """Copies a template to the clinical safety folder
 
@@ -243,12 +271,6 @@ class ProjectBuilder:
         template_chosen_path: str = (
             f"{ self.template_directory }{ template_chosen }"
         )
-        # project_CS_doc
-
-        if self.disallow_edits:
-            raise SyntaxError(
-                "This function is not allowed for a new-build project (with no primary key)"
-            )
 
         if not os.path.isdir(template_chosen_path):
             raise FileNotFoundError(
@@ -257,11 +279,12 @@ class ProjectBuilder:
 
         shutil.copytree(
             template_chosen_path,
-            self.project_CS_documents,
+            self.safety_dir,
             dirs_exist_ok=True,
         )
         return
 
+    @new_build_prohibit
     def get_placeholders(self) -> dict[str, str]:
         """Returns the placeholders found in markdown files
 
@@ -290,19 +313,14 @@ class ProjectBuilder:
         doc_Regex: Pattern[str]
         placeholder: str = ""
 
-        if self.disallow_edits:
-            raise SyntaxError(
-                "This function is not allowed for a new-build project (with no primary key)"
-            )
-
-        for path, _, files in os.walk(self.CS_documents_docs):
+        for path, _, files in os.walk(self.docs_dir):
             for name in files:
                 if fnmatch(name, "*.md"):
                     files_to_check.append(os.path.join(path, name))
 
         if not len(files_to_check):
             raise FileNotFoundError(
-                f"No files found in mkdocs '{ self.CS_documents_docs }' folder"
+                f"No files found in mkdocs '{ self.docs_dir }' folder"
             )
 
         for file in files_to_check:
@@ -316,7 +334,7 @@ class ProjectBuilder:
                     placeholders_raw.append(placeholder)
             file_ptr.close()
 
-        if os.path.exists(self.placeholders_yml_path):
+        if os.path.exists(self.placeholders_yaml):
             stored_placeholders = self.read_placeholders()
 
         for placeholder in placeholders_raw:
@@ -330,6 +348,7 @@ class ProjectBuilder:
 
         return placeholders_clean
 
+    @new_build_prohibit
     def save_placeholders(self, placeholders: dict[str, str]) -> None:
         """Saves placeholders to yaml
 
@@ -346,15 +365,11 @@ class ProjectBuilder:
         placeholders_extra: dict = {"extra": placeholders}
         file: TextIO
 
-        if self.disallow_edits:
-            raise SyntaxError(
-                "This function is not allowed for a new-build project (with no primary key)"
-            )
-
-        with open(self.placeholders_yml_path, "w") as file:
+        with open(self.placeholders_yaml, "w") as file:
             yaml.dump(placeholders_extra, file)
         return
 
+    @new_build_prohibit
     def read_placeholders(self) -> dict[str, str]:
         """Read placeholders from yaml file
 
@@ -371,17 +386,12 @@ class ProjectBuilder:
         return_dict: dict[str, str] = {}
         file: TextIO
 
-        if self.disallow_edits:
-            raise SyntaxError(
-                "This function is not allowed for a new-build project (with no primary key)"
-            )
-
-        if not os.path.isfile(self.placeholders_yml_path):
+        if not os.path.isfile(self.placeholders_yaml):
             raise FileNotFoundError(
-                f"'{ self.placeholders_yml_path }' is not a valid path"
+                f"'{ self.placeholders_yaml }' is not a valid path"
             )
 
-        with open(self.placeholders_yml_path, "r") as file:
+        with open(self.placeholders_yaml, "r") as file:
             placeholders_extra = yaml.safe_load(file)
 
         try:
@@ -392,6 +402,7 @@ class ProjectBuilder:
             )
         return return_dict
 
+    @new_build_prohibit
     def available_hazard_labels(self, details: str = "full") -> list:
         """Provides a list of available hazard labels
 
@@ -413,11 +424,6 @@ class ProjectBuilder:
         label_names_only: list[str] = []
         templates_location: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }templates/"
         labels_path = f"{templates_location}{ c.HAZARD_LABELS_FILE }"
-
-        if self.disallow_edits:
-            raise SyntaxError(
-                "This function is not allowed for a new-build project (with no primary key)"
-            )
 
         if details != "full" and details != "name_only":
             raise ValueError(
@@ -454,6 +460,7 @@ class ProjectBuilder:
                 "terrible",
             ]  # label_names_only
 
+    @new_build_prohibit
     def verify_hazard_label(self, label: str) -> bool:
         """Checks if a label name is valid
 
@@ -469,17 +476,13 @@ class ProjectBuilder:
         issues_yml: list = self.available_hazard_labels("name_only")
         label_name: str = ""
 
-        if self.disallow_edits:
-            raise SyntaxError(
-                "This function is not allowed for a new-build project (with no primary key)"
-            )
-
         for label_name in issues_yml:
             if label.lower() in label_name.lower():
                 return True
 
         return False
 
+    @new_build_prohibit
     def entry_exists(self, entry_type: str, id: str) -> bool:
         """Checks if an entry of certain type exists
 
@@ -503,7 +506,8 @@ class ProjectBuilder:
                         return True
         return False
 
-    def hazard_file_read(
+    @new_build_prohibit
+    def entry_file_read(
         self, non_template_path: str = ""
     ) -> list[dict[str, Any]]:
         """ """
@@ -513,6 +517,7 @@ class ProjectBuilder:
         headed: bool = False
         horizontal_line: str = ""
         horizontal_line_numbered: str = ""
+        icon_line_numbered: str = ""
         MAX_LOOP: int = 100
         templates_location: str = ""
         hazard_file_path: str = ""
@@ -520,6 +525,8 @@ class ProjectBuilder:
         choices_list: list = []
         choices_dict_split: dict = {}
         potential_number: str = ""
+        heading_numbered: str = ""
+        code_line_numbered: str = ""
 
         if non_template_path == "":
             templates_location: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }templates/"
@@ -528,11 +535,6 @@ class ProjectBuilder:
             )
         else:
             hazard_file_path = non_template_path
-
-        if self.disallow_edits:
-            raise SyntaxError(
-                "This function is not allowed for a new-build project (with no primary key)"
-            )
 
         if not Path(hazard_file_path).is_file():
             raise FileExistsError(f"'{ hazard_file_path }' does not exists")
@@ -545,8 +547,20 @@ class ProjectBuilder:
             line = line.strip()
 
             if re.match(r"^#", line):
-                heading = line
                 headed = True
+
+                """heading = self._heading_numbering(line, content_list)
+
+                content_list.append(
+                    {
+                        "field_type": "text_area",  # This is changed later if needed
+                        "heading": heading,
+                        "gui_label": self._create_gui_label(heading),
+                        "text": "",
+                    }
+                )"""
+
+                heading = line
 
                 if not any(d["heading"] == heading for d in content_list):
                     content_list.append(
@@ -614,6 +628,35 @@ class ProjectBuilder:
                             # TODO #46 - need a soft fail state and user update
                             raise ValueError(f"For loop over { MAX_LOOP }!")
 
+            elif re.match(r"^<!--\s*\[\s*icon\s*\]\s*-->$", line):
+                headed = False
+
+                if not any(d["heading"] == line for d in content_list):
+                    content_list.append(
+                        {
+                            "field_type": "icon",
+                            "heading": "icon",
+                        }
+                    )
+                else:
+                    for x in range(2, MAX_LOOP):
+                        icon_line_numbered = f"{ horizontal_line } [{ x }]"
+
+                        if not any(
+                            d["heading"] == icon_line_numbered
+                            for d in content_list
+                        ):
+                            content_list.append(
+                                {
+                                    "field_type": "icon",
+                                    "heading": icon_line_numbered,
+                                }
+                            )
+                            break
+                        if x == MAX_LOOP:
+                            # TODO #46 - need a soft fail state and user update
+                            raise ValueError(f"For loop over { MAX_LOOP }!")
+
             elif headed and line:
                 if line[0] == "[":
                     pattern = r"\[([^\]]+)\]"
@@ -627,6 +670,9 @@ class ProjectBuilder:
                             content_list[-1]["field_type"] = "multiselect"
                         elif argument == "calculate":
                             content_list[-1]["field_type"] = "calculate"
+                        elif argument == "code":
+                            content_list[-1]["field_type"] = "code"
+                            # content_list[-1]["text"] = "<!-- [code] -->"
                         else:
                             content_list[-1]["labels"].append(argument)
                 else:
@@ -682,16 +728,63 @@ class ProjectBuilder:
         # print(content_list)
         return content_list
 
-    def _create_gui_label(self, string: str) -> str:
+    def entry_read_with_field_types(
+        self, entry_file_path: str
+    ) -> list[dict[str, Any]]:
         """ """
-        # print(string)
+        entry: list[dict[str, Any]] = self.entry_file_read(entry_file_path)
+        template: list[dict[str, Any]] = self.entry_file_read()
+
+        # print(template)
+        # print(entry)
+
+        for index_entry, field_entry in enumerate(entry):
+            for field_template in template:
+                if field_entry["heading"] == field_template["heading"]:
+                    entry[index_entry]["field_type"] = field_template[
+                        "field_type"
+                    ]
+        # print(entry)
+        return entry
+
+    def _heading_numbering(self, heading: str, content_list: list[str]) -> str:
+        """ """
+        heading = heading.strip()
+
+        if not any(d["heading"] == heading for d in content_list):
+            return heading
+
+        else:
+            for x in range(2, c.HEADING_MAX_LOOP):
+                heading_numbered = f"{ heading } [{ x }]"
+                if not any(
+                    d["heading"] == heading_numbered for d in content_list
+                ):
+                    return heading_numbered
+
+                if x == (c.HEADING_MAX_LOOP - 1):
+                    # TODO #46 - need a soft fail state and user update
+                    raise ValueError("For loop over { MAX_LOOP }!")
+
+    def _create_gui_label(self, string: str) -> str:
+        """Create user readable label
+
+        User reable string
+
+        Args:
+            string (str): the string to change
+
+        Returns:
+            string: the user readable string in Title form
+        """
 
         string = string.replace("#", "")
         string = string.strip()
         string = kebab_to_title(string)
         return string
 
-    def entry_create(
+    @new_build_prohibit
+    def entry_update(
         self,
         form_data: dict[str, str],
         entry_type: str = "hazard",
@@ -701,10 +794,13 @@ class ProjectBuilder:
         TESTING_CREATION: bool = False
         hazards_directory: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/{ entry_type }s/{ entry_type }s/"
         files_to_check: list[str] = []
-        hazard_file: TextIO
+        entry_file: TextIO
         pattern: Pattern
         results: dict[str, Any] = []
         id_int: int = 0
+        to_write: str = ""
+
+        # print(form_data)
 
         if not Path(hazards_directory).is_dir():
             Path(hazards_directory).mkdir(parents=True, exist_ok=True)
@@ -739,17 +835,25 @@ class ProjectBuilder:
         # Used to remove number in square brackets (eg "[2]") at end of keys
         pattern = re.compile(r"\s*\[\d+\]$")
 
-        hazard_file = open(f"{ hazards_directory }hazard-{ id_int }.md", "w")
+        entry_file = open(f"{ hazards_directory }hazard-{ id_int }.md", "w")
+
         for key, value in form_data.items():
-            hazard_file.write(f"{ re.sub(pattern, '', key) }\n")
+            to_write = re.sub(pattern, "", key)
+            if to_write == "icon":
+                entry_file.write("<!-- [icon] -->\n")
+            else:
+                entry_file.write(f"{ to_write }\n")
+
             if isinstance(value, list):
                 for item in value:
-                    hazard_file.write(f"{ item}\n\n")
+                    entry_file.write(f"{ item }\n\n")
             else:
-                hazard_file.write(f"{ value }\n\n")
+                entry_file.write(f"{ value }\n\n")
+        """elif to_write == "code":
+                entry_file.write("to_write<!-- [code] -->\n")"""
+        entry_file.close()
 
-        hazard_file.close()
-
+        # TODO #54 need to get ride of the 404 in this none view.py code
         project = get_object_or_404(Project, id=self.project_id)
         project.last_modified = timezone.now()
         project.save()
@@ -758,23 +862,90 @@ class ProjectBuilder:
             "pass": True,
             "id": id_int,
             "name": next(iter(form_data.values())),
-            "hazard_url": f"/hazards/hazards/hazard-{ id_int }.html",
+            "hazard_url": f"hazards/hazards/hazard-{ id_int }.html",
         }
 
         return results
 
+    def entry_file_read_to_form(
+        self,
+        file_read: list[dict[str, Any]],
+        icon_html: str = "",
+        code_html: str = "",
+    ) -> dict[str, Any]:
+        """ """
+        element: dict[str, Any] = {}
+        entry_form: dict[str, Any] = {}
+        key: str = ""
+
+        for element in file_read:
+            if element["field_type"] == "icon":
+                # print("icon")
+                # To copy across ' [number]' if present
+                key = element["heading"].replace("icon", "")
+                key = f"<!-- [icon] -->{ key }"
+                entry_form[key] = f"{ icon_html }"
+
+            elif element["field_type"] == "code":
+                # print("code")
+                entry_form[
+                    element["heading"]
+                ] = f"<!-- [code] -->\n{ code_html }\n<!-- [codeend] -->"
+
+            elif element["field_type"] == "horizontal_line":
+                entry_form[element["heading"]] = ""
+
+            # TODO #55 might need to consider updating the file_read to include field_types
+            # only the template gives this information at the moment
+            elif "number" in element:
+                entry_form[element["heading"]] = element["text"].replace(
+                    "\n", "\n\n"
+                )
+
+            else:
+                # print(element["heading"])
+                entry_form[element["heading"]] = element["text"]
+
+        return entry_form
+
+    @new_build_prohibit
+    def entry_template_names(self) -> list:
+        """ """
+        templates: list[Path] = Path(self.templates_dir).glob("*-template.md")
+        templates = [file.stem for file in templates]
+        templates_prefix: list[str] = []
+        documents_config: dict[str] = {}
+
+        for template in templates:
+            templates_prefix.append(str(template).replace("-template", ""))
+
+        if Path(self.documents_yaml).is_file():
+            with open(self.documents_yaml, "r") as file:
+                documents_config = yaml.safe_load(file)
+            try:
+                entried_ordered = documents_config["entries"]
+
+            except KeyError:
+                pass
+            else:
+                order_dict = {
+                    element: index
+                    for index, element in enumerate(entried_ordered)
+                }
+                templates_prefix = sorted(
+                    templates_prefix,
+                    key=lambda x: order_dict.get(x, float("inf")),
+                )
+
+        return templates_prefix
+
+    @new_build_prohibit
     def hazards_all_get(self) -> list[str]:
         """Get all of the hazards for the project
 
         Returns:
             list[str]: A list of all hazards found for a project.
         """
-
-        if self.disallow_edits:
-            raise SyntaxError(
-                "This function is not allowed for a new-build project (with no primary key)"
-            )
-
         documents_directory = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }"
         hazards_dir: str = f"{ documents_directory }docs/hazards/"
         hazards_hazards_dir: str = f"{ hazards_dir }hazards/"
@@ -800,12 +971,13 @@ class ProjectBuilder:
             hazard_with_attributes = [
                 {"file": file, "number": matches.group(1)}
             ]
-            hazard_with_attributes.extend(self.hazard_file_read(file))
+            hazard_with_attributes.extend(self.entry_file_read(file))
             hazards_list.append(hazard_with_attributes)
 
-            print(hazards_list)
+            # print(hazards_list)
         return hazards_list
 
+    @new_build_prohibit
     def form_initial(self, entry_type: str, id: int) -> dict:
         """Return data for initialising a django form
 
@@ -817,17 +989,13 @@ class ProjectBuilder:
         Returns:
             dict: dictionary of the fields initial values
         """
-        if self.disallow_edits:
-            raise SyntaxError(
-                "This function is not allowed for a new-build project (with no primary key)"
-            )
         file_path: str = ""
         data: list[dict[str, str]] = []
         data_initial: dict = {}
 
         file_path = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/{ entry_type }s/{ entry_type }s/{ entry_type }-{ id }.md"
-        template = self.hazard_file_read()
-        data = self.hazard_file_read(file_path)
+        template = self.entry_file_read()
+        data = self.entry_file_read(file_path)
 
         for field_data in data:
             for field_template in template:
@@ -835,13 +1003,125 @@ class ProjectBuilder:
                     if field_template["field_type"] == "multiselect":
                         selected_options = field_data["text"].split("\n")
                         data_initial[field_data["heading"]] = selected_options
-                    elif field_template["field_type"] != "horizontal_line":
-                        print(field_data["heading"])
+
+                    elif field_template["field_type"] == "code":
+                        data_initial[field_data["heading"]] = "<!-- [code] -->"
+
+                    elif (
+                        field_template["field_type"] != "horizontal_line"
+                        and field_template["field_type"] != "icon"
+                    ):
                         data_initial[field_data["heading"]] = field_data[
                             "text"
                         ]
 
         return data_initial
+
+    @new_build_prohibit
+    def document_create_check(self, path: str) -> Tuple[bool, str]:
+        """Checks and creates a new document
+
+        Args:
+            path (str): the path (after the /docs/ folder) of the file to be
+                        created.
+
+        Returns;
+            Tuple: bool for if successful or not. String for error messsages.
+        """
+        docs_directory = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        successful_creation: bool = True
+        error_messages: list[str] = []
+
+        full_path = Path(docs_directory).joinpath(Path(path))
+
+        if full_path.is_file():
+            successful_creation = False
+            error_messages.append("file already exists")
+
+        return successful_creation, error_messages
+
+    @new_build_prohibit
+    def document_create(self, path: str) -> bool:
+        """Creates the document
+
+        Args:
+            path (str): the path (after the /docs/ folder) of the file to be
+                        created.
+
+        Returns;
+            Tuple: bool for if successful or not. String for error messsages.
+        """
+        docs_directory = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+
+        full_path = Path(docs_directory).joinpath(Path(path))
+        try:
+            open(full_path, "w").close()
+        except:
+            return False
+        else:
+            return True
+
+    @new_build_prohibit
+    def documents_list(self) -> list[str]:
+        """Returns documents for the project
+
+        Returns a list of documents for the clinical safety project. An entries
+        (eg, hazards, incidences) are removed from this list.
+
+        Returns:
+            list[str]: a list of documents for the project, minus any "entries".
+        """
+        docs_location = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        excluded_directory: list[str] = self._entry_templates_exclude()
+        exclude: bool = False
+        md_files: list = []
+
+        if not os.path.isdir(docs_location):
+            raise FileNotFoundError(
+                f"{ docs_location } is not a valid folder location"
+            )
+
+        for path, dir, files in os.walk(docs_location):
+            for name in files:
+                exclude = False
+                if fnmatch(name, "*.md"):
+                    file_full_name = os.path.join(path, name)
+                    file_full_name = file_full_name.replace(docs_location, "")
+
+                    for directory in excluded_directory:
+                        if file_full_name.startswith(directory):
+                            exclude = True
+
+                    if not exclude:
+                        md_files.append(file_full_name)
+
+        return md_files
+
+    @new_build_prohibit
+    def _entry_templates_list(self) -> list[str]:
+        """ """
+        entry_templates_location = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }templates/"
+        templates: list[str] | Path = []
+
+        templates = Path(entry_templates_location).rglob(
+            f"*{ c.TEMPLATE_SUFFIX }"
+        )
+
+        templates = [file_path.name for file_path in templates]
+        # print(templates)
+        return templates
+
+    def _entry_templates_exclude(self) -> list[str]:
+        """ """
+        directories_to_exclude: list[str] = []
+        templates: list[str] = self._entry_templates_list()
+
+        for template in templates:
+            directories_to_exclude.append(
+                template.replace(c.TEMPLATE_SUFFIX, "s/")
+            )
+
+        return directories_to_exclude
 
 
 class Builder:
@@ -866,7 +1146,7 @@ class Builder:
         self.mkdocs_dir: str = ""
         self.docs: str = ""
         self.template_dir: str = ""
-        self.placeholders_yml_path: str = ""
+        self.placeholders_yaml: str = ""
 
         if not os.path.isdir(str(mkdocs_dir)):
             raise FileNotFoundError(
@@ -897,10 +1177,10 @@ class Builder:
         self.mkdocs_dir = str(mkdocs_dir)
         self.docs = str(docs)
         self.template_dir = str(template_dir)
-        self.placeholders_yml_path = str(placeholders_yml_path)
+        self.placeholders_yaml = str(placeholders_yml_path)
         return None
 
-    def get_templates(self) -> list[str]:
+    def document_templates_get(self) -> list[str]:
         """Get the different types of templates available
 
         Looks in the template folder for subfolders, which it lists as
@@ -1028,7 +1308,7 @@ class Builder:
                     placeholders_raw.append(p)
             f.close()
 
-        if os.path.exists(self.placeholders_yml_path):
+        if os.path.exists(self.placeholders_yaml):
             stored_placeholders = self.read_placeholders()
 
         for p in placeholders_raw:
@@ -1056,7 +1336,7 @@ class Builder:
         placeholders_extra: dict = {"extra": placeholders}
         file: TextIO
 
-        with open(self.placeholders_yml_path, "w") as file:
+        with open(self.placeholders_yaml, "w") as file:
             yaml.dump(placeholders_extra, file)
         return
 
@@ -1076,12 +1356,12 @@ class Builder:
         return_dict: dict[str, str] = {}
         file: TextIO
 
-        if not os.path.isfile(self.placeholders_yml_path):
+        if not os.path.isfile(self.placeholders_yaml):
             raise FileNotFoundError(
-                f"'{ self.placeholders_yml_path }' is not a valid path"
+                f"'{ self.placeholders_yaml }' is not a valid path"
             )
 
-        with open(self.placeholders_yml_path, "r") as file:
+        with open(self.placeholders_yaml, "r") as file:
             placeholders_extra = yaml.safe_load(file)
 
         try:

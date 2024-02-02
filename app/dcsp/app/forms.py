@@ -5,13 +5,13 @@ Classes:
     TemplateSelectForm: placeholder
     PlaceholdersForm: placeholder
     MDFileSelectForm: placeholder
-    MDEditForm: placeholder
+    DocumentUpdateForm: placeholder
     LogHazardForm: placeholder
     HazardCommentForm: placeholder
     UploadToGithubForm: placeholder
 
 Functions:
-    validation_response: placeholder
+    validated_response: placeholder
     md_files: placeholder
 """
 
@@ -30,7 +30,7 @@ import os
 import glob
 from fnmatch import fnmatch
 import sys
-
+from pathlib import Path
 from typing import Any
 
 import app.functions.constants as c
@@ -40,10 +40,10 @@ sys.path.append(c.FUNCTIONS_APP)
 from app.functions.git_control import GitController
 from app.functions.email_functions import EmailFunctions
 from app.functions.projects_builder import ProjectBuilder
-from pathlib import Path
+from app.functions.general_fuctions import valid_linux_path, list_to_string
 
 
-def validation_response(
+def validated_response(
     self, field: str, valid: bool, error_message: str
 ) -> None:
     """A general function to create form validation results
@@ -71,8 +71,7 @@ def validation_response(
 def md_files(project_id: int) -> list:
     """Finds markdown files
 
-    Looks for markdown files in MKDOCS_PATH. Resturns a list of paths relative
-    to MKDOCS_PATH
+    Looks for markdown files in MKDOCS_PATH. Returns a list of paths.
 
     Args:
         project_id (int): project database id number
@@ -81,29 +80,17 @@ def md_files(project_id: int) -> list:
         list: list of paths of markdown files relative to MKDOCS_PATH
 
     Raises:
-        FileNotFoundError: if MKDOCS_PATH is not a valid directory
+        FileNotFoundError: if the docs location is not a valid directory
     """
-    docs_location = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
-    root: str = ""
     md_files: list = []
     file: str = ""
-    file_shortened: str = ""
-    md_files_shortened: list[str] = []
     choices_list: list = []
 
-    if not os.path.isdir(docs_location):
-        raise FileNotFoundError(
-            f"{ docs_location } if not a valid folder location"
-        )
-
-    for root, _, __ in os.walk(docs_location):
-        md_files.extend(glob.glob(os.path.join(root, "*.md")))
+    project: ProjectBuilder = ProjectBuilder(project_id)
+    md_files = project.documents_list()
 
     for file in md_files:
-        md_files_shortened.append(file.replace(docs_location, ""))
-
-    for file_shortened in md_files_shortened:
-        choices_list.append([file_shortened, file_shortened])
+        choices_list.append([file, file])
 
     return choices_list
 
@@ -406,14 +393,14 @@ class InstallationForm(forms.Form):
             email_function = EmailFunctions()
 
             if not email_function.valid_syntax(email):
-                validation_response(
+                validated_response(
                     self,
                     "email_SA",
                     False,
                     f"Email address '{ email }' is invalid. No other processing of credentials will be checked until this error is fixed.",
                 )
             else:
-                validation_response(
+                validated_response(
                     self,
                     "email_SA",
                     True,
@@ -429,14 +416,14 @@ class InstallationForm(forms.Form):
                 )
 
                 credentials_check_results = gc.check_github_credentials()
-                validation_response(
+                validated_response(
                     self,
                     "github_username_SA",
                     bool(credentials_check_results["github_username_exists"]),
                     "Username does not exist on Github",
                 )
 
-                validation_response(
+                validated_response(
                     self,
                     "github_organisation_SA",
                     bool(
@@ -445,14 +432,14 @@ class InstallationForm(forms.Form):
                     "Organisation does not exist on Github",
                 )
 
-                validation_response(
+                validated_response(
                     self,
                     "github_repo_SA",
                     bool(credentials_check_results["repo_exists"]),
                     "Repository does not exist",
                 )
 
-                validation_response(
+                validated_response(
                     self,
                     "github_repo_SA",
                     credentials_check_results["permission"] == "admin",
@@ -466,7 +453,7 @@ class InstallationForm(forms.Form):
             )
 
         if installation_type == "I":
-            validation_response(
+            validated_response(
                 self,
                 "code_location_I",
                 not " " in code_location,
@@ -492,7 +479,7 @@ class TemplateSelectForm(forms.Form):
         """
         super(TemplateSelectForm, self).__init__(*args, **kwargs)
         project: ProjectBuilder = ProjectBuilder()
-        templates: list[str] = project.get_templates()
+        templates: list[str] = project.document_templates_get()
         template: str = ""
         choices_list: list = []
 
@@ -560,7 +547,7 @@ class PlaceholdersForm(forms.Form):
         value: str = ""
 
         for key, value in cleaned_data.items():
-            validation_response(
+            validated_response(
                 self,
                 key,
                 not any(illegal in value for illegal in INVALID_CHARACTERS),
@@ -586,7 +573,7 @@ class MDFileSelectForm(forms.Form):
         super(MDFileSelectForm, self).__init__(*args, **kwargs)
         CHOICES = tuple(md_files(project_id))
 
-        self.fields["mark_down_file"] = forms.ChoiceField(
+        self.fields["document_name"] = forms.ChoiceField(
             choices=CHOICES,
             widget=forms.Select(
                 attrs={
@@ -599,15 +586,64 @@ class MDFileSelectForm(forms.Form):
     # Don't need to clean ChoiceFields apparently
 
 
-class MDEditForm(forms.Form):
+class DocumentNewForm(forms.Form):
+    """ """
+
+    def __init__(self, project_id: int, *args, **kwargs) -> None:
+        """Initialisation of the selection field
+
+        Searches the docs folder and searches for markdown files, noting the
+        any subfolders. These are then provided as a selection field.
+        """
+        super(DocumentNewForm, self).__init__(*args, **kwargs)
+        self.project_id: int = project_id
+
+        self.fields["document_name"] = forms.CharField(
+            help_text="This must be a valid path and end in '.md'",
+            required=True,
+            widget=forms.TextInput(
+                attrs={
+                    "class": "form-control field-color-dcsp font-dcsp border-info"
+                }
+            ),
+        )
+
+    def clean(self) -> dict:
+        """Checks if a valid path"""
+        cleaned_data: Any = self.cleaned_data
+        document_name: str = cleaned_data["document_name"]
+        valid_1: bool = False
+        valid_2: bool = False
+        error_messages_1: list = []
+        error_messages_2: list = []
+
+        valid_1, error_messages_1 = valid_linux_path(document_name)
+
+        project = ProjectBuilder(self.project_id)
+        valid_2, error_messages_2 = project.document_create_check(
+            document_name
+        )
+
+        errors_all = list_to_string(error_messages_1 + error_messages_2)
+
+        validated_response(
+            self,
+            "document_name",
+            valid_1 and valid_2,
+            f"The supplied path is invalid due to: { errors_all }",
+        )
+
+        return cleaned_data
+
+
+class DocumentUpdateForm(forms.Form):
     """Text edit area of selected markdown file
 
     Provides the raw markdown for the selected file.
 
     Fields:
-        document_name: name of the document. This is hidden and used in POST so
-                       that filename can be retrieved.
-        md_text: raw markdown of the file with placeholders evident in double
+        document_name: TODO
+        document_markdown: raw markdown of the file with placeholders evident in double
                  curley brackets (eg {{ placeholder }})
     """
 
@@ -617,16 +653,50 @@ class MDEditForm(forms.Form):
         Searches the docs folder and searches for markdown files, noting the
         any subfolders. These are then provided as a selection field.
         """
-        super(MDEditForm, self).__init__(*args, **kwargs)
-        self.project_id = project_id
-        self.fields["document_name"] = forms.CharField(
-            label="",
-            widget=forms.HiddenInput(attrs={}),
+        super(DocumentUpdateForm, self).__init__(*args, **kwargs)
+        self.project_id: int = project_id
+        document_name: str = ""
+        docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        initial_data: dict = self.initial or {}
+        document_name: str = ""
+        document_markdown: str = ""
+
+        # TODO - perhaps a message that docs folder is missing should be presented.
+
+        if initial_data == {}:
+            for _, __, files in os.walk(docs_dir):
+                for name in files:
+                    if fnmatch(name, "*.md"):
+                        document_name = name
+                        loop_exit = True
+                        break
+                if loop_exit:
+                    break
+
+            with open(f"{ docs_dir }{ document_name }", "r") as file:
+                document_markdown = file.read()
+                document_markdown = document_markdown.replace("\n", "\r\n")
+
+        else:
+            document_name: str = initial_data.get("document_name", "")
+            document_markdown: str = initial_data.get("document_markdown", "")
+
+        CHOICES = tuple(md_files(self.project_id))
+
+        self.fields["document_name"] = forms.ChoiceField(
+            choices=CHOICES,
+            initial=document_name,
+            widget=forms.Select(
+                attrs={
+                    "class": "form-select w-auto field-color-dcsp font-dcsp border-info",
+                    "onChange": "form.submit()",
+                }
+            ),
         )
 
-        self.fields["md_text"] = forms.CharField(
+        self.fields["document_markdown"] = forms.CharField(
             label="Markdown view",
-            required=False,
+            initial=document_markdown,
             widget=forms.Textarea(
                 attrs={
                     "style": "width:100%; overflow:hidden;",
@@ -636,18 +706,28 @@ class MDEditForm(forms.Form):
             ),
         )
 
+        self.fields["document_name_initial"] = forms.CharField(
+            initial=document_name,
+            widget=forms.HiddenInput(attrs={}),
+        )
+
+        self.fields["document_markdown_initial"] = forms.CharField(
+            initial=document_markdown,
+            widget=forms.HiddenInput(attrs={}),
+        )
+
     def clean(self) -> dict:
         """ """
         cleaned_data: Any = self.cleaned_data
-        document_name: str = cleaned_data["document_name"]
-        md_text: str = cleaned_data["md_text"]
-        md_files_list: list = md_files(self.project_id)
+        """document_name: str = cleaned_data["document_name"]"""
+        # document_markdown: str = cleaned_data["document_markdown"]
+        # md_files_list: list = md_files(self.project_id)
         # doc_build: Builder
         linter_results: dict[str, str] = {}
 
-        """validation_response(
+        """validated_response(
             self,
-            "md_text",
+            "document_markdown",
             document_name in md_files_list,
             "Internal error with document_name (hidden attribute)",
         )"""
@@ -655,11 +735,11 @@ class MDEditForm(forms.Form):
         """# Not, mkdocs directory is not provided as an argument. But this should
         # Be ok just for linting.
         doc_build = Builder()
-        linter_results = doc_build.linter_text(md_text)
+        linter_results = doc_build.linter_text(document_markdown)
         results_readable: str = """
 
         """ if linter_results["overal"] != "pass":
-            self.add_error("md_text", "Error with syntax in markdown file")"""
+            self.add_error("document_markdown", "Error with syntax in markdown file")"""
 
         """for key, value in linter_results.items():
             if value == "pass":
@@ -667,9 +747,9 @@ class MDEditForm(forms.Form):
             else:
                 results_readable += f"<u>{ key }: {value }</u></br>"
 
-        validation_response(
+        validated_response(
             self,
-            "md_text",
+            "document_markdown",
             linter_results["overal"] == "pass",
             f"There is invalid syntax in the markdown file, please correct:</br> { results_readable }",
         )"""
@@ -677,7 +757,7 @@ class MDEditForm(forms.Form):
         return cleaned_data
 
 
-class HazardNewForm(forms.Form):
+class EntryUpdateForm(forms.Form):
     """Allows user to log a new hazard
 
     Form for adding a new hazard for the clinical safety case.
@@ -703,9 +783,9 @@ class HazardNewForm(forms.Form):
             body: main text of the hazard.
             labels: hazard labels.
         """
-        super(HazardNewForm, self).__init__(*args, **kwargs)
+        super(EntryUpdateForm, self).__init__(*args, **kwargs)
         project: ProjectBuilder = ProjectBuilder(project_id)
-        hazard_template: list[dict[str, Any]] = project.hazard_file_read()
+        hazard_template: list[dict[str, Any]] = project.entry_file_read()
         field_type: str = ""
         help_text: str = ""
         labels_for_calculations: dict[str, str] = {}
@@ -714,6 +794,20 @@ class HazardNewForm(forms.Form):
             help_text = ""
 
             if field["field_type"] == "horizontal_line":
+                self.fields[field["heading"]] = forms.CharField(
+                    label="",
+                    required=False,
+                    widget=forms.HiddenInput(attrs={}),
+                )
+
+            elif field["field_type"] == "icon":
+                self.fields[field["heading"]] = forms.CharField(
+                    label="",
+                    required=False,
+                    widget=forms.HiddenInput(attrs={}),
+                )
+
+            elif field["field_type"] == "code":
                 self.fields[field["heading"]] = forms.CharField(
                     label="",
                     required=False,
@@ -797,7 +891,6 @@ class HazardNewForm(forms.Form):
                         }
                     ),
                 )
-
             else:
                 # TODO #48 - need a soft fail here
                 raise ValueError(

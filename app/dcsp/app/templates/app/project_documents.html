@@ -3,17 +3,16 @@
 {% block main %}
   <div class="row">
     <div class="col"></div>
-    <div class="col-12 col-md-6 mx-auto">
+    <div class="col-6">
       <h2>{{ project.name }}</h2>
     </div>
     <div class="col"></div>
   </div>
   <div class="row">
  
+    {% include "project_side_bar_left.html" %}
 
-    {% include "project_side_bar.html" %}
-
-    <div class="col-12 col-md-6">
+    <div class="col-12 col-lg-6">
 
       {% include "message_error.html" %}
 
@@ -74,24 +73,8 @@
 	
     </div>
 
-	
-    <div class="col">
-	
-      <h5>Latest activity:</h5>
-	
-      <ul>
-	
-        <li>Activity 1</li>
-	
-        <li>Activity 2</li>
-	
-        <li>Activity 3</li>
-	
-      </ul>
-	
-    </div>
-	
+    {% include "project_side_bar_right.html" %}
+
   </div>
  
- 
-{% endblock %}
+{% endblock main %}

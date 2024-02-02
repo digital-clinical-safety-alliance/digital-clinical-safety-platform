@@ -12,7 +12,11 @@ def find_html_files(folder_path: str) -> list[str]:
 
     for path, _, files in os.walk(folder_path):
         for name in files:
-            if fnmatch(name, "*.html") or fnmatch(name, "*.md"):
+            if (
+                fnmatch(name, "*.html")
+                or fnmatch(name, "*.md")
+                or fnmatch(name, "*.js")
+            ):
                 files_to_check.append(os.path.join(path, name))
 
     return files_to_check

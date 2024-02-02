@@ -28,7 +28,7 @@ from app.forms import (
     TemplateSelectForm,
     PlaceholdersForm,
     MDFileSelectForm,
-    MDEditForm,
+    DocumentUpdateForm,
     UploadToGithubForm,
 )
 
@@ -104,9 +104,9 @@ class MDFileSelectFormTest(TestCase):
         pass
 
 
-class MDEditFormTest(TestCase):
+class DocumentUpdateFormTest(TestCase):
     def test_test2(self):
-        form = MDEditForm(
+        form = DocumentUpdateForm(
             data={
                 "document_name": "a document",
                 "md_text": """---

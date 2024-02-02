@@ -20,7 +20,8 @@ FUNCTIONS_APP: str = f"{ MAIN_FOLDER }app/dcsp/app/functions/"
 PROJECTS_FOLDER: str = "/projects/"
 # START_AFRESH_PARENT_FOLDER: str = "src/"
 CLINICAL_SAFETY_FOLDER: str = "CS-documents/"
-HAZARDS_SUMMARY_FILE: str = "hazards-summary.md"
+TEMPLATE_SUFFIX: str = "-template.md"
+HEADING_MAX_LOOP: int = 100
 
 # For mkdocs_control
 TIME_INTERVAL: float = 0.1

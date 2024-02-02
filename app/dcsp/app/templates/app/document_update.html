@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block main %}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    {% include "javascript_jinja/document_update.js" %}
+
+    <h2>Edit</h2>
+    <p>
+        Please note: you cannot add placeholders in the front matter (eg between the
+        '---' markers). Placeholders will be converted to their true values and
+        coloured black in the webview.
+    </p>
+
+    {% include "message_error.html" %}
+
+    {% include "error_summary.html" %}
+
+    <form id="id_form" action="/document_update/{{ project_id }}" method="post">
+        {% csrf_token %}
+
+        {{ form.document_name_initial }}
+        {{ form.document_markdown_initial }}
+
+        <div class="mb-3">
+            <label class="form-label" for="id_{{ form.document_name.name }}">{{ form.document_name.label }}</label>
+            {{ form.document_name }}
+        </div>
+
+        <div class="row align-items-start">
+            <div class="col">
+                <div class="mb-3">
+                    <label class="form-label"
+                           for="id_{{ form.document_markdown.name }}"
+                           id="id_label_{{ form.document_markdown.name }}">
+                        <strong>{{ form.document_markdown.label | safe }}</strong>
+                    </label>
+                    {{ form.document_markdown }}
+                </div>
+            </div>
+            <div class="col">
+                <div class="mb-3">
+                    <div class="form-label">
+                        <b>Web view</b>
+                    </div>
+                    <div class="form-control field-color-dcsp font-dcsp border-info"
+                         id="id_web_view"></div>
+                </div>
+            </div>
+        </div>
+        <button id="id_button"
+                onclick="submitForm()"
+                class="btn btn-secondary"
+                type="submit"
+                style="float: right">Save</button>
+    </form>
+ 
+    <script>
+                // Need this function call here to stop page jittering
+                update_web_view();
+    </script>
+{% endblock main %}

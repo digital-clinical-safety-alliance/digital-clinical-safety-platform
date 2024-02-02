@@ -1,155 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>Digital Clinical Safety Plateform</title>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet"
-          href="/static/bootstrap-5.3.2-dist/css/bootstrap.css">
-    <link rel="stylesheet" href="/static/css/dcsp.css">
+    <head>
+        <title>Digital Clinical Safety Plateform</title>
+        <meta charset="UTF-8">
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet"
+              href="/static/bootstrap-5.3.2-dist/css/bootstrap.css">
+        <link rel="stylesheet" href="/static/css/dcsp.css">
 
 
-    <link rel="shortcut icon" href="/static/assets/favicons/favicon.ico">
-    <link rel="apple-touch-icon" href="/static/assets/favicons/favicon.ico">
-    <link rel="mask-icon"
-          href="/static/assets/favicons/favicon.ico"
-          color="#005eb8">
-    <link rel="icon"
-          type="image/png"
-          href="/static/assets/favicons/favicon-16x16.png">
+        <link rel="shortcut icon" href="/static/assets/favicons/favicon.ico">
+        <link rel="apple-touch-icon" href="/static/assets/favicons/favicon.ico">
+        <link rel="mask-icon"
+              href="/static/assets/favicons/favicon.ico"
+              color="#005eb8">
+        <link rel="icon"
+              type="image/png"
+              href="/static/assets/favicons/favicon-16x16.png">
 
-  </head>
-  <body class="background-dcsp font-dcsp">
+    </head>
+    <body class="background-dcsp font-dcsp">
 
-    <nav class="navbar navbar-expand-lg bar-dcsp">
-      <div class="container-fluid">
-        <div class="d-flex align-items-center">
-          <a href="/">
-            <img src="/static/assets/favicons/favicon.ico"
-                 alt="DCSP icon"
-                 style="width:25px;
-                        height:25px">
+        <nav class="navbar navbar-expand-lg bar-dcsp">
+            <div class="container-fluid">
+                <div class="d-flex align-items-center">
+                    <a href="/">
+                        <img src="/static/assets/favicons/favicon.ico"
+                             alt="DCSP icon"
+                             style="width:25px;
+                                    height:25px">
  
-          </a>
-          <div class="px-3"></div>
-          <div class="title-dcsp">Digital Clinical Safety Plateform</div>
-        </div>
-        <button class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navbarNav"
-                aria-controls="navbarNav"
-                aria-expanded="false"
-                aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav">
-            {% if not request.user.is_authenticated %}
-              <li class="nav-item">
-                <a class="nav-link link-white-dcsp" href="/">Home</a>
-              </li>
-            {% endif %}
+                    </a>
+                    <div class="px-3"></div>
+                    <div class="title-dcsp">Digital Clinical Safety Platform</div>
+                </div>
+                <button class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#navbarNav"
+                        aria-controls="navbarNav"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        {% if not request.user.is_authenticated %}
+                            <li class="nav-item">
+                                <a class="nav-link link-white-dcsp" href="/">Home</a>
+                            </li>
+                        {% endif %}
 
-            {% if request.user.is_authenticated %}
-              {% if nav_top %}
-                <li class="nav-item">
-                  <a class="nav-link link-white-dcsp"
-                     href="{% url 'project_documents' project_id %}">Overview</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link link-white-dcsp"
-                     href="{% url 'view_docs' project_id 'index.html' %}">Published view</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link link-white-dcsp"
-                     href="{% url 'project_build_asap' project_id %}">Build ASAP</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link link-white-dcsp"
-                     href="{% url 'setup_documents' project_id %}">Placeholders</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link link-white-dcsp"
-                     href="{% url 'md_edit' project_id %}">Edit document</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link link-white-dcsp"
-                     href="{% url 'entry_update' project_id 'hazard' 'new' %}">New hazard</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link link-white-dcsp">View hazards</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link link-white-dcsp">Submit incident</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link link-white-dcsp">View incidents</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link link-white-dcsp">Compliance signoff</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link link-white-dcsp">Repository save</a>
-                </li>
-              {% endif %}
-              <li class="nav-item">
-                <a class="nav-link link-white-dcsp" href="{% url 'settings'}">settings</a>
-              </li>
-            {% endif %}
+                        {% if request.user.is_authenticated %}
+                            {% if nav_top %}
+                                <li class="nav-item">
+                                    <a class="nav-link link-white-dcsp"
+                                       href="{% url 'project_documents' project_id %}">Overview</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link link-white-dcsp"
+                                       id="id_link"
+                                       onclick="url_click('{% url "view_docs" project_id "index.html" %}')">Published view</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link link-white-dcsp"
+                                       href="{% url 'project_build_asap' project_id %}">Build ASAP</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link link-white-dcsp"
+                                       href="{% url 'setup_documents' project_id %}">Placeholders</a>
+                                </li>
 
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle link-white-dcsp"
+                                       href="#"
+                                       id="navbarDropdown"
+                                       role="button"
+                                       data-bs-toggle="dropdown"
+                                       aria-haspopup="true"
+                                       aria-expanded="false">Document</a>
+                                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                        <a class="dropdown-item font-black-dcsp"
+                                           href="{% url 'document_new' project_id %}">New</a>
+                                        <a class="dropdown-item font-black-dcsp"
+                                           href="{% url 'document_update' project_id %}">Edit</a>
+                                    </div>
+                                </li>
 
-            <li class="nav-item">
-              {% if request.user.is_authenticated %}
-                <a class="nav-link link-white-dcsp" href="/accounts/logout">logout</a>
-              {% else %}
-                <a class="nav-link link-white-dcsp" href="/accounts/login">login</a>
-              {% endif %}
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+                                {% for entry in entry_templates %}
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle link-white-dcsp"
+                                           href="#"
+                                           id="navbarDropdown"
+                                           role="button"
+                                           data-bs-toggle="dropdown"
+                                           aria-haspopup="true"
+                                           aria-expanded="false">{{ entry|title }}</a>
+                                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                            <a class="dropdown-item font-black-dcsp"
+                                               href="{% url 'entry_update' project_id entry 'new' %}">New</a>
+                                            <a class="dropdown-item font-black-dcsp"
+                                               href="{% url 'entry_select' project_id %}">Edit</a>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li class="nav-item d-lg-none">
+                                    <a class="nav-link link-white-dcsp" href="{% url 'index' %}">Placeholders</a>
+                                </li>
+                            {% endif %}
+                            <li class="nav-item">
+                                <a class="nav-link link-white-dcsp" href="{% url 'settings'}">settings</a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            {% if request.user.is_authenticated %}
+                                <a class="nav-link link-white-dcsp" href="/accounts/logout">logout</a>
+                            {% else %}
+                                <a class="nav-link link-white-dcsp" href="/accounts/login">login</a>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
 
-    <div class="fade-out-element">
-      <div class="main_container">
-        <div style="text-align:right;">
-          {% if request.user.is_authenticated %}
-            Logged in: <strong>{{ request.user.username }}</strong>
-          {% else %}
-            Logged out
-          {% endif %}
-        </div>
-
+        <div class="fade-out-element">
+            <div class="main_container">
+                <div style="text-align:right;">
+                    {% if request.user.is_authenticated %}
+                        Logged in: <strong>{{ request.user.username }}</strong>
+                    {% else %}
+                        Logged out
+                    {% endif %}
+                </div>
  
+                {% block main %}{% endblock %}
 
-        {% block main %}{% endblock %}
+                <div class="loading-container" id="loading-icon">
+                    <div class="loader"></div>
+                </div>
 
-        <div class="loading-container" id="loading-icon">
-          <div class="loader"></div>
+            </div>
         </div>
 
-        {% if request.user.is_authenticated %}
-          {% if START_AFRESH %}
-            Developer: <a class="link-dcsp" href="/start_afresh">Start afresh!</a>
-          {% else %}
-            Production environment
-          {% endif %}
-        {% endif %}
+        <div class="card border border-0">
+            <div class="font-dcsp card-body footer-dcsp">Placeholder</div>
+        </div>
 
-      </div>
-    </div>
-
-    <div class="card border border-0">
-      <div class="font-dcsp card-body footer-dcsp">Placeholder</div>
-    </div>
-
-    <script src="/static/js/dcsp.js"></script>
+        <script src="/static/js/dcsp.js"></script>
  
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
-    <script src="/static/bootstrap-5.3.2-dist/js/bootstrap.js"></script>
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+        <script src="/static/bootstrap-5.3.2-dist/js/bootstrap.js"></script>
 
-  </body>
+    </body>
 </html>

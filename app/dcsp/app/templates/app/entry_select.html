@@ -12,7 +12,7 @@
   </div>
   <div class="row">
 
-    {% include "project_side_bar.html" %}
+    {% include "project_side_bar_left.html" %}
 
  
     <div class="col-12 col-md-6">
@@ -24,15 +24,18 @@
         <p>
           <a class="link-dcsp"
              href="/entry_update/{{ project_id }}/hazard/{{ hazard.0.number }}">
-            <strong>Hazard {{ hazard.0.number }}</strong>
-          - {{ hazard.1.text }}</a>
+            <strong>Hazard {{ hazard.0.number }}</strong> -
+            {% for section in hazard %}
+              {% if "name" in section.gui_label %}{{ section.text }}{% endif %}
+            {% endfor %}
+          </a>
+          <!-- - {{ hazard.2.text }}</a>-->
           <br>
         </p>
       {% endfor %}
     </div>
-    <div class="col">
-      <i>Placeholder</i>
-	
-    </div>
+
+    {% include "project_side_bar_right.html" %}
+
   </div>
 {% endblock %}

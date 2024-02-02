@@ -1,86 +1,90 @@
 {% extends "base.html" %}
 
 {% block main %}
-  <div class="row">
-    <div class="col"></div>
-    <div class="col-12 col-md-6 mx-auto">
-      <h2>Safety documents</h2>
+    <div class="row">
+        <div class="col d-sm-none d-md-none d-lg-block d-xl-block"></div>
+        <div class="col-6">
+            <h2>Safety documents</h2>
+        </div>
+        <div class="col d-sm-none d-md-none d-lg-block d-xl-block"></div>
     </div>
-    <div class="col"></div>
-  </div>
 
-  <div class="row">
-    <div class="col">
-      <div class="pb-2">
-        <a class="link-dcsp"
-           data-bs-toggle="collapse"
-           href="#collapseGroup"
-           role="button"
-           aria-expanded="false"
-           aria-controls="collapseGroup">Groups</a>
-      </div>
-      <div class="collapse" id="collapseGroup">
-        <div class="">
-          &nbsp;&nbsp;<a class="link-dcsp" href="/">Group 1</a>
-        </br>
-        &nbsp;&nbsp;<a class="link-dcsp" href="/">Group 2</a>
-      </br>
-      &nbsp;&nbsp;<a class="link-dcsp" href="/">Group 3</a>
-    </br>
-  </div>
-</div>
+    <div class="row">
+        <div class="container d-lg-none">
+            <p>This container is visible on screens smaller than small (576px).</p>
+        </div>
+        <div class="col d-sm-none d-md-none d-lg-block d-xl-block">
+            <div class="pb-2">
+                <a class="link-dcsp"
+                   data-bs-toggle="collapse"
+                   href="#collapseGroup"
+                   role="button"
+                   aria-expanded="false"
+                   aria-controls="collapseGroup">Groups</a>
+            </div>
+            <div class="collapse" id="collapseGroup">
+                &nbsp;&nbsp;<a class="link-dcsp" href="/">Group 1</a>
+                <br>
+                &nbsp;&nbsp;<a class="link-dcsp" href="/">Group 2</a>
+                <br>
+                &nbsp;&nbsp;<a class="link-dcsp" href="/">Group 3</a>
+                <br>
+            </div>
 
-{% if available_projects %}
-  <div class="pt-2 pb-2">
-    <a class="link-dcsp"
-       data-bs-toggle="collapse"
-       href="#collapseDocuments"
-       role="button"
-       aria-expanded="false"
-       aria-controls="collapseDocuments">Documents</a>
-  </div>
-  <div class="collapse" id="collapseDocuments">
-    {% for doc in available_projects %}
-      &nbsp;&nbsp;<a class="link-dcsp" href="{% url 'project_documents' doc.doc_id %}">{{ doc.doc_name }}</a>
-    </br>
-  {% endfor %}
-</div>
-{% else %}
-<div class="pt-2 pb-2 disabled_link">Documents</div>
-{% endif %}
-<div class="pt-2 pb-2">
-  <a class="link-dcsp" href="{% url 'start_new_project' %}">New project</a>
-</div>
-</div>
-
-<div class="col-12 col-md-6">
-
-  {% include "message_error.html" %}
-
-  {% if viewed_documents %}
-    <h5>Last viewed documents</h5>
-    <p>
-      Below are the last documents you have been working on. Please clink on a document
-      to continue editing it.
-    </p>
-    {% for doc in available_projects %}
-      {% if doc.doc_last_accessed != None %}
-        <p>
-          <a class="link-dcsp" href="{% url 'project_documents' doc.doc_id %}">{{ doc.doc_name }}</a>
-        </p>
-      {% endif %}
+            {% if available_projects %}
+                <div class="pt-2 pb-2">
+                    <a class="link-dcsp"
+                       data-bs-toggle="collapse"
+                       href="#collapseDocuments"
+                       role="button"
+                       aria-expanded="false"
+                       aria-controls="collapseDocuments">Documents</a>
+                </div>
+                <div class="collapse" id="collapseDocuments">
+	
+                    {% for doc in available_projects %}
+                        <a class="link-dcsp" href="{% url 'project_documents' doc.doc_id %}">{{ doc.doc_name }}</a>
+	
+                        <br>
+	
+	
+                    {% endfor %}
+                </div>
+	
+	
+            {% else %}
+                <div class="pt-2 pb-2 disabled_link">Documents</div>
+	
+            {% endif %}
+	
  
-    {% endfor %}
-  {% endif %}
-</div>
-<div class="col">
-  <h5>Latest activity:</h5>
-  <ul>
-    <li>Activity 1</li>
-    <li>Activity 2</li>
-    <li>Activity 3</li>
-  </ul>
-</div>
-</div>
- 
+	
+            <div class="pt-2 pb-2">
+                <a class="link-dcsp" href="{% url 'start_new_project' %}">New project</a>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+
+            {% include "message_error.html" %}
+
+            {% if viewed_documents %}
+                <h5>Last viewed documents</h5>
+                <p>
+                    Below are the last documents you have been working on. Please clink on a document
+                    to continue editing it.
+                </p>
+                {% for doc in available_projects %}
+                    {% if doc.doc_last_accessed != None %}
+                        <p>
+                            <a class="link-dcsp" href="{% url 'project_documents' doc.doc_id %}">{{ doc.doc_name }}</a>
+                        </p>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        {% include "project_side_bar_right.html" %}
+
+    </div>
 {% endblock main %}

@@ -8,9 +8,9 @@ Functions:
     index: placeholder
     member_landing_page: placeholder
     build: placeholder
-    md_edit: placeholder
-    md_saved: placeholder
-    md_new: placeholder
+    document_update: placeholder
+    document_update: placeholder
+    document_new: placeholder
     entry_update: placeholder
     hazard_comment: placeholder
     hazards_open: placeholder
@@ -30,6 +30,7 @@ from typing import Any, TextIO
 from datetime import datetime
 import json
 from functools import wraps
+import difflib
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpRequest
@@ -63,6 +64,7 @@ from app.functions.env_manipulation import ENVManipulator
 from app.functions.mkdocs_control import MkdocsControl
 from app.functions.docs_builder import Builder
 from app.functions.git_control import GitController
+from app.functions.general_fuctions import snake_to_title
 
 
 from .forms import (
@@ -71,9 +73,10 @@ from .forms import (
     InstallationForm,
     TemplateSelectForm,
     PlaceholdersForm,
-    MDEditForm,
+    DocumentNewForm,
+    DocumentUpdateForm,
     MDFileSelectForm,
-    HazardNewForm,
+    EntryUpdateForm,
     UploadToGithubForm,
     HazardCommentForm,
 )
@@ -511,7 +514,9 @@ def setup_documents(
             }
 
             return render(
-                request, "template_select.html", context | std_context()
+                request,
+                "template_select.html",
+                context | std_context(project_id),
             )
 
         elif request.method == "POST":
@@ -535,7 +540,9 @@ def setup_documents(
                 }
 
                 return render(
-                    request, "placeholders_show.html", context | std_context()
+                    request,
+                    "placeholders_show.html",
+                    context | std_context(project_id),
                 )
             else:
                 context = {
@@ -544,7 +551,9 @@ def setup_documents(
                 }
 
                 return render(
-                    request, "template_select.html", context | std_context()
+                    request,
+                    "template_select.html",
+                    context | std_context(project_id),
                 )
 
     elif setup_step >= 1:
@@ -557,7 +566,9 @@ def setup_documents(
             # return render(request, "test.html")
 
             return render(
-                request, "placeholders_show.html", context | std_context()
+                request,
+                "placeholders_show.html",
+                context | std_context(project_id),
             )
 
         elif request.method == "POST":
@@ -582,7 +593,9 @@ def setup_documents(
                 }
 
                 return render(
-                    request, "placeholders_saved.html", context | std_context()
+                    request,
+                    "placeholders_saved.html",
+                    context | std_context(project_id),
                 )
             else:
                 context = {
@@ -592,7 +605,9 @@ def setup_documents(
                 }
 
                 return render(
-                    request, "placeholders_show.html", context | std_context()
+                    request,
+                    "placeholders_show.html",
+                    context | std_context(project_id),
                 )
 
     # Should never really get here, but added for mypy
@@ -615,7 +630,9 @@ def project_build_asap(
         }
 
         return render(
-            request, "project_build_asap.html", context | std_context()
+            request,
+            "project_build_asap.html",
+            context | std_context(project_id),
         )
     elif request.method == "POST":
         build_output = build_documents(int(project_id), force=True)
@@ -627,7 +644,9 @@ def project_build_asap(
         }
 
         return render(
-            request, "project_build_asap.html", context | std_context()
+            request,
+            "project_build_asap.html",
+            context | std_context(project_id),
         )
 
     # Should never really get here, but added for mypy
@@ -659,7 +678,9 @@ def project_documents(
         "project_id": project_id,
         "project_name": project.name,
     }
-    return render(request, "project_documents.html", context | std_context())
+    return render(
+        request, "project_documents.html", context | std_context(project_id)
+    )
 
 
 # TODO - Need to limit who can view (perhaps private, members-only, and open access views)
@@ -681,6 +702,12 @@ def view_docs(
     document_content = ""
     internal_path: str = ""
     # redirect_path
+    project_id_int: int
+
+    if project_id.isdigit():
+        project_id_int = int(project_id)
+    else:
+        return render(request, "500.html", std_context(), status=500)
 
     # TODO - error if no project_id supplied, it is not an int and/or not an active project
 
@@ -688,7 +715,7 @@ def view_docs(
         "/documentation-pages", f"project_{ project_id}", doc_path
     )
 
-    build_documents(int(project_id))
+    build_documents(project_id_int)
 
     # TODO #41 - may have to convert os.path to Path... all over the shop!
     if not os.path.isfile(
@@ -703,7 +730,11 @@ def view_docs(
             "document_content": document_content,
             "project_id": project_id,
         }
-        return render(request, "documents_serve.html", context | std_context())
+        return render(
+            request,
+            "document_serve.html",
+            context | std_context(project_id_int),
+        )
     else:
         content_type = "invalid"
         _, file_extension = os.path.splitext(internal_path)
@@ -724,7 +755,7 @@ def view_docs(
 
 @login_required
 @project_access
-def md_edit(
+def document_update(
     request: HttpRequest,
     project_id: int,
     setup_step: int,
@@ -754,6 +785,7 @@ def md_edit(
 
     if request.method == "GET":
         # TODO - perhaps a message that docs folder is missing should be presented.
+
         if not os.path.isdir(docs_dir):
             return render(request, "500.html", std_context(), status=500)
 
@@ -769,7 +801,7 @@ def md_edit(
     elif request.method == "POST":
         form = MDFileSelectForm(project_id, data=request.POST)
         if form.is_valid():
-            md_file = form.cleaned_data["mark_down_file"]
+            md_file = form.cleaned_data["document_name"]
         else:
             context = {
                 "form": form,
@@ -777,29 +809,102 @@ def md_edit(
                 "placeholders": placeholders(project_id),
                 "nav_top": "True",
             }
-            return render(request, "md_edit.html", context | std_context())
+            return render(
+                request,
+                "document_update.html",
+                context | std_context(project_id),
+            )
 
     with open(f"{ docs_dir }{ md_file }", "r") as file:
-        form_fields = {"md_text": file.read(), "document_name": md_file}
+        form_fields = {
+            "document_markdown": file.read(),
+            "document_name": md_file,
+        }
 
     context = {
         "MDFileSelectForm": MDFileSelectForm(
             project_id,
-            initial={"mark_down_file": md_file},
+            initial={"document_name": md_file},
         ),
-        "form": MDEditForm(project_id, initial=form_fields),
+        "form": DocumentUpdateForm(project_id, initial=form_fields),
         "document_name": md_file,
         "project_id": project_id,
         "placeholders": placeholders(project_id),
         "nav_top": "True",
     }
 
-    return render(request, "md_edit.html", context | std_context())
+    return render(
+        request, "document_update.html", context | std_context(project_id)
+    )
 
 
 @login_required
 @project_access
-def md_saved(
+def document_new(
+    request: HttpRequest, project_id: int, setup_step: int
+) -> HttpResponse:
+    """To create a new markdown file
+
+    This will allow the user to create a new markdown file with subdirectories
+    if required.
+
+    Args:
+        request (HttpRequest): request from user
+        project_id (int): primary key of project
+        setup_step (int): not used in this function
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
+    context: dict[str, Any] = {}
+    form: DocumentNewForm
+    project: ProjectBuilder
+    valid: bool = True
+    error_messages: str = ""
+
+    if not (request.method == "GET" or request.method == "POST"):
+        return render(request, "405.html", std_context(), status=405)
+
+    if request.method == "GET":
+        context = {
+            "form": DocumentNewForm(project_id),
+            "project_id": project_id,
+        }
+        return render(
+            request, "document_new.html", context | std_context(project_id)
+        )
+
+    elif request.method == "POST":
+        form = DocumentNewForm(project_id, request.POST)
+        if form.is_valid():
+            document_name_new = form.cleaned_data["document_name"]
+
+            project = ProjectBuilder(project_id)
+
+            project.document_create(document_name_new)
+
+            messages.success(
+                request,
+                f"Document '{ document_name_new }' has been created",
+            )
+
+            context = {"form": form, "project_id": project_id}
+            return render(
+                request, "document_new.html", context | std_context(project_id)
+            )
+
+        else:
+            context = {"form": form, "project_id": project_id}
+            return render(
+                request, "document_new.html", context | std_context(project_id)
+            )
+
+    # For mypy
+    return render(request, "500.html", status=500)
+
+
+@login_required
+@project_access
+def document_update(
     request: HttpRequest, project_id: int, setup_step: int
 ) -> HttpResponse:
     """Saves the markdown file
@@ -813,101 +918,137 @@ def md_saved(
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    form: MDEditForm
-    md_file_returned: str = ""
-    md_text_returned: str = ""
+    form: DocumentUpdateForm
+    document_markdown_file_read: str = ""
+    document_name: str = ""
+    document_markdown: str = ""
     file_path: str = ""
     file: TextIO
     context: dict[str, Any] = {}
-    docs_location: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
     project: Project
+    docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
 
-    if request.method == "GET":
-        return redirect(f"/md_edit/{ project_id }")
+    if not os.path.isdir(docs_dir):
+        return render(request, "500.html", std_context(), status=500)
 
     if setup_step < 2:
         return redirect(f"/setup_documents/{ project_id }")
 
-    form = MDEditForm(project_id, request.POST)
-    if form.is_valid():
-        md_file_returned = form.cleaned_data["document_name"]
-        md_text_returned = form.cleaned_data["md_text"]
-
-        file_path = f"{ docs_location }{ md_file_returned }"
-
-        if not os.path.isfile(file_path):
-            return render(
-                request, "500.html", context | std_context(), status=500
-            )
-
-        file = open(file_path, "w")
-        file.write(md_text_returned)
-        file.close()
-
-        project = get_object_or_404(Project, id=project_id)
-        project.last_modified = timezone.now()
-        project.save()
-
-        messages.success(
-            request,
-            f'Mark down file "{ md_file_returned }" has been successfully saved',
-        )
-        context = {
-            "MDFileSelectForm": MDFileSelectForm(
-                project_id,
-                initial={
-                    "mark_down_file": md_file_returned,
-                },
-            ),
-            "form": MDEditForm(project_id, initial=request.POST),
-            "document_name": md_file_returned,
-            "project_id": project_id,
-            "placeholders": placeholders(project_id),
-            "nav_top": "True",
-        }
-        return render(request, "md_edit.html", context | std_context())
-    else:
-        try:
-            md_file_returned = form.cleaned_data["document_name"]
-        except:
-            return render(request, "500.html", status=500)
-
-        context = {
-            "MDFileSelectForm": MDFileSelectForm(
-                initial={"mark_down_file": md_file_returned}
-            ),
-            "form": form,
-            "document_name": md_file_returned,
-            "project_id": project_id,
-            "placeholders": placeholders(project_id),
-            "nav_top": "True",
-        }
-        return render(request, "md_edit.html", context | std_context())
-
-    # For mypy
-    return render(request, "500.html", status=500)
-
-
-@login_required
-def md_new(request: HttpRequest) -> HttpResponse:
-    """Not complete - to create a new markdown file
-
-    This will allow the user to create a new markdown file with subdirectories
-    if required.
-
-    Args:
-        request (HttpRequest): request from user
-    Returns:
-        HttpResponse: for loading the correct webpage
-    """
-    context: dict[str, Any] = {}
-
-    if not (request.method == "GET" or request.method == "POST"):
-        return render(request, "405.html", std_context(), status=405)
-
     if request.method == "GET":
-        context = {"form": LogHazardForm()}
-        return render(request, "md_new.html", context | std_context())
+        # form = document_update_form_initialise(project_id)
+        form = DocumentUpdateForm(project_id)
+
+        context = {
+            "form": form,
+            "project_id": project_id,
+            "placeholders": placeholders(project_id),
+            "nav_top": "True",
+        }
+
+        return render(
+            request, "document_update.html", context | std_context(project_id)
+        )
+
+    elif request.method == "POST":
+        form = DocumentUpdateForm(project_id, request.POST)
+
+        if form.is_valid():
+            document_name_initial = form.cleaned_data["document_name_initial"]
+            document_name = form.cleaned_data["document_name"]
+            document_markdown_initial = form.cleaned_data[
+                "document_markdown_initial"
+            ]
+            document_markdown = form.cleaned_data["document_markdown"]
+
+            if document_name_initial != document_name:
+                with open(f"{ docs_dir }{ document_name }", "r") as file:
+                    document_markdown_file_read = file.read()
+                    document_markdown_file_read = (
+                        document_markdown_file_read.replace("\n", "\r\n")
+                    )
+
+                form_data = {
+                    "document_name": document_name,
+                    "document_markdown": document_markdown_file_read,
+                }
+
+                context = {
+                    "form": DocumentUpdateForm(
+                        project_id,
+                        initial=form_data,
+                    ),
+                    "project_id": project_id,
+                    "placeholders": placeholders(project_id),
+                    "nav_top": "True",
+                }
+
+                return render(
+                    request,
+                    "document_update.html",
+                    context | std_context(project_id),
+                )
+
+            elif document_markdown_initial != document_markdown:
+                file_path = f"{ docs_dir }{ document_name }"
+
+                file = open(file_path, "w")
+                file.write(document_markdown)
+                file.close()
+
+                project = get_object_or_404(Project, id=project_id)
+                project.last_modified = timezone.now()
+                project.save()
+
+                form_data = {
+                    "document_name": document_name,
+                    "document_markdown": document_markdown,
+                }
+
+                messages.success(
+                    request,
+                    f'Mark down file "{ document_name }" has been successfully saved',
+                )
+
+                context = {
+                    "form": DocumentUpdateForm(project_id, initial=form_data),
+                    "project_id": project_id,
+                    "placeholders": placeholders(project_id),
+                    "nav_top": "True",
+                }
+                return render(
+                    request,
+                    "document_update.html",
+                    context | std_context(project_id),
+                )
+            else:
+                messages.success(
+                    request,
+                    f"As no changes have been made, no save has been made",
+                )
+                context = {
+                    "form": form,
+                    "project_id": project_id,
+                    "placeholders": placeholders(project_id),
+                    "nav_top": "True",
+                }
+                return render(
+                    request,
+                    "document_update.html",
+                    context | std_context(project_id),
+                )
+
+        else:
+            context = {
+                "form": form,
+                "project_id": project_id,
+                "placeholders": placeholders(project_id),
+                "nav_top": "True",
+            }
+            return render(
+                request,
+                "document_update.html",
+                context | std_context(project_id),
+            )
 
     # For mypy
     return render(request, "500.html", status=500)
@@ -933,9 +1074,9 @@ def entry_update(
         HttpResponse: for loading the correct webpage
     """
     context: dict[str, Any] = {"project_id": project_id}
-    form: HazardNewForm
+    form: EntryUpdateForm
     project_builder: ProjectBuilder
-    entry_create_outcome: bool = False
+    entry_update_outcome: bool = False
 
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", std_context(), status=405)
@@ -950,13 +1091,13 @@ def entry_update(
         if id_new == "new":
             context = {
                 "project_id": project_id,
-                "form": HazardNewForm(project_id),
+                "form": EntryUpdateForm(project_id),
                 "MKDOCS_TEMPLATE_NUMBER_DELIMITER": c.MKDOCS_TEMPLATE_NUMBER_DELIMITER,
                 "entry_type": entry_type,
                 "id_new": id_new,
             }
             return render(
-                request, "entry_update.html", context | std_context()
+                request, "entry_update.html", context | std_context(project_id)
             )
 
         else:
@@ -965,35 +1106,37 @@ def entry_update(
             print(form_initial)
             context = {
                 "project_id": project_id,
-                "form": HazardNewForm(project_id, initial=form_initial),
+                "form": EntryUpdateForm(project_id, initial=form_initial),
                 "MKDOCS_TEMPLATE_NUMBER_DELIMITER": c.MKDOCS_TEMPLATE_NUMBER_DELIMITER,
                 "entry_type": entry_type,
                 "id_new": id_new,
             }
             return render(
-                request, "entry_update.html", context | std_context()
+                request, "entry_update.html", context | std_context(project_id)
             )
 
     if request.method == "POST":
-        form = HazardNewForm(project_id, request.POST)
+        form = EntryUpdateForm(project_id, request.POST)
         # print(request.POST)
         if form.is_valid():
             project_builder = ProjectBuilder(int(project_id))
             # print(form.cleaned_data)
 
-            entry_create_outcome = project_builder.entry_create(
+            entry_update_outcome = project_builder.entry_update(
                 form.cleaned_data, entry_type, id_new
             )
 
             context = {
                 "project_id": project_id,
-                "form": HazardNewForm(project_id),
-                "entry_create_outcome": entry_create_outcome,
+                "form": EntryUpdateForm(project_id),
+                "entry_update_outcome": entry_update_outcome,
                 "MKDOCS_TEMPLATE_NUMBER_DELIMITER": c.MKDOCS_TEMPLATE_NUMBER_DELIMITER,
                 "entry_type": entry_type,
                 "id_new": id_new,
             }
-            return render(request, "entry_saved.html", context | std_context())
+            return render(
+                request, "entry_saved.html", context | std_context(project_id)
+            )
 
         else:
             # TODO - need better error messaging per field
@@ -1004,7 +1147,7 @@ def entry_update(
                 "id_new": id_new,
             }
             return render(
-                request, "entry_update.html", context | std_context()
+                request, "entry_update.html", context | std_context(project_id)
             )
 
     # For mypy
@@ -1028,25 +1171,23 @@ def entry_select(
         HttpResponse: for loading the correct webpage
     """
     context: dict[str, Any] = {"project_id": project_id}
-    form: HazardNewForm
+    form: EntryUpdateForm
     project_builder: ProjectBuilder
     hazards: bool = False
 
     if not request.method == "GET":
         return render(request, "405.html", std_context(), status=405)
 
-    if request.method == "GET":
-        project_builder = ProjectBuilder(int(project_id))
-        hazards = project_builder.hazards_all_get()
+    project_builder = ProjectBuilder(int(project_id))
+    hazards = project_builder.hazards_all_get()
 
-        context = {
-            "project_id": project_id,
-            "hazards": hazards,
-        }
-        return render(request, "entry_select.html", context | std_context())
-
-    # For mypy
-    return render(request, "500.html", status=500)
+    context = {
+        "project_id": project_id,
+        "hazards": hazards,
+    }
+    return render(
+        request, "entry_select.html", context | std_context(project_id)
+    )
 
 
 @login_required
@@ -1066,7 +1207,7 @@ def entry_edit(
         HttpResponse: for loading the correct webpage
     """
     context: dict[str, Any] = {"project_id": project_id}
-    form: HazardNewForm
+    form: EntryUpdateForm
     project_builder: ProjectBuilder
     hazards: bool = False
     project: ProjectBuilder
@@ -1085,10 +1226,12 @@ def entry_edit(
         print(form_initial)
         context = {
             "project_id": project_id,
-            "form": HazardNewForm(project_id, initial=form_initial),
+            "form": EntryUpdateForm(project_id, initial=form_initial),
             "MKDOCS_TEMPLATE_NUMBER_DELIMITER": c.MKDOCS_TEMPLATE_NUMBER_DELIMITER,
         }
-        return render(request, "entry_edit.html", context | std_context())
+        return render(
+            request, "entry_edit.html", context | std_context(project_id)
+        )
 
     # For mypy
     return render(request, "500.html", status=500)
@@ -1151,7 +1294,9 @@ def hazard_comment(request: HttpRequest, hazard_number: "str") -> HttpResponse:
             ),
             "hazard_number": hazard_number,
         }
-        return render(request, "hazard_comment.html", context | std_context())
+        return render(
+            request, "hazard_comment.html", context | std_context(project_id)
+        )
 
     if request.method == "POST":
         form = HazardCommentForm(request.POST)
@@ -1168,12 +1313,16 @@ def hazard_comment(request: HttpRequest, hazard_number: "str") -> HttpResponse:
             )
             context = {"form": LogHazardForm()}
             return render(
-                request, "hazard_comment.html", context | std_context()
+                request,
+                "hazard_comment.html",
+                context | std_context(project_id),
             )
         else:
             context = {"form": form}
             return render(
-                request, "hazard_comment.html", context | std_context()
+                request,
+                "hazard_comment.html",
+                context | std_context(project_id),
             )
 
     # Should never really get here, but added for mypy
@@ -1329,7 +1478,7 @@ def setup_step_get(env_location: str = settings.ENV_LOCATION) -> int:
     return return_value
 
 
-def std_context() -> dict[str, Any]:
+def std_context(project_id: int = 0) -> dict[str, Any]:
     """Title
 
     Description
@@ -1339,64 +1488,28 @@ def std_context() -> dict[str, Any]:
     """
 
     std_context_dict: dict[str, Any] = {}
-    mkdoc_running: bool = False
     docs_available: bool = False
-    mkdocs: MkdocsControl
     setup_step: int = 0
-
-    # mkdocs = MkdocsControl(1)
-    # mkdoc_running = mkdocs.is_process_running()
+    entry_templates: list[str] = []
 
     setup_step = setup_step_get()
 
     if setup_step >= 2:
         docs_available = True
 
+    if project_id > 0:
+        project = ProjectBuilder(project_id)
+        entry_templates = project.entry_template_names()
+        # print(entry_templates)
+
     std_context_dict = {
         "START_AFRESH": settings.START_AFRESH,
-        # "mkdoc_running": mkdoc_running,
         "docs_available": docs_available,
         "FORM_ELEMENTS_MAX_WIDTH": c.FORM_ELEMENTS_MAX_WIDTH,
+        "entry_templates": entry_templates,
     }
 
     return std_context_dict
-
-
-@login_required
-def start_afresh(request: HttpRequest) -> HttpResponse:
-    """Title
-
-    Description
-
-    Args:
-        request (HttpRequest): request from user
-
-    Returns:
-        HttpResponse: for loading the correct webpage
-    """
-
-    env_m: ENVManipulator
-    mkdocs: MkdocsControl
-    # root, dirs, files, d
-
-    if not request.method == "GET":
-        return render(request, "405.html", std_context(), status=405)
-
-    if settings.START_AFRESH or settings.TESTING:
-        for root, dirs, files in os.walk(settings.MKDOCS_DOCS_LOCATION):
-            for file in files:
-                if not fnmatch(file, ".gitkeep"):
-                    os.unlink(os.path.join(root, file))
-            for d in dirs:
-                shutil.rmtree(os.path.join(root, d))
-
-        env_m = ENVManipulator(settings.ENV_LOCATION)
-        env_m.delete_all()
-
-        mkdocs = MkdocsControl()
-        if not mkdocs.stop(wait=True):
-            return render(request, "500.html", status=500)
-    return redirect("/build")
 
 
 # TODO - will need to also grant access to public open access documents.
@@ -1471,20 +1584,24 @@ def user_accessible_projects(request: HttpRequest) -> list[dict[str, str]]:
     return documents_sorted
 
 
-def snake_to_title(snake_text):
-    """ """
-    words = snake_text.split("_")
-    title_text = " ".join(words).capitalize()
-    title_text = title_text.strip()
-    return title_text
-
-
-def placeholders(project_id: str) -> str:
+def placeholders(project_id: int) -> str:
     """Provides placeholders in serialised form
+
+    This is used in the documents edit page, where markdown is converted to
+    html and placeholders are converted into their corresponding values.
+
+    Args:
+        project_id (str): placeholders in a serialised form.
 
     Returns:
         str: placeholders in serialised form, with empty ones replaced with
     """
+    if not isinstance(project_id, int):
+        return ""
+
+    if not Project.objects.filter(id=project_id).exists():
+        return ""
+
     project_builder: ProjectBuilder = ProjectBuilder(int(project_id))
     placeholders: dict[str, str] = project_builder.get_placeholders()
     for key, value in placeholders.items():

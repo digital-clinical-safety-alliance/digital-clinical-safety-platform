@@ -3,6 +3,8 @@ import re
 
 register = template.Library()
 
+from app.functions.general_fuctions import kebab_to_title
+
 
 @register.filter(name="has_tag")
 def has_tag(messages, tag):
@@ -38,3 +40,9 @@ def split(value, index):
 def remove_first_element(mapping):
     """Remove the first item in a list"""
     return mapping[1:]
+
+
+@register.filter(name="kebab_to_title")
+def kebab_to_title_filter(value):
+    value = kebab_to_title(value)
+    return value

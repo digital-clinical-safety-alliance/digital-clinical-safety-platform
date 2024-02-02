@@ -45,8 +45,23 @@ A javascript script will run each time one of the monitored-labelled field chang
 and if it matches the values in the monitored fields, it will update the
 calculated field.
 
+## CSS
+You need a `icon-small` and a `icon-large` CSS definition for the icons used 
+in the entries. `icon-small` is used for the summary pages and `icon-large` is
+used for the individual entries.
+
 ## Hazard summary page
 This is a fairly complicated page, and it would be best to follow examples (need a link).
+
+## Numbering
+For lists that are used in selection fields, number lines must be of the form:
+
+number - text
+
+eg
+
+1 - First selection option
+2 - Second selection option
 
 ## Hazard icons
 
@@ -57,3 +72,8 @@ This is a fairly complicated page, and it would be best to follow examples (need
 ## Officer template
 
 ## Complience sign off template
+
+
+## Documents.yml
+Under `entries` add the order you want entries to appear on the Ux. If not supplied 
+then these are ordered randomly.

@@ -53,7 +53,9 @@ PLACEHOLDERS_GOOD_DATA = {
     "todays_date": "01/01/2025",
 }
 
-MD_EDIT_GOOD_DATA = {"md_text": "Some test data here {{ name_of_app }}"}
+MD_EDIT_GOOD_DATA = {
+    "document_markdown": "Some test data here {{ name_of_app }}"
+}
 
 MD_SAVED_GOOD_DATA = {
     "document_name": "test_template1.md",
