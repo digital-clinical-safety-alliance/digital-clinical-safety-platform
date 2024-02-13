@@ -25,18 +25,37 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("name", models.CharField(blank=True, max_length=256, null=True)),
+                (
+                    "name",
+                    models.CharField(
+                        blank=True,
+                        max_length=256,
+                        null=True,
+                    ),
+                ),
                 (
                     "external_repo_url",
-                    models.CharField(blank=True, max_length=256, null=True),
+                    models.CharField(
+                        blank=True,
+                        max_length=256,
+                        null=True,
+                    ),
                 ),
                 (
                     "external_repo_username",
-                    models.CharField(blank=True, max_length=256, null=True),
+                    models.CharField(
+                        blank=True,
+                        max_length=256,
+                        null=True,
+                    ),
                 ),
                 (
                     "external_repo_password_token",
-                    models.CharField(blank=True, max_length=256, null=True),
+                    models.CharField(
+                        blank=True,
+                        max_length=256,
+                        null=True,
+                    ),
                 ),
                 (
                     "member",
@@ -72,11 +91,15 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("last_accessed", models.DateTimeField(auto_now=True)),
+                (
+                    "last_accessed",
+                    models.DateTimeField(auto_now=True),
+                ),
                 (
                     "project",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="app.project"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="app.project",
                     ),
                 ),
                 (
@@ -105,15 +128,27 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "default_github_username",
-                    models.CharField(blank=True, max_length=256, null=True),
+                    models.CharField(
+                        blank=True,
+                        max_length=256,
+                        null=True,
+                    ),
                 ),
                 (
                     "default_github_host",
-                    models.CharField(blank=True, max_length=256, null=True),
+                    models.CharField(
+                        blank=True,
+                        max_length=256,
+                        null=True,
+                    ),
                 ),
                 (
                     "github_token",
-                    models.CharField(blank=True, max_length=256, null=True),
+                    models.CharField(
+                        blank=True,
+                        max_length=256,
+                        null=True,
+                    ),
                 ),
                 (
                     "user",
@@ -137,14 +172,27 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("name", models.CharField(blank=True, max_length=256, null=True)),
+                (
+                    "name",
+                    models.CharField(
+                        blank=True,
+                        max_length=256,
+                        null=True,
+                    ),
+                ),
                 (
                     "member",
-                    models.ManyToManyField(blank=True, to=settings.AUTH_USER_MODEL),
+                    models.ManyToManyField(
+                        blank=True,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
                 ),
                 (
                     "project_access",
-                    models.ManyToManyField(blank=True, to="app.project"),
+                    models.ManyToManyField(
+                        blank=True,
+                        to="app.project",
+                    ),
                 ),
             ],
         ),

@@ -30,13 +30,13 @@ Hazard {{ hazard.number }} -
 
 <div class="right">
 
-{{ hazard.icon_html }}
+{{ hazard.icon_html | safe }}
 
 </div>
 </div>
 </summary>
 <a href="hazards/hazard-{{ hazard.number }}.html">link to hazard</a><br>
-
-{{ hazard.contents_str }}
+## Hazard {{ hazard.number }}
+{{ hazard.contents_str | safe }}
 </details>
 {% endfor %}

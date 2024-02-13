@@ -2,6 +2,7 @@
 
 Forward slash '/' is placed at the end of directory names
 """
+
 from enum import Enum
 
 MAIN_FOLDER: str = "/dcsp/"
@@ -22,6 +23,8 @@ PROJECTS_FOLDER: str = "/projects/"
 CLINICAL_SAFETY_FOLDER: str = "CS-documents/"
 TEMPLATE_SUFFIX: str = "-template.md"
 HEADING_MAX_LOOP: int = 100
+ENTRY_SUMMARY_SUFFIX: str = "-summary.md"
+ENTRY_TEMPLATE_SUFFIX: str = "-template.md"
 
 # For mkdocs_control
 TIME_INTERVAL: float = 0.1
@@ -106,10 +109,6 @@ class EnvKeysPH(Enum):
     GITHUB_ORGANISATION = "GITHUB_ORGANISATION"
     GITHUB_REPO = "GITHUB_REPO"
     GITHUB_TOKEN = "GITHUB_TOKEN"  # nosec B105
-
-
-HAZARD_TEMPLATE_FILE: str = "hazard-template.md"
-HAZARD_LABELS_FILE: str = "hazard-labels.yml"
 
 
 TEMPLATE_HAZARD_COMMENT = """This Issue Template is based on the practices described in NHS Digital DCB0129/DCB0160 Clinical Safety Officer training.
@@ -267,3 +266,17 @@ MIME_TYPES = {
     "wmv": "video/x-ms-wmv",
     "avi": "video/x-msvideo",
 }
+
+
+SELECT_STYLE: str = (
+    "custom-select border p-2 rounded-2 border-info field-color-dcsp font-dcsp"
+)
+
+
+class StaticSiteView(Enum):
+    PRIVATE = "private"
+    MEMBERS = "members"
+    PUBLIC = "public"
+
+
+DOCUMENTATION_PAGES: str = "/documentation-pages"

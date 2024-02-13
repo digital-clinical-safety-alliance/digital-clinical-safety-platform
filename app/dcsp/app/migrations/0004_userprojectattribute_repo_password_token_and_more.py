@@ -12,11 +12,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="userprojectattribute",
             name="repo_password_token",
-            field=models.CharField(blank=True, max_length=256, null=True),
+            field=models.CharField(
+                blank=True,
+                max_length=256,
+                null=True,
+            ),
         ),
         migrations.AddField(
             model_name="userprojectattribute",
             name="repo_username",
-            field=models.CharField(blank=True, max_length=256, null=True),
+            field=models.CharField(
+                blank=True,
+                max_length=256,
+                null=True,
+            ),
         ),
     ]

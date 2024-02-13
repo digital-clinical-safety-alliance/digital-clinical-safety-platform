@@ -4,17 +4,9 @@
 
 {% block main %}
   <div class="row">
-    <div class="col"></div>
-    <div class="col-12 col-md-6 mx-auto">
-      <h2>{{ entry_type|title }} saved</h2>
-    </div>
-    <div class="col"></div>
-  </div>
-  <div class="row">
 
     {% include "project_side_bar_left.html" %}
 
- 
     <div class="col-12 col-md-6">
 
       {% include "message_error.html" %}
@@ -28,7 +20,7 @@
       <div class="mb-3">
         <a class="link-dcsp"
            id="id_link_entry_saved"
-           onclick="url_click('{% url "view_docs" project_id entry_update_outcome.hazard_url %}')">Published view</a>
+           onclick="url_click('{% url "view_docs" project_id entry_update_outcome.entries_url %}')">Published view</a>
       </div>
       <div class="mb-3">
         <a class="link-dcsp"
@@ -46,7 +38,7 @@
 
   </div>
 
-  <script>
+  <!--<script>
     var labelsForCalculations = {{ form.labels_for_calculations|safe }};
     var calculationField = {{ form.calculation_field|safe }};
 
@@ -105,5 +97,5 @@
       }
     }
 
-  </script>
-{% endblock %}
+  </script>-->
+{% endblock main %}

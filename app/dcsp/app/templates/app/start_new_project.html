@@ -1,141 +1,140 @@
 {% extends "base.html" %}
 
 {% block main %}
-  <div class="row">
-    <div class="col"></div>
-    {% if title %}
-      <div class="col-12 col-md-6 mx-auto">
-        <h2>{{ title }}</h2>
-      </div>
-    {% else %}
-      <div class="col-12 col-md-6 mx-auto">
-        <h2>Setup a new project</h2>
-      </div>
-    {% endif %}
-    <div class="col"></div>
-  </div>
+    <div class="row">
+        <div class="col">
+            {% if setup_choice %}
+                Setup choice: {{ setup_choice }}
+                <br>
+            {% endif %}
+            <div class="mb-3">Step: {{ setup_step }} of 4</div>
+        </div>
 
-  <div class="row">
-    <div class="col">
-      {% if setup_choice %}
-        Setup choice: {{ setup_choice }}
-        <br>
-      {% endif %}
-      Step: {{ setup_step }} of 4
+        <div class="col-12 col-lg-6">
+
+            {% include "message_error.html" %}
+
+            {% if setup_step == 1 %}
+                <div class="accordion max-w-600 mb-3 field-color-dcsp"
+                     id="accordionHowWorks">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button field-color-dcsp"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#collapseOne"
+                                    aria-expanded="true"
+                                    aria-controls="collapseOne">How to start a new project</button>
+                        </h2>
+                        <div id="collapseOne"
+                             class="accordion-collapse collapse field-color-dcsp"
+                             data-bs-parent="#accordionHowWorks">
+                            <div class="accordion-body">
+                                <p>
+                                    Welcome to the project setup page. The Digital Clinical Safety Platform (DCSP) uses git
+                                    for version control. This offers many benefits over traditional word document methods.
+                                    Using git to version control allows for more accurate and more strickly controlled
+                                    "saves" of the clinical safety documentation in relation to your digital health system.
+                                </p>
+                                <p>
+                                    During setup you will be able to either import a git repository from an external git
+                                    domain or start a new project from afresh. A project within the DCSP is a collection of
+                                    the clinical safety documentations, along with the code base of the digital health system,
+                                    if you wish to intergrate the two.
+                                </p>
+                                <p>Please select import or start afresh to begin.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if inputs_GUI %}
+                <h4>You have selected</h4>
+                <div class="p-3 mb-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3">
+                    {% for key, value in inputs_GUI.items %}
+                        <p>
+                            <strong>{{ key }}</strong>: {{ value | safe }}
+                        </p>
+                    {% endfor %}
+                </div>
+ 
+                {% if inputs.setup_choice == 'import' %}
+                    <h4 class="mb-3">Do you wish to upload the external repository and proceed?</h4>
+                    <p>
+                        The clinical safety folder '{{ CLINICAL_SAFETY_FOLDER }}' will be created if not
+                        already present in the external repository
+                    </p>
+                {% else %}
+                    <h4 class="mb-3">Do you wish to proceed and create this project?</h4>
+                {% endif %}
+ 
+                <form id="id_form" action="{% url 'start_new_project' %}" method="post">
+                    {% csrf_token %}
+
+                    <div class="right d-flex">
+                        <button id="id_button"
+                                onclick="submitForm()"
+                                class="btn btn-primary ml-auto"
+                                type="submit">OK</button>
+                        <div class="px-2"></div>
+                        <a class="btn btn-secondary ml-auto"
+                           href="{% url 'start_new_project' %}">No, start again!</a>
+                    </div>
+                </form>
+            {% endif %}
+
+            {% include "error_summary.html" %}
+
+            {% if restart_button %}
+                <a class="btn btn-secondary ml-auto"
+                   href="{% url 'start_new_project' %}">Restart</a>
+            {% endif %}
+
+            {% if form %}
+                <form id="id_form" action="{% url 'start_new_project' %}" method="post">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label"
+                                   for="id_{{ field.name }}"
+                                   id="id_label_{{ field.name }}">{{ field.label | safe }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <div class="font-dcsp" id="id_help_text_{{ field.name }}">{{ field.help_text|safe }}</div>
+                            {% endif %}
+                            {% if field.errors %}
+                                {% for error in field.errors %}
+                                    <div class="invalid-feedback" id="id_{{ field.name }}">{{ error|escape }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="right">
+                        <button id="id_button"
+                                onclick="submitForm()"
+                                class="btn btn-primary ml-auto"
+                                type="submit">Submit</button>
+                    </div>
+                </form>
+            {% endif %}
+
+            {% if project_id %}
+                You can start editing your documents <a href="{% url 'setup_documents' project_id %}">here</a>
+            {% endif %}
+ 
+        </div>
+        <div class="col d-sm-none d-md-none d-lg-block d-xl-block">Placeholder 2</div>
     </div>
 
-    <div class="col-12 col-md-6">
-
-      {% include "message_error.html" %}
-
-      {% if setup_step == 1 %}
-        <div class="accordion max-w-600 mb-3 field-color-dcsp"
-             id="accordionHowWorks">
-          <div class="accordion-item">
-            <h2 class="accordion-header">
-              <button class="accordion-button field-color-dcsp"
-                      type="button"
-                      data-bs-toggle="collapse"
-                      data-bs-target="#collapseOne"
-                      aria-expanded="true"
-                      aria-controls="collapseOne">How to start a new project</button>
-            </h2>
-            <div id="collapseOne"
-                 class="accordion-collapse collapse field-color-dcsp"
-                 data-bs-parent="#accordionHowWorks">
-              <div class="accordion-body">
-                <p>
-                  Welcome to the project setup page. The Digital Clinical Safety Platform (DCSP) uses git
-                  for version control. This offers many benefits over traditional word document methods.
-                  Using git to version control allows for more accurate and more strickly controlled
-                  "saves" of the clinical safety documentation in relation to your digital health system.
-                </p>
-                <p>
-                  During setup you will be able to either import a git repository from an external git
-                  domain or start a new project from afresh. A project within the DCSP is a collection of
-                  the clinical safety documentations, along with the code base of the digital health system,
-                  if you wish to intergrate the two.
-                </p>
-                <p>Please select import or start afresh to begin.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      {% endif %}
-
-      {% if inputs_GUI %}
-        <h4>You have selected</h4>
-        <div class="p-3 mb-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3 {{ FORM_ELEMENTS_MAX_WIDTH }}">
-          {% for key, value in inputs_GUI.items %}
-            <p>
-              <strong>{{ key }}</strong>: {{ value | safe }}
-            </p>
-          {% endfor %}
-        </div>
- 
-        {% if inputs.setup_choice == 'import' %}
-          <h4 class="mb-3">Do you wish to upload the external repository and proceed?</h4>
-          <p>
-            The clinical safety folder '{{ CLINICAL_SAFETY_FOLDER }}' will be created if not
-            already present in the external repository
-          </p>
-        {% else %}
-          <h4 class="mb-3">Do you wish to proceed and create this project?</h4>
-        {% endif %}
- 
-        <form id="id_form" action="/start_new_project" method="post">
-          {% csrf_token %}
-          <div align="btn btn-secondary right">
-            <button id="id_button"
-                    onclick="submitForm()"
-                    class="btn btn-primary ml-auto"
-                    type="submit">Yes</button>
-            <a class="btn btn-primary ml-auto" href="/start_new_project">No, start again!</a>
-          </div>
-        </form>
-      {% endif %}
-
-      {% include "error_summary.html" %}
-
-      {% if restart_button %}<a class="btn btn-secondary ml-auto" href="/start_new_project">Restart</a>{% endif %}
-
-      {% if form %}
-        <form id="id_form" action="/start_new_project" method="post">
-          {% csrf_token %}
-
-          {% for field in form %}
-            <div class="mb-3">
-              <label class="form-label"
-                     for="id_{{ field.name }}"
-                     id="id_label_{{ field.name }}">{{ field.label | safe }}</label>
-              {{ field }}
-              {% if field.help_text %}
-                <div class="font-dcsp" id="id_help_text_{{ field.name }}">{{ field.help_text|safe }}</div>
-              {% endif %}
-              {% if field.errors %}
-                {% for error in field.errors %}
-                  <div class="invalid-feedback" id="id_{{ field.name }}">{{ error|escape }}</div>
-                {% endfor %}
-              {% endif %}
-            </div>
-          {% endfor %}
-
-          <div align="right">
-            <button id="id_button"
-                    onclick="submitForm()"
-                    class="btn btn-primary ml-auto"
-                    type="submit">Submit</button>
-          </div>
-        </form>
-      {% endif %}
-
-      {% if document_url %}You can start editing your documents <a href='/{{ document_url }}'>here</a>{% endif %}
- 
-    </div>
-    <div class="col">Placeholder 2</div>
-  </div>
-
-  <script>change_visibility();</script>
+    <script>change_visibility();
+    
+    window.addEventListener('pageshow', function(event) {
+        change_visibility();
+    });
+    </script>
 
 
 {% endblock %}

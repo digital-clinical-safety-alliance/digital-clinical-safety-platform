@@ -3,39 +3,38 @@
 {% load custom_filters %}
 
 {% block main %}
-  <div class="row">
-    <div class="col"></div>
-    <div class="col-12 col-md-6 mx-auto">
-      <h2>Edit hazard</h2>
-    </div>
-    <div class="col"></div>
-  </div>
-  <div class="row">
+    <div class="row">
 
-    {% include "project_side_bar_left.html" %}
+        {% include "project_side_bar_left.html" %}
 
  
-    <div class="col-12 col-md-6">
+        <div class="col-12 col-lg-6">
 
-      {% include "message_error.html" %}
+            {% include "message_error.html" %}
 
-      <div class="mb-3">Please select a hazard from below to edit.</div>
-      {% for hazard in hazards %}
-        <p>
-          <a class="link-dcsp"
-             href="/entry_update/{{ project_id }}/hazard/{{ hazard.0.number }}">
-            <strong>Hazard {{ hazard.0.number }}</strong> -
-            {% for section in hazard %}
-              {% if "name" in section.gui_label %}{{ section.text }}{% endif %}
-            {% endfor %}
-          </a>
-          <!-- - {{ hazard.2.text }}</a>-->
-          <br>
-        </p>
-      {% endfor %}
+ 
+            {% if entries %}
+                <div class="mb-3">Please select {{ entry_type|a_an }} {{ entry_type|kebab_to_title }} from below to edit.</div>
+                {% for entry in entries %}
+                    <p>
+                        <a class="link-dcsp"
+                           href="{% url 'entry_update' project_id entry_type entry.0.number %}">
+                            <strong>{{ entry_type|kebab_to_title }} {{ entry.0.number }}</strong> -
+                            {% for section in entry %}
+                                {% if "name" in section.gui_label %}{{ section.text }}{% endif %}
+                            {% endfor %}
+                        </a>
+                        <!-- - {{ entry.2.text }}</a>-->
+                        <br>
+                    </p>
+                {% endfor %}
+	
+            {% else %}
+                There are currently no {{ entry_type|kebab_to_title }} entries.
+            {% endif %}
+        </div>
+
+        {% include "project_side_bar_right.html" %}
+
     </div>
-
-    {% include "project_side_bar_right.html" %}
-
-  </div>
 {% endblock %}

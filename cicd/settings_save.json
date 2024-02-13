@@ -1,0 +1,42 @@
+{
+  "workbench.colorCustomizations": {
+    "editorUnnecessaryCode.border": "#ff0000",
+  },
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "explorer.confirmDelete": false,
+  "githubPullRequests.pullBranch": "never",
+  "yaml.schemas": {},
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "monosans.djlint"
+  },
+  "editor.formatOnSave": true,
+  "files.exclude": {
+    "**/.git": false
+  },
+  "workbench.editorAssociations": {
+    "*.html": "default"
+  },
+  "editor.defaultFormatter": "ms-python.black-formatter",
+  "djlint.enableLinting": true,
+  "djlint.preserveBlankLines": true,
+  "djlint.formatLanguages": [
+    "html"
+  ],
+  "djlint.configuration": "/Users/markbailey/github/digital-clinical-safety-platform/digital-clinical-safety-platform/cicd/djlint/pyproject.toml",
+  "workbench.settings.applyToAllProfiles": [
+    "djlint.configuration"
+  ],
+  "window.zoomLevel": 1,
+  "djlint.ignore": [
+    "python"
+  ],
+  "editor.minimap.enabled": false,
+  "black-formatter.args": [
+    "--config",
+    "/Users/markbailey/github/digital-clinical-safety-platform/digital-clinical-safety-platform/cicd/black_linter/pyproject.toml"
+  ]
+}

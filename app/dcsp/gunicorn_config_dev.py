@@ -6,7 +6,9 @@ from fnmatch import fnmatch
 import app.functions.constants as c
 
 
-def find_html_files(folder_path: str) -> list[str]:
+def find_html_files(
+    folder_path: str,
+) -> list[str]:
     """ """
     files_to_check = []
 

@@ -1,604 +1,1589 @@
+import time as t
+import sys
+from pathlib import Path
+
 from django.test import TestCase, tag, override_settings, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.conf import settings
+from django.http import HttpRequest, HttpResponse
 from unittest.mock import Mock, patch, call
-
-import time as t
-import sys
-import os
-import shutil
-from dotenv import dotenv_values
+from app.models import ProjectGroup
+from django.core.handlers.wsgi import WSGIRequest
+from django.contrib.messages import get_messages
 
 import app.functions.constants as c
 
-"""settings.ENV_LOCATION = c.TESTING_ENV_PATH_DJANGO
-settings.GITHUB_REPO = c.TESTING_GITHUB_REPO
-settings.MKDOCS_LOCATION = c.TESTING_MKDOCS
-settings.MKDOCS_DOCS_LOCATION = c.TESTING_MKDOCS_DOCS
-settings.TESTING = True
-settings.START_AFRESH = True"""
-
-
 sys.path.append(c.FUNCTIONS_APP)
 
-from app.functions.env_manipulation import ENVManipulator
-from app.views import std_context
+# from app.decorators import project_access
+import app.views as views
+from app.models import Project
 import app.tests.data_views as d
 
 
-@patch("app.forms.GitController")
-def setup_level(self, level, mock_git_controller):
-    if not isinstance(level, int):
-        raise ValueError("Supplied level is not convertable into an integer")
-        sys.exit(1)
-
-    if level > 3 or level < 1:
-        raise ValueError("Supplied level must be between 1 and 3")
-        sys.exit(1)
-
-    if level >= 1:
-        mock_git_controller_instance = Mock()
-        mock_git_controller.return_value = mock_git_controller_instance
-        mock_git_controller_instance.check_github_credentials.return_value = (
-            d.CREDENTIALS_CHECK_REPO_EXISTS
-        )
-
-        response = self.client.post("/build", installation_variables())
-        self.assertEqual(response.status_code, 200)
-    if level >= 2:
-        response1 = self.client.post("/build", d.TEMPLATE_GOOD_DATA)
-        self.assertEqual(response1.status_code, 200)
-    if level >= 3:
-        response3 = self.client.post("/build", d.PLACEHOLDERS_GOOD_DATA)
-        self.assertEqual(response3.status_code, 200)
-    return
-
-
-def installation_variables():
-    em = ENVManipulator(c.TESTING_ENV_PATH_GIT)
-    all_variables = em.read_all()
-
-    env_for_post = {
-        "installation_type": "SA",
-        "github_username_SA": all_variables["GITHUB_USERNAME"],
-        "github_organisation_SA": all_variables["GITHUB_ORGANISATION"],
-        "email_SA": all_variables["EMAIL"],
-        "github_token_SA": all_variables["GITHUB_TOKEN"],
-        "github_repo_SA": all_variables["GITHUB_REPO"],
-    }
-
-    return env_for_post
-
-
-def env_variables():
-    em = ENVManipulator(c.TESTING_ENV_PATH_GIT)
-    all_variables = em.read_all()
-
-    return_values = {
-        "github_username": all_variables["GITHUB_USERNAME"],
-        "github_organisation": all_variables["GITHUB_ORGANISATION"],
-        "email": all_variables["EMAIL"],
-        "github_token": all_variables["GITHUB_TOKEN"],
-        "github_repo": all_variables["GITHUB_REPO"],
-    }
-
-    return return_values
-
-
-def login_and_start_afresh(self):
+def log_in(self):
     self.user = User.objects.create_user(
-        username="u", password="p"
+        id=1, username="u", password="p"
     )  # nosec B106
     self.client = Client()
     self.client.login(username="u", password="p")  # nosec B106
-    self.client.get("/start_afresh")
     return
 
 
-# TODO #34 - add some messages tests
-
-
-class BuildTest(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        if not os.path.isfile(c.TESTING_ENV_PATH_GIT):
-            raise FileNotFoundError(
-                ".env file for GitControllerTest class is missing"
-            )
-            sys.exit(1)
-
-        if not os.path.isfile(c.TESTING_ENV_PATH_DJANGO):
-            open(c.TESTING_ENV_PATH_DJANGO, "w").close()
-
+class ProjectAccessTest(TestCase):
     def setUp(self):
-        login_and_start_afresh(self)
+        log_in(self)
 
-    def test_method_bad(self):
-        self.client.login(username="u", password="p")  # nosec B106
-        response = self.client.delete("/build")
+    @patch("app.views.std_context")
+    def test_method_not_allowed(self, mock_std_context):
+        project_id = "1"
+
+        mock_std_context.return_value = {"test": "test"}
+
+        @views.project_access
+        def mock_view(request, project_id, setup_step, *args, **kwargs):
+            return HttpResponse("Success")
+
+        request = HttpRequest()
+        request.user = self.user
+        request.method = "DELETE"
+        response = mock_view(request, project_id)
+
         self.assertEqual(response.status_code, 405)
 
-    def test_installation_setup_get(self):
-        self.client.login(username="u", password="p")  # nosec B106
-        response = self.client.get("/build")
-        self.assertEqual(response.status_code, 200)
+        mock_std_context.assert_called_once_with()
 
-    def test_installation_setup_get_template_correct(self):
-        self.client.login(username="u", password="p")  # nosec B106
-        response = self.client.get("/build")
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "installation_method.html")
+    @patch("app.views.std_context")
+    def test_project_id_non_digit(self, mock_std_context):
+        project_id = "a"
 
-    @patch("app.forms.GitController")
-    def test_installation_post_good_data(self, mock_git_controller):
-        mock_git_controller_instance = Mock()
-        mock_git_controller.return_value = mock_git_controller_instance
-        mock_git_controller_instance.check_github_credentials.return_value = (
-            d.CREDENTIALS_CHECK_REPO_EXISTS
+        mock_std_context.return_value = {"test": "test"}
+
+        @views.project_access
+        def mock_view(request, project_id, setup_step, *args, **kwargs):
+            return HttpResponse("Success")
+
+        request = HttpRequest()
+        request.user = self.user
+        request.method = "GET"
+        response = mock_view(request, project_id)
+
+        self.assertEqual(response.status_code, 404)
+
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.decorators.messages.error")
+    @patch("app.views.std_context")
+    def test_project_does_not_exist(
+        self,
+        mock_std_context,
+        mock_messages_error,
+    ):
+        project_id = "2"
+        Project.objects.create(id=1, owner=self.user, name="Test Project")
+
+        # mock_messages_error - here we are mocking the messages.error function
+        mock_std_context.return_value = {"test": "test"}
+
+        @views.project_access
+        def mock_view(request, project_id, setup_step, *args, **kwargs):
+            return HttpResponse("Success")
+
+        request = HttpRequest()
+        request.user = self.user
+        request.method = "GET"
+        response = mock_view(request, project_id)
+
+        self.assertEqual(response.status_code, 404)
+
+        mock_messages_error.assert_called_once_with(
+            request, f"'Project { project_id }' does not exist"
         )
+        mock_std_context.assert_called_once_with()
 
-        self.client.login(username="u", password="p")  # nosec B106
-        response = self.client.post("/build", installation_variables())
-        self.assertEqual(response.status_code, 200)
+    @patch("app.views.user_accessible_projects")
+    @patch("app.decorators.messages.error")
+    @patch("app.views.std_context")
+    def test_no_user_access(
+        self,
+        mock_std_context,
+        mock_messages_error,
+        mock_user_accessible_projects,
+    ):
+        project_id = "1"
+        Project.objects.create(id=1, owner=self.user, name="Test Project")
 
-        mock_git_controller.assert_called_once()
-        _, calls_git_controller = mock_git_controller.call_args
-        self.assertEqual(calls_git_controller, env_variables())
+        mock_user_accessible_projects.return_value = [{"doc_id": 2}]
+        # mock_messages_error - here we are mocking the messages.error function
+        mock_std_context.return_value = {"test": "test"}
 
-        mock_git_controller_instance.check_github_credentials.assert_called_once()
-        (
-            _,
-            calls_git_controller_instance,
-        ) = mock_git_controller_instance.check_github_credentials.call_args
+        @views.project_access
+        def mock_view(request, project_id, setup_step, *args, **kwargs):
+            return HttpResponse("Success")
 
-        self.assertEqual(calls_git_controller_instance, {})
+        request = HttpRequest()
+        request.user = self.user
+        request.method = "GET"
+        response = mock_view(request, project_id)
 
-    """def test_installation_post_template_correct(self):
-        response = self.client.post("/build", installation_variables())
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "template_select.html")"""
+        self.assertEqual(response.status_code, 403)
 
-    @patch("app.forms.GitController")
-    def test_installation_post_template_correct(self, mock_git_controller):
-        mock_git_controller_instance = Mock()
-        mock_git_controller.return_value = mock_git_controller_instance
-        mock_git_controller_instance.check_github_credentials.return_value = (
-            d.CREDENTIALS_CHECK_REPO_EXISTS
+        mock_messages_error.assert_called_once_with(
+            request, f"You do not have access to this project!"
         )
+        mock_user_accessible_projects.assert_called_once_with(request)
+        mock_std_context.assert_called_once_with()
 
-        self.client.login(username="u", password="p")  # nosec B106
-        response = self.client.post("/build", installation_variables())
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "template_select.html")
+    @patch("app.views.user_accessible_projects")
+    @patch("app.decorators.ProjectBuilder")
+    @patch("app.views.Path.is_dir")
+    @patch("app.decorators.messages.error")
+    @patch("app.views.std_context")
+    def test_docs_folder_missing(
+        self,
+        mock_std_context,
+        mock_messages_error,
+        mock_is_dir,
+        mock_project_builder,
+        mock_user_accessible_projects,
+    ):
+        project_id = "1"
+        project_id_int = int(project_id)
+        Project.objects.create(id=1, owner=self.user, name="Test Project")
 
-    # TODO
-    def test_installation_post_good_data_message(self):
-        pass
+        mock_user_accessible_projects.return_value = [{"doc_id": 1}]
+        mock_project_builder.return_value.configuration_get.return_value = {
+            "setup_step": 2
+        }
+        mock_is_dir.return_value = False
+        # mock_messages_error - here we are mocking the messages.error function
+        mock_std_context.return_value = {"test": "test"}
 
-    def test_installation_post_stand_alone_data_bad(self):
-        pass
-        """response = self.client.post(
-            "/build", d.INSTALLATION_POST_STAND_ALONE_DATA_BAD
+        @views.project_access
+        def mock_view(request, project_id, setup_step, *args, **kwargs):
+            return HttpResponse("Success")
+
+        request = HttpRequest()
+        request.user = self.user
+        request.method = "GET"
+        response = mock_view(request, project_id)
+
+        self.assertEqual(response.status_code, 500)
+
+        mock_user_accessible_projects.assert_called_once_with(request)
+        mock_project_builder.assert_called_once_with(project_id_int)
+        mock_project_builder.return_value.configuration_get.assert_called_once_with()
+        mock_messages_error.assert_called_once_with(
+            request,
+            f"The safety documents directory for 'project { project_id }' "
+            f"does not exist. It should exist at "
+            f"'{ c.CLINICAL_SAFETY_FOLDER }docs/'. Please create this folder and "
+            "try again. This can either be done via setup process and importing"
+            "a safety template or via the external repository and then imported.",
         )
-        print(response.content)
-        self.assertContains(response, "Invalid URL")
-        self.assertEqual(response.status_code, 200)"""
+        mock_std_context.assert_called_once_with()
 
-    def test_installation_post_integrated_data_bad(self):
-        self.client.login(username="u", password="p")  # nosec B106
-        response = self.client.post(
-            "/build", d.INSTALLATION_POST_INTEGRATED_DATA_BAD
-        )
-        self.assertContains(response, "Invalid path")
+    @patch("app.views.user_accessible_projects")
+    @patch("app.decorators.ProjectBuilder")
+    def test_allow_access(
+        self,
+        mock_project_builder,
+        mock_user_accessible_projects,
+    ):
+        project_id = "1"
+        project_id_int = int(project_id)
+
+        @views.project_access
+        def mock_view(request, project_id, setup_step, *args, **kwargs):
+            return HttpResponse("Success")
+
+        Project.objects.create(id=1, owner=self.user, name="Test Project")
+
+        mock_user_accessible_projects.return_value = [{"doc_id": 1}]
+
+        mock_project_builder.return_value.configuration_get.return_value = {
+            "setup_step": 1
+        }
+
+        request = HttpRequest()
+        request.user = self.user
+        request.method = "GET"
+        response = mock_view(request, project_id)
+
+        self.assertEqual(response.content, b"Success")
+        mock_user_accessible_projects.assert_called_once_with(request)
+        mock_project_builder.assert_called_once_with(project_id_int)
+        mock_project_builder.return_value.configuration_get.assert_called_once_with()
+
+
+class indexTest(TestCase):
+    @patch("app.views.std_context")
+    def test_show_public_view(self, mock_std_context):
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "index.html")
 
-    def test_template_select_get(self):
-        self.client.login(username="u", password="p")  # nosec B106
-        setup_level(self, 1)
-        response1 = self.client.get("/build")
-        self.assertEqual(response1.status_code, 200)
+        mock_std_context.assert_called_once_with()
 
-    def test_template_select_get_template_correct(self):
-        self.client.login(username="u", password="p")  # nosec B106
-        setup_level(self, 1)
-        response = self.client.get("/build")
-        self.assertEqual(response.status_code, 200)
-        # print(response.content)
-        self.assertTemplateUsed(response, "template_select.html")
+    @patch("app.views.std_context")
+    def test_bad_request(self, mock_std_context):
+        mock_std_context.return_value = {"test": "test"}
 
-    def test_template_post_good_data(self):
-        # Below function call logs in
-        self.test_installation_post_good_data()
-        response = self.client.post("/build", d.TEMPLATE_GOOD_DATA)
-        self.assertEqual(response.status_code, 200)
-
-    # TODO
-    def test_template_post_good_data_message(self):
-        pass
-
-    def test_template_post_bad_data(self):
-        # Below function call logs in
-        self.test_installation_post_good_data()
-        response = self.client.post("/build", d.TEMPLATE_BAD_DATA)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Select a valid choice.")
-
-    def test_template_post_template_correct(self):
-        self.test_installation_post_good_data()
-        response = self.client.post("/build", d.TEMPLATE_GOOD_DATA)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "placeholders_show.html")
-
-    def test_placeholders_get(self):
-        self.test_template_post_good_data()
-        response = self.client.get("/build")
-        self.assertEqual(response.status_code, 200)
-
-    def test_placeholders_get_template_correct(self):
-        self.test_template_post_good_data()
-        response = self.client.get("/build")
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "placeholders_show.html")
-
-    def test_placeholders_post_good_data(self):
-        self.test_template_post_good_data()
-        response = self.client.post("/build", d.PLACEHOLDERS_GOOD_DATA)
-        self.assertEqual(response.status_code, 200)
-
-    # TODO
-    def test_post_good_data_message(self):
-        pass
-
-    def test_logged_out(self):
-        self.client.logout()
-        response = self.client.get("/build")
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/accounts/login/?next=/build")
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-
-class MdEditTest(TestCase):
-    def setUp(self):
-        login_and_start_afresh(self)
-
-    def test_wrong_method(self):
-        setup_level(self, 2)
-        response2 = self.client.delete("/md_edit")
-        self.assertEqual(response2.status_code, 405)
-
-    def test_setup_step_none(self):
-        response = self.client.get("/md_edit")
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("build"))
-
-    def test_setup_step_1(self):
-        setup_level(self, 1)
-        response1 = self.client.get("/md_edit")
-        self.assertEqual(response1.status_code, 302)
-        self.assertRedirects(response1, reverse("build"))
-
-    def test_setup_step_2(self):
-        setup_level(self, 2)
-        response2 = self.client.get("/md_edit")
-        self.assertEqual(response2.status_code, 200)
-
-    def test_template_correct(self):
-        setup_level(self, 2)
-        response2 = self.client.get("/md_edit")
-        self.assertEqual(response2.status_code, 200)
-        self.assertTemplateUsed(response2, "md_edit.html")
-
-    def test_post_good_data(self):
-        setup_level(self, 2)
-        response2 = self.client.post("/md_edit", d.MD_EDIT_GOOD_DATA)
-        self.assertEqual(response2.status_code, 200)
-        self.assertTemplateUsed(response2, "md_edit.html")
-
-    def test_logged_out(self):
-        self.client.logout()
-        response = self.client.get("/md_edit")
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/accounts/login/?next=/md_edit")
-
-
-class MdSavedTest(TestCase):
-    def setUp(self):
-        login_and_start_afresh(self)
-
-    def test_md_edit_wrong_method(self):
-        response = self.client.delete("/md_saved")
-        self.assertEqual(response.status_code, 405)
-
-    def test_get_setup_None(self):
-        response = self.client.get("/md_saved")
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response, reverse("md_edit"), target_status_code=302
-        )
-
-    """def setup_2_initialise(self):
-        response = self.client.post("/build", installation_variables())
-        self.assertEqual(response.status_code, 200)
-        response1 = self.client.post("/build", d.TEMPLATE_GOOD_DATA)
-        self.assertEqual(response1.status_code, 200)"""
-
-    def test_get_setup_2_good_data(self):
-        setup_level(self, 2)
-        response2 = self.client.post("/md_saved", d.MD_SAVED_GOOD_DATA)
-        self.assertEqual(response2.status_code, 200)
-        f = open(d.MD_SAVED_TEMPLATE_FILE_PATH, "r")
-        self.assertEqual(f.read(), d.MD_SAVED_GOOD_DATA["md_text"])
-
-    def test_get_setup_2_good_data_template_correct(self):
-        setup_level(self, 2)
-        response2 = self.client.post("/md_saved", d.MD_SAVED_GOOD_DATA)
-        self.assertEqual(response2.status_code, 200)
-        self.assertTemplateUsed(response2, "md_edit.html")
-
-    # TODO
-    def test_post_good_data_message(self):
-        pass
-
-    def test_post_bad_filename(self):
-        setup_level(self, 3)
-        response2 = self.client.post("/md_saved", d.MD_SAVED_BAD_FILENAME)
-        self.assertEqual(response2.status_code, 500)
-
-    def test_logged_out(self):
-        self.client.logout()
-        response = self.client.get("/md_saved")
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/accounts/login/?next=/md_saved")
-
-    # TODO - there is no markdown validity checker yet. But will need a test when in place
-
-
-class MdNewTest(TestCase):
-    pass
-
-
-class HazardLogTest(TestCase):
-    def setUp(self):
-        login_and_start_afresh(self)
-
-    def test_entry_new_bad_method(self):
-        response = self.client.delete("/entry_new")
-        self.assertEqual(response.status_code, 405)
-
-    def test_entry_new_get(self):
-        pass  # TODO - needs finishing
-
-    def test_entry_new_get_template_correct(self):
-        shutil.copyfile(c.TESTING_ENV_PATH_GIT, c.TESTING_ENV_PATH_DJANGO)
-        response = self.client.get("/entry_new")
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "entry_new.html")
-
-    def test_entry_new_post(self):
-        pass
-
-    def test_logged_out(self):
-        self.client.logout()
-        response = self.client.get("/entry_new")
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/accounts/login/?next=/entry_new")
-
-
-# @tag("run")
-# self.user = User.objects.create_user(username="u", password="p") # nosec B106
-# self.client = Client()
-# self.client.login(username="u", password="p") # nosec B106
-@tag("git")
-class HazardCommentTest(TestCase):
-    def setUp(self):
-        setup_level(self, 3)
-
-    def test_hazard_comment_method_bad(self):
-        response = self.client.delete("/hazard_comment/1")
-        self.assertEqual(response.status_code, 405)
-
-    def test_hazard_comment_method_bad_corrent_template(self):
-        response = self.client.delete("/hazard_comment/1")
+        response = self.client.delete("/")
         self.assertEqual(response.status_code, 405)
         self.assertTemplateUsed(response, "405.html")
 
-    def test_hazard_comment_parameter_bad(self):
-        response = self.client.get("/hazard_comment/a")
-        self.assertEqual(response.status_code, 400)
+        mock_std_context.assert_called_once_with()
 
-    def test_hazard_comment_parameter_bad_corrent_template(self):
-        response = self.client.get("/hazard_comment/a")
-        self.assertEqual(response.status_code, 400)
-        self.assertTemplateUsed(response, "400.html")
-
-    def test_hazard_comment_get(self):
-        response = self.client.get(
-            f"/hazard_comment/{ c.TESTING_CURRENT_ISSUE  }"
-        )
-        self.assertEqual(response.status_code, 200)
-
-    def test_hazard_comment_get_template_correct(self):
-        response = self.client.get(
-            f"/hazard_comment/{ c.TESTING_CURRENT_ISSUE  }"
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "hazard_comment.html")
-
-    def test_hazard_comment_issue_number_nonexistent(self):
-        response = self.client.get(
-            f"/hazard_comment/{ d.ISSUE_NUMBER_NONEXISTENT }"
-        )
-        self.assertEqual(response.status_code, 400)
-
-    def test_hazard_comment_issue_number_nonexistent_corrent_template(self):
-        response = self.client.get(
-            f"/hazard_comment/{ d.ISSUE_NUMBER_NONEXISTENT }"
-        )
-        self.assertEqual(response.status_code, 400)
-        self.assertTemplateUsed(response, "400.html")
-
-    def test_hazard_comment_post(self):
-        pass
+    def test_authenticated(self):
+        log_in(self)
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 302)
 
 
-class HazardsOpenTest(TestCase):
-    pass
-
-
-class MkdocsRedirectTest(TestCase):
+class MemberLandingPageTest(TestCase):
     def setUp(self):
-        login_and_start_afresh(self)
+        log_in(self)
 
-    def test_bad_method(self):
-        response = self.client.delete("/mkdoc_redirect/home")
+    @patch("app.views.user_accessible_projects", return_value=[{"doc_id": 1}])
+    @patch("app.views.std_context")
+    def test_members_page(
+        self, mock_std_context, mock_user_accessible_projects
+    ):
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get("/member")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "member_landing_page.html")
+
+        request = response.wsgi_request
+        mock_user_accessible_projects.assert_called_once_with(request)
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.views.std_context")
+    def test_bad_request(self, mock_std_context):
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.delete("/member")
         self.assertEqual(response.status_code, 405)
+        self.assertTemplateUsed(response, "405.html")
 
-    def test_get_home(self):
-        response = self.client.get("/mkdoc_redirect/home")
-        self.assertEqual(response.status_code, 302)
+        mock_std_context.assert_called_once_with()
 
-    def test_logged_out(self):
-        self.client.logout()
-        response = self.client.get("/mkdoc_redirect/home")
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response, "/accounts/login/?next=/mkdoc_redirect/home"
-        )
+    @patch("app.views.user_accessible_projects", return_value=[])
+    @patch("app.views.std_context")
+    def test_no_projects(
+        self, mock_std_context, mock_user_accessible_projects
+    ):
+        mock_std_context.return_value = {"test": "test"}
+        response = self.client.get("/member")
 
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "member_landing_page.html")
 
-class UpLoadToGithubTest(TestCase):
-    pass
-
-
-class SetupStepTest(TestCase):
-    pass
+        request = response.wsgi_request
+        mock_user_accessible_projects.assert_called_once_with(request)
+        mock_std_context.assert_called_once_with()
 
 
-class StdContentTest(TestCase):
-    def setUp(self):
-        login_and_start_afresh(self)
-
-    def test_setup_None(self):
-        self.assertEqual(std_context(), d.STD_CONTEXT_SETUP_NONE)
-
-    def test_setup_1(self):
-        setup_level(self, 1)
-        self.assertEqual(std_context(), d.STD_CONTEXT_SETUP_1)
-
-    def test_setup_2(self):
-        setup_level(self, 2)
-        self.assertEqual(std_context(), d.STD_CONTEXT_SETUP_2)
-
-    def test_setup_3(self):
-        setup_level(self, 3)
-        self.assertEqual(std_context(), d.STD_CONTEXT_SETUP_3)
-
-
-class StartAfreshEnabledTest(TestCase):
+class StartNewProjectTest(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.start_fresh_previous_state = settings.START_AFRESH
-        settings.START_AFRESH = True
-        cls.testing_previous_state = settings.TESTING
-        settings.TESTING = True
-        # TODO might not need this as already set at top of module
-        cls.env_location_previous = settings.ENV_LOCATION
-        settings.ENV_LOCATION = c.TESTING_ENV_PATH_DJANGO
+        ProjectGroup.objects.create(id=1, name="Test Group")
 
     def setUp(self):
-        login_and_start_afresh(self)
+        log_in(self)
 
-    def test_bad_method(self):
-        response = self.client.delete("/start_afresh")
+    @patch("app.views.std_context")
+    def test_bad_request(self, mock_std_context):
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.delete("/start_new_project")
         self.assertEqual(response.status_code, 405)
+        self.assertTemplateUsed(response, "405.html")
 
-    def test_start_afresh_with_nothing_running(self):
-        if not os.path.isfile(c.TESTING_ENV_PATH_DJANGO):
-            self.assertTrue(False)
+        mock_std_context.assert_called_once_with()
 
-        f = open(c.TESTING_ENV_PATH_DJANGO, "r")
-        self.assertEqual(f.read(), "")
+    @patch("app.views.std_context")
+    def test_get(self, mock_std_context):
+        mock_std_context.return_value = {"test": "test"}
 
-    def test_start_afresh_with_everything_running(self):
-        setup_level(self, 3)
-        if not os.path.isfile(c.TESTING_ENV_PATH_DJANGO):
-            self.assertTrue(False)
+        s = self.client.session
+        s.update(
+            {
+                "repository_type": "test state",
+                "project_setup_step": 0,
+                "inputs": {"test_key": "test_value"},
+            }
+        )
+        s.save()
 
-        em_django = ENVManipulator(c.TESTING_ENV_PATH_DJANGO)
-        em_git = ENVManipulator(c.TESTING_ENV_PATH_GIT)
-        git_env_dict = em_git.read_all()
-        git_env_dict["setup_step"] = "3"
-        self.assertEqual(em_django.read_all(), git_env_dict)
+        response = self.client.get("/start_new_project")
 
-    def test_logged_out(self):
-        self.client.logout()
-        response = self.client.get("/start_afresh")
+        self.assertNotIn("repository_type", dir(self.client.session))
+        self.assertEqual(self.client.session["project_setup_step"], 1)
+        self.assertEqual(self.client.session["inputs"], {})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "start_new_project.html")
+
+        mock_std_context.assert_called_once_with()
+
+    def test_post_setup_step_1_None(self):
+        response = self.client.post("/start_new_project")
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/accounts/login/?next=/start_afresh")
+
+    @patch("app.views.std_context")
+    def test_post_setup_step_1_import(self, mock_std_context):
+        mock_std_context.return_value = {"test": "test"}
+
+        repo_types = {
+            "github.com/": "github",
+            "gitlab.com/": "gitlab",
+            "gitbucket": "gitbucket",
+            "random_name": "other",
+        }
+
+        for repo_type, returned_value in repo_types.items():
+            s = self.client.session
+            s.update(
+                {
+                    "project_setup_step": 1,
+                    "inputs": {"repository_type": ""},
+                    "project_setup_1_form_data": {},
+                }
+            )
+            s.save()
+
+            setup_1_form_data = d.START_NEW_PROJECT_STEP_1_IMPORT.copy()
+            setup_1_form_data["external_repo_url_import"] = repo_type
+            post_data = d.START_NEW_PROJECT_STEP_1_IMPORT.copy()
+            post_data["external_repo_url_import"] = repo_type
+
+            response = self.client.post(
+                "/start_new_project",
+                post_data,
+            )
+
+            self.assertEqual(self.client.session.get("project_setup_step"), 2)
+            self.assertEqual(
+                self.client.session["inputs"]["repository_type"],
+                returned_value,
+            )
+            self.assertEqual(
+                self.client.session["project_setup_1_form_data"],
+                setup_1_form_data,
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertTemplateUsed(response, "start_new_project.html")
+
+        self.assertEqual(mock_std_context.call_count, 4)
+
+    @patch("app.views.std_context")
+    def test_post_setup_step_1_start_anew(self, mock_std_context):
+        mock_std_context.return_value = {"test": "test"}
+
+        s = self.client.session
+        s.update({"project_setup_step": 1})
+        s.save()
+
+        response = self.client.post(
+            "/start_new_project",
+            d.START_NEW_PROJECT_STEP_1_START_ANEW,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "start_new_project.html")
+
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.views.ProjectSetupInitialForm")
+    @patch("app.views.std_context")
+    def test_post_setup_step_1_invalid(
+        self, mock_std_context, mock_project_setup_initial_form
+    ):
+        mock_std_context.return_value = {"test": "test"}
+
+        s = self.client.session
+        s.update({"project_setup_step": 1, "inputs": {"repository_type": ""}})
+        s.save()
+
+        mock_project_setup_initial_form.return_value.is_valid.return_value = (
+            False
+        )
+        response = self.client.post(
+            "/start_new_project",
+            {},
+        )
+
+        self.assertEqual(self.client.session["project_setup_step"], 1)
+        self.assertEqual(response.status_code, 400)
+        self.assertTemplateUsed(response, "start_new_project.html")
+
+        request = response.wsgi_request
+        mock_project_setup_initial_form.assert_called_once_with(request.POST)
+        mock_project_setup_initial_form.return_value.is_valid.assert_called_once_with()
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.views.ProjectSetupStepTwoForm")
+    @patch("app.views.std_context")
+    def test_post_setup_step_2_wrong_setup_choice(
+        self, mock_std_context, mock_form
+    ):
+        mock_form.return_value.is_valid.return_value = True
+        mock_std_context.return_value = {"test": "test"}
+
+        s = self.client.session
+        s.update(
+            {
+                "project_setup_step": 2,
+                "project_setup_1_form_data": d.START_NEW_PROJECT_STEP_1_IMPORT_WRONG_CHOICE,
+                "inputs": {},
+            }
+        )
+        s.save()
+
+        response = self.client.post(
+            "/start_new_project",
+            d.START_NEW_PROJECT_STEP_2,
+        )
+
+        self.assertEqual(response.status_code, 500)
+        self.assertTemplateUsed(response, "500.html")
+
+        request = response.wsgi_request
+        mock_form.assert_called_once_with(request.POST)
+        mock_form.return_value.is_valid.assert_called_once_with()
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.views.ProjectSetupStepTwoForm")
+    @patch("app.views.start_new_project_step_2_input_GUI")
+    @patch("app.views.std_context")
+    def test_post_setup_step_2_import(
+        self, mock_std_context, mock_input_GUI, mock_form
+    ):
+        test_dict_1 = {"test_1": "test_1"}
+
+        mock_form.return_value.is_valid.return_value = True
+        mock_form.return_value.cleaned_data = d.START_NEW_PROJECT_STEP_2
+        # mock_input_GUI - used here
+        mock_std_context.return_value = test_dict_1
+
+        s = self.client.session
+        s.update(
+            {
+                "project_setup_step": 2,
+                "project_setup_1_form_data": d.START_NEW_PROJECT_STEP_1_IMPORT,
+                "project_setup_2_form_data": {},
+                "repository_type": "github",
+                "inputs": {},
+            }
+        )
+        s.save()
+
+        response = self.client.post(
+            "/start_new_project",
+            d.START_NEW_PROJECT_STEP_2,
+        )
+
+        self.assertEqual(self.client.session["project_setup_step"], 3)
+        self.assertEqual(
+            self.client.session["project_setup_2_form_data"],
+            d.START_NEW_PROJECT_STEP_2,
+        )
+        self.assertEqual(
+            self.client.session.get("inputs"),
+            d.START_NEW_PROJECT_STEP_2_IMPORT_INPUTS,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "start_new_project.html")
+
+        request = response.wsgi_request
+        mock_form.assert_called_once_with(request.POST)
+        mock_form.return_value.is_valid.assert_called_once_with()
+        mock_input_GUI.assert_called_once_with(
+            d.START_NEW_PROJECT_STEP_2_IMPORT_INPUTS
+        )
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.views.ProjectSetupStepTwoForm")
+    @patch("app.views.start_new_project_step_2_input_GUI")
+    @patch("app.views.std_context")
+    def test_post_setup_step_2_start_anew(
+        self, mock_std_context, mock_input_GUI, mock_form
+    ):
+        test_dict_1 = {"test_1": "test_1"}
+
+        mock_form.return_value.is_valid.return_value = True
+        mock_form.return_value.cleaned_data = d.START_NEW_PROJECT_STEP_2
+        # mock_input_GUI - used here
+        mock_std_context.return_value = test_dict_1
+
+        s = self.client.session
+        s.update(
+            {
+                "project_setup_step": 2,
+                "project_setup_1_form_data": d.START_NEW_PROJECT_STEP_1_START_ANEW,
+                "inputs": {},
+            }
+        )
+        s.save()
+
+        response = self.client.post(
+            "/start_new_project",
+            d.START_NEW_PROJECT_STEP_2,
+        )
+
+        self.assertEqual(self.client.session["project_setup_step"], 3)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "start_new_project.html")
+
+        request = response.wsgi_request
+        mock_form.assert_called_once_with(request.POST)
+        mock_form.return_value.is_valid.assert_called_once_with()
+        mock_input_GUI.assert_called_once_with(
+            d.START_NEW_PROJECT_STEP_2_START_ANEW_INPUTS
+        )
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.views.ProjectSetupStepTwoForm")
+    @patch("app.views.std_context")
+    def test_post_setup_step_2_post_invalid(
+        self, mock_std_context, mock_project_setup_step_two_form
+    ):
+        mock_std_context.return_value = {"test": "test"}
+        mock_project_setup_step_two_form.return_value.is_valid.return_value = (
+            False
+        )
+
+        s = self.client.session
+        s.update({"project_setup_step": 2})
+        s.save()
+
+        response = self.client.post(
+            "/start_new_project",
+            {},
+        )
+
+        self.assertEqual(self.client.session["project_setup_step"], 2)
+        self.assertEqual(response.status_code, 400)
+        self.assertTemplateUsed(response, "start_new_project.html")
+
+        request = response.wsgi_request
+        mock_project_setup_step_two_form.assert_called_once_with(request.POST)
+        mock_project_setup_step_two_form.return_value.is_valid.assert_called_once_with()
+
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.views.ProjectBuilder")
+    @patch("app.views.std_context")
+    def test_post_setup_step_3(self, mock_std_context, mock_project_builder):
+        mock_std_context.return_value = {"test": "test"}
+
+        mock_project_builder.return_value.new_build.return_value = (
+            True,
+            "All passed",
+        )
+
+        s = self.client.session
+        s.update(
+            {
+                "project_setup_step": 3,
+                "inputs": d.START_NEW_PROJECT_STEP_2_START_ANEW_INPUTS,
+                "project_id": 1,
+            }
+        )
+        s.save()
+
+        response = self.client.post(
+            "/start_new_project",
+            {},
+        )
+
+        self.assertEqual(self.client.session["project_setup_step"], 4)
+        self.assertNotIn("project_id", dir(self.client.session))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "start_new_project.html")
+
+        request = response.wsgi_request
+        mock_project_builder.assert_called_once_with()
+        mock_project_builder.return_value.new_build.assert_called_once_with(
+            request
+        )
+
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.views.ProjectBuilder", return_value=Mock())
+    @patch("app.views.std_context")
+    def test_post_setup_step_3_build_fail(
+        self, mock_std_context, mock_project_builder
+    ):
+        mock_std_context.return_value = {"test": "test"}
+        mock_project_builder.return_value.new_build.return_value = (
+            False,
+            "Some error",
+        )
+
+        s = self.client.session
+        s.update(
+            {
+                "project_setup_step": 3,
+                "inputs": d.START_NEW_PROJECT_STEP_2_START_ANEW_INPUTS,
+                "project_id": 0,
+            }
+        )
+        s.save()
+
+        response = self.client.post(
+            "/start_new_project",
+            {},
+        )
+
+        self.assertEqual(self.client.session["project_setup_step"], 4)
+        self.assertEqual(self.client.session["project_id"], 0)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertTemplateUsed(response, "start_new_project.html")
+
+        request = response.wsgi_request
+        mock_project_builder.assert_called_once_with()
+        mock_project_builder.return_value.new_build.assert_called_once_with(
+            request
+        )
+
+        mock_std_context.assert_called_once_with()
+
+    def test_post_setup_step_4(self):
+        s = self.client.session
+        s.update(
+            {
+                "project_setup_step": 4,
+            }
+        )
+        s.save()
+
+        response = self.client.post(
+            "/start_new_project",
+            {},
+        )
+
+        self.assertEqual(response.status_code, 302)
 
     @classmethod
     def tearDownClass(cls):
-        settings.START_AFRESH = cls.start_fresh_previous_state
-        settings.TESTING = cls.testing_previous_state
-        settings.ENV_LOCATION = cls.env_location_previous
+        pass
 
 
-class StartAfreshDisabledTest(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.start_fresh_previous_state = settings.START_AFRESH
-        settings.START_AFRESH = False
-        cls.testing_previous_state = settings.TESTING
-        settings.TESTING = False
-
+class SetupDocumentsTest(TestCase):
     def setUp(self):
-        settings.TESTING = True
-        login_and_start_afresh(self)
-        settings.TESTING = False
+        log_in(self)
+        Project.objects.create(id=1, owner=self.user, name="Test Project")
 
-    def test_bad_method(self):
-        response = self.client.delete("/start_afresh")
+    @patch("app.decorators._project_access")
+    @patch("app.views.TemplateSelectForm")
+    @patch("app.views.std_context")
+    def test_setup_step_1_get(
+        self,
+        mock_std_context,
+        mock_template_select_form,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 1
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(f"/setup_documents/{ project_id }")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response, "setup_documents_template_select.html"
+        )
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_template_select_form.assert_called_once_with(project_id)
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    @patch("app.views.TemplateSelectForm")
+    @patch("app.views.PlaceholdersForm")
+    @patch("app.views.std_context")
+    def test_setup_step_1_post(
+        self,
+        mock_std_context,
+        mock_placeholders_form,
+        mock_template_select_form,
+        mock_project_builder,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 1
+        test_template = "test_template_1"
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_template_select_form.return_value.is_valid.return_value = True
+        mock_project_builder.return_value.configuration_set.return_value = None
+        mock_template_select_form.return_value.cleaned_data = {
+            "template_choice": test_template
+        }
+        mock_project_builder.return_value.copy_templates.return_value = None
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.post(f"/setup_documents/{ project_id }")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response, "setup_documents_placeholders_show.html"
+        )
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_has_calls(
+            [
+                call(project_id),
+                call().configuration_set("setup_step", 2),
+                call().copy_templates(test_template),
+            ]
+        )
+        mock_template_select_form.assert_called_once_with(
+            project_id, request.POST
+        )
+        mock_template_select_form.return_value.is_valid.assert_called_once_with()
+        mock_placeholders_form.assert_called_once_with(project_id)
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    @patch("app.views.TemplateSelectForm")
+    @patch("app.views.std_context")
+    def test_setup_step_1_post_invalid(
+        self,
+        mock_std_context,
+        mock_template_select_form,
+        mock_project_builder,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 1
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_template_select_form.return_value.is_valid.return_value = False
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.post(f"/setup_documents/{ project_id }")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertTemplateUsed(
+            response, "setup_documents_template_select.html"
+        )
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_called_once_with(project_id)
+        mock_template_select_form.assert_called_once_with(
+            project_id, request.POST
+        )
+        mock_template_select_form.return_value.is_valid.assert_called_once_with()
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.PlaceholdersForm")
+    @patch("app.views.std_context")
+    def test_setup_step_2_get(
+        self,
+        mock_std_context,
+        mock_placeholders_form,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(f"/setup_documents/{ project_id }")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response, "setup_documents_placeholders_show.html"
+        )
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_placeholders_form.assert_called_once_with(project_id)
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    @patch("app.views.PlaceholdersForm")
+    @patch("app.views.project_timestamp")
+    @patch("app.views.std_context")
+    def test_setup_step_2_post(
+        self,
+        mock_std_context,
+        mock_project_timestamp,
+        mock_placeholders_form,
+        mock_project_builder,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_placeholders_form.return_value.is_valid.return_value = True
+        mock_project_builder.return_value.configuration_set.return_value = None
+        mock_project_builder.return_value.save_placeholders_from_form.return_value = (
+            None
+        )
+        mock_project_timestamp.return_value = None
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.post(f"/setup_documents/{ project_id }")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response, "setup_documents_placeholders_saved.html"
+        )
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_has_calls(
+            [
+                call(project_id),
+                call().configuration_set("setup_step", setup_step + 1),
+                call().save_placeholders_from_form(mock_placeholders_form()),
+            ]
+        )
+        # This test fails if put in front of mock_project_builder.assert_has_calls()
+        mock_placeholders_form.assert_has_calls(
+            [call(project_id, request.POST), call().is_valid(), call()]
+        )
+        mock_project_timestamp.assert_called_once_with(project_id)
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    @patch("app.views.PlaceholdersForm")
+    @patch("app.views.std_context")
+    def test_setup_step_2_post_invalid(
+        self,
+        mock_std_context,
+        mock_placeholders_form,
+        mock_project_builder,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_placeholders_form.return_value.is_valid.return_value = False
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.post("/setup_documents/1")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertTemplateUsed(
+            response, "setup_documents_placeholders_show.html"
+        )
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_has_calls(
+            [
+                call(project_id),
+            ]
+        )
+        # This test fails if put in front of mock_project_builder.assert_has_calls()
+        mock_placeholders_form.assert_has_calls(
+            [call(project_id, request.POST), call().is_valid()]
+        )
+        mock_std_context.assert_called_once_with(project_id)
+
+
+class ProjectBuildASAPTest(TestCase):
+    def setUp(self):
+        log_in(self)
+        Project.objects.create(id=1, owner=self.user, name="Test Project")
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.MkdocsControl")
+    @patch("app.views.std_context")
+    def test_get(
+        self, mock_std_context, mock_mkdocs_control, mock_project_access
+    ):
+        project_id = 1
+        setup_step = 2
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(f"/project_build_asap/{ project_id }")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "project_build_asap.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_mkdocs_control.assert_called_once_with(project_id)
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.MkdocsControl")
+    @patch("app.views.std_context")
+    def test_post(
+        self, mock_std_context, mock_mkdocs_control, mock_project_access
+    ):
+        project_id = 1
+        setup_step = 2
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_mkdocs_control.return_value.build_documents.return_value = (
+            True,
+            "All passed",
+        )
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.post(f"/project_build_asap/{ project_id }")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "project_build_asap.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_mkdocs_control.assert_called_once_with(project_id)
+        mock_mkdocs_control.return_value.build_documents.assert_called_once_with(
+            force=True
+        )
+        mock_std_context.assert_called_once_with(project_id)
+
+
+class ProjectDocumentsTest(TestCase):
+    def setUp(self):
+        log_in(self)
+        project = Project.objects.create(
+            id=1, owner=self.user, name="Test Project"
+        )
+        project.member.set([self.user])
+        project_group = ProjectGroup.objects.create(id=1, name="Test Group")
+        project_group.project_access.set([project])
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.std_context")
+    def test_wrong_method(self, mock_std_context, mock_project_access):
+        project_id = 1
+        setup_step = 2
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.delete(f"/project_documents/{ project_id}")
+
         self.assertEqual(response.status_code, 405)
+        self.assertTemplateUsed(response, "405.html")
 
-    def test_start_afresh_with_nothing_running(self):
-        if not os.path.isfile(c.TESTING_ENV_PATH_DJANGO):
-            self.assertTrue(False)
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_std_context.assert_called_once_with()
 
-        f = open(c.TESTING_ENV_PATH_DJANGO, "r")
-        self.assertEqual(f.read(), "")
+    @patch("app.decorators._project_access")
+    @patch("app.views.std_context")
+    def test_get(self, mock_std_context, mock_project_access):
+        project_id = 1
+        setup_step = 2
 
-    def test_start_afresh_with_everything_running(self):
-        setup_level(self, 3)
-        if not os.path.isfile(c.TESTING_ENV_PATH_DJANGO):
-            self.assertTrue(False)
+        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_std_context.return_value = {"test": "test"}
 
-        em_django = ENVManipulator(c.TESTING_ENV_PATH_DJANGO)
-        em_git = ENVManipulator(c.TESTING_ENV_PATH_GIT)
-        git_env_dict = em_git.read_all()
-        git_env_dict["setup_step"] = "3"
-        self.assertEqual(em_django.read_all(), git_env_dict)
+        response = self.client.get(f"/project_documents/{ project_id }")
 
-    def test_logged_out(self):
-        self.client.logout()
-        response = self.client.get("/start_afresh")
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "project_documents.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_std_context.assert_called_once_with(project_id)
+
+
+class ViewDocsTest(TestCase):
+    @patch("app.views.std_context")
+    def test_not_digit(self, mock_std_context):
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get("/view_docs/a/test_page.html")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTemplateUsed(response, "404.html")
+
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.views.std_context")
+    def test_project_nonexistent(self, mock_std_context):
+        project_id = 1
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(f"/view_docs/{ project_id }/test_page.html")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTemplateUsed(response, "404.html")
+
+        request = response.wsgi_request
+        messages = list(get_messages(request))
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(
+            str(messages[0]), f"'Project { project_id }' does not exist"
+        )
+
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.views.std_context")
+    def test_members_user_not_authenticated(self, mock_std_context):
+        project_id = 1
+        self.user = User.objects.create_user(
+            id=1, username="u", password="p"
+        )  # nosec B106
+        Project.objects.create(
+            id=project_id,
+            owner=self.user,
+            name="Test Project",
+            access=c.StaticSiteView.MEMBERS.value,
+        )
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(f"/view_docs/{ project_id }/test_page.html")
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateUsed(response, "403.html")
+
+        request = response.wsgi_request
+        messages = list(get_messages(request))
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(
+            str(messages[0]),
+            f"You do not have access to 'project { project_id }'. "
+            "This is a members only project.",
+        )
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.views.std_context")
+    def test_private_with_no_access(self, mock_std_context):
+        project_id = 1
+        self.user1 = User.objects.create_user(
+            id=1, username="user1", password="password1"
+        )  # nosec B106
+        self.user2 = User.objects.create_user(
+            id=2, username="user2", password="password2"
+        )  # nosec B106
+        Project.objects.create(
+            id=project_id,
+            owner=self.user1,
+            name="Test Project",
+            access=c.StaticSiteView.PRIVATE.value,
+        )
+
+        self.client = Client()
+        self.client.login(username="user2", password="password2")  # nosec B106
+
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(f"/view_docs/{ project_id }/test_page.html")
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateUsed(response, "403.html")
+
+        request = response.wsgi_request
+        messages = list(get_messages(request))
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(
+            str(messages[0]),
+            f"You do not have access to 'project { project_id }'.",
+        )
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.views.MkdocsControl")
+    @patch("app.views.Path.is_file")
+    @patch("app.views.std_context")
+    def test_public_file_nonexistent(
+        self, mock_std_context, mock_is_file, mock_mkdocs_control
+    ):
+        project_id = 1
+        test_page = "test_page.html"
+
+        self.user = User.objects.create_user(
+            id=1, username="user", password="password"
+        )  # nosec B106
+        Project.objects.create(
+            id=project_id,
+            owner=self.user,
+            name="Test Project",
+            access=c.StaticSiteView.PUBLIC.value,
+        )
+
+        mock_mkdocs_control.return_value.build_documents.return_value = Mock()
+
+        mock_is_file.return_value = False
+
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(f"/view_docs/{ project_id }/{ test_page }")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTemplateUsed(response, "404.html")
+
+        request = response.wsgi_request
+        messages = list(get_messages(request))
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(
+            str(messages[0]),
+            f"File '{ test_page }' does not exist.",
+        )
+        mock_mkdocs_control.assert_called_once_with(str(project_id))
+        mock_mkdocs_control.return_value.build_documents.assert_called_once_with()
+        mock_is_file.assert_called_once_with()
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.views.MkdocsControl")
+    @patch("app.views.Path.is_file")
+    @patch("app.views.open")
+    @patch("app.views.std_context")
+    def test_public_html_file(
+        self, mock_std_context, mock_open, mock_is_file, mock_mkdocs_control
+    ):
+        project_id = 1
+        test_page = "test_page.html"
+        self.user = User.objects.create_user(
+            id=1, username="user", password="password"
+        )  # nosec B106
+        Project.objects.create(
+            id=project_id,
+            owner=self.user,
+            name="Test Project",
+            access=c.StaticSiteView.PUBLIC.value,
+        )
+
+        mock_mkdocs_control.return_value.build_documents.return_value = Mock()
+
+        mock_is_file.return_value = True
+
+        mock_open.return_value.read.return_value = "Some test html"
+
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(f"/view_docs/{ project_id }/{ test_page }")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "document_serve.html")
+
+        mock_mkdocs_control.assert_called_once_with(str(project_id))
+        mock_mkdocs_control.return_value.build_documents.assert_called_once_with()
+        mock_is_file.assert_called_once_with()
+        mock_open.assert_called_once_with(
+            Path(c.DOCUMENTATION_PAGES)
+            / f"project_{ project_id }"
+            / test_page,
+            "r",
+        )
+        mock_open.return_value.read.assert_called_once_with()
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.views.Path.is_file")
+    def test_public_non_html_file(self, mock_is_file):
+        project_id = 1
+        test_image = "test_image.jpeg"
+        self.user = User.objects.create_user(
+            id=1, username="user", password="password"
+        )  # nosec B106
+        Project.objects.create(
+            id=project_id,
+            owner=self.user,
+            name="Test Project",
+            access=c.StaticSiteView.PUBLIC.value,
+        )
+
+        mock_is_file.return_value = True
+
+        response = self.client.get(f"/view_docs/{ project_id }/{ test_image }")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/jpeg")
+        self.assertEqual(
+            response["X-Accel-Redirect"],
+            "/documentation-pages/project_1/test_image.jpeg",
+        )
+
+        mock_is_file.assert_called_once_with()
+
+
+class DocumentNewTest(TestCase):
+    def setUp(self):
+        log_in(self)
+        project = Project.objects.create(
+            id=1, owner=self.user, name="Test Project"
+        )
+        project.member.set([self.user])
+        project_group = ProjectGroup.objects.create(id=1, name="Test Group")
+        project_group.project_access.set([project])
+
+    @patch("app.decorators._project_access")
+    def test_setup_step_1(self, mock_project_access):
+        project_id = 1
+        setup_step = 1
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+
+        response = self.client.get(f"/document_new/{ project_id }")
+
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/accounts/login/?next=/start_afresh")
 
-    @classmethod
-    def tearDownClass(cls):
-        settings.START_AFRESH = cls.start_fresh_previous_state
-        settings.TESTING = cls.testing_previous_state
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.DocumentNewForm")
+    @patch("app.views.std_context")
+    def test_get(
+        self, mock_std_context, mock_document_new_form, mock_project_access
+    ):
+        project_id = 1
+        setup_step = 2
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+        # mock_document_new_form - used here
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(f"/document_new/{ project_id }")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "document_new.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_document_new_form.assert_called_once_with(project_id)
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.DocumentNewForm")
+    @patch("app.views.ProjectBuilder")
+    @patch("app.views.std_context")
+    def test_post(
+        self,
+        mock_std_context,
+        mock_project_builder,
+        mock_document_new_form,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+        document_dict = {"document_name": "test_name"}
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_document_new_form.return_value.is_valid.return_value = True
+        mock_document_new_form.return_value.cleaned_data = {
+            "document_name": "test_name"
+        }
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.post(f"/document_new/{ project_id }", {})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "document_new.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_document_new_form.assert_called_once_with(
+            project_id, request.POST
+        )
+        mock_document_new_form.return_value.is_valid.assert_called_once_with()
+        mock_project_builder.assert_called_once_with(project_id)
+        mock_project_builder.return_value.document_create.assert_called_once_with(
+            document_dict["document_name"]
+        )
+        messages = list(get_messages(request))
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(
+            str(messages[0]),
+            f"Document '{ document_dict['document_name'] }' has been created",
+        )
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.DocumentNewForm")
+    @patch("app.views.std_context")
+    def test_post_invalid(
+        self, mock_std_context, mock_document_new_form, mock_project_access
+    ):
+        project_id = 1
+        setup_step = 2
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_document_new_form.return_value.is_valid.return_value = False
+
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.post(f"/document_new/{ project_id }", {})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertTemplateUsed(response, "document_new.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_std_context.assert_called_once_with(project_id)
 
 
-class Custum404(TestCase):
-    def test_(self):
-        pass
+class DocumentUpdateTest(TestCase):
+    def setUp(self):
+        log_in(self)
+        project = Project.objects.create(
+            id=1, owner=self.user, name="Test Project"
+        )
+        project.member.set([self.user])
+        project_group = ProjectGroup.objects.create(id=1, name="Test Group")
+        project_group.project_access.set([project])
 
+    @patch("app.decorators._project_access")
+    def test_setup_step_1(self, mock_project_access):
+        project_id = 1
+        setup_step = 1
 
-class Custum405(TestCase):
-    def test_(self):
-        pass
+        mock_project_access.return_value = (True, project_id, setup_step)
+
+        response = self.client.get(f"/document_update/{ project_id }")
+
+        self.assertEqual(response.status_code, 302)
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.DocumentUpdateForm")
+    @patch("app.views.placeholders")
+    @patch("app.views.std_context")
+    def test_get(
+        self,
+        mock_std_context,
+        mock_placeholders,
+        mock_form,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+        # mock_form - used here
+        # mock_placeholders - used here
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(f"/document_update/{ project_id }")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "document_update.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_form.assert_called_once_with(project_id)
+        mock_placeholders.assert_called_once_with(project_id)
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.DocumentUpdateForm")
+    @patch("app.views.open")
+    @patch("app.views.placeholders")
+    @patch("app.views.std_context")
+    def test_post_document_changed(
+        self,
+        mock_std_context,
+        mock_placeholders,
+        mock_open,
+        mock_form,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+        docs_dir: str = (
+            f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        )
+        updated_form_data = {
+            "document_name": "another_name.md",
+            "document_markdown": "Some safety information",
+        }
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+        # mock_form - used here
+        mock_form.return_value.is_valid.return_value = True
+        mock_form.return_value.cleaned_data = {
+            "document_name_initial": "one_name.md",
+            "document_name": "another_name.md",
+            "document_markdown_initial": "test_same",
+            "document_markdown": "test_same",
+        }
+        # mock_open - used here
+        mock_open.return_value.__enter__.return_value.read.return_value = (
+            "Some safety information"
+        )
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.post(f"/document_update/{ project_id }")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "document_update.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_form.assert_any_call(project_id, request.POST)
+        mock_form.return_value.is_valid.assert_called_once()
+        mock_open.assert_called_once_with(
+            Path(docs_dir) / "another_name.md", "r"
+        )
+        mock_open.return_value.__enter__.return_value.read.assert_called_once_with()
+        mock_form.assert_any_call(project_id, initial=updated_form_data)
+        mock_placeholders.assert_called_once_with(project_id)
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.DocumentUpdateForm")
+    @patch("app.views.project_timestamp")
+    @patch("app.views.open")
+    @patch("app.views.placeholders")
+    @patch("app.views.std_context")
+    def test_post_text_changed(
+        self,
+        mock_std_context,
+        mock_placeholders,
+        mock_open,
+        mock_project_timestamp,
+        mock_form,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+        document_name = "same_name.md"
+        new_text = "new text"
+        docs_dir: str = (
+            f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        )
+        updated_form_data = {
+            "document_name": document_name,
+            "document_markdown": "new text",
+        }
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+        # mock_form - used here
+        mock_form.return_value.is_valid.return_value = True
+        mock_form.return_value.cleaned_data = {
+            "document_name_initial": document_name,
+            "document_name": document_name,
+            "document_markdown_initial": "initial text",
+            "document_markdown": new_text,
+        }
+        # mock_open - used here
+        # mock_open / write - used here
+        # mock_project_timestamp - used here
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.post(f"/document_update/{ project_id }")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "document_update.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_form.assert_any_call(project_id, request.POST)
+        mock_form.return_value.is_valid.assert_called_once()
+        mock_open.assert_called_once_with(Path(docs_dir) / document_name, "r")
+        mock_open.return_value.__enter__.return_value.write.assert_called_once_with(
+            new_text
+        )
+        mock_project_timestamp.assert_called_once_with(project_id)
+        messages = list(get_messages(request))
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(
+            str(messages[0]),
+            f"Mark down file '{ document_name }' has been successfully saved",
+        )
+        mock_form.assert_any_call(project_id, initial=updated_form_data)
+        mock_placeholders.assert_called_once_with(project_id)
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.DocumentUpdateForm")
+    @patch("app.views.placeholders")
+    @patch("app.views.std_context")
+    def test_post_no_changes(
+        self,
+        mock_std_context,
+        mock_placeholders,
+        mock_form,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+        old_document_name = "same_name.md"
+        old_text = "old text"
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+        # mock_form - used here
+        mock_form.return_value.is_valid.return_value = True
+        mock_form.return_value.cleaned_data = {
+            "document_name_initial": old_document_name,
+            "document_name": old_document_name,
+            "document_markdown_initial": old_text,
+            "document_markdown": old_text,
+        }
+
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.post(f"/document_update/{ project_id }")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "document_update.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_form.assert_any_call(project_id, request.POST)
+        mock_form.return_value.is_valid.assert_called_once()
+        messages = list(get_messages(request))
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(
+            str(messages[0]),
+            "As no changes have been made, no save has been made",
+        )
+        mock_placeholders.assert_called_once_with(project_id)
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.DocumentUpdateForm")
+    @patch("app.views.placeholders")
+    @patch("app.views.std_context")
+    def test_post_invalid(
+        self,
+        mock_std_context,
+        mock_placeholders,
+        mock_form,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+
+        mock_project_access.return_value = (True, project_id, setup_step)
+        # mock_form - used here
+        mock_form.return_value.is_valid.return_value = False
+
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.post(f"/document_update/{ project_id }")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertTemplateUsed(response, "document_update.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_form.assert_any_call(project_id, request.POST)
+        mock_form.return_value.is_valid.assert_called_once()
+        mock_placeholders.assert_called_once_with(project_id)
+        mock_std_context.assert_called_once_with(project_id)

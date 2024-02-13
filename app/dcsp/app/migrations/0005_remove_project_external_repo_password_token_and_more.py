@@ -5,7 +5,10 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("app", "0004_userprojectattribute_repo_password_token_and_more"),
+        (
+            "app",
+            "0004_userprojectattribute_repo_password_token_and_more",
+        ),
     ]
 
     operations = [

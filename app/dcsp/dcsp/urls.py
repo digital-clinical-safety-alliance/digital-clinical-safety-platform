@@ -18,7 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
 
-from django.conf.urls import handler400, handler403, handler404, handler500
+from django.conf.urls import (
+    handler400,
+    handler403,
+    handler404,
+    handler500,
+)
 
 handler404 = "app.views.custom_404"
 handler405 = "app.views.custom_405"
@@ -26,7 +31,13 @@ handler405 = "app.views.custom_405"
 urlpatterns = [
     path("", include("app.urls")),
     path("admin/", admin.site.urls),
-    path("accounts/", include("django.contrib.auth.urls")),
+    path(
+        "accounts/",
+        include("django.contrib.auth.urls"),
+    ),
     # TODO - should this be defined in Nginx?
-    path("favicon.ico", RedirectView.as_view(url="/static/favicon.ico")),
+    path(
+        "favicon.ico",
+        RedirectView.as_view(url="/static/favicon.ico"),
+    ),
 ]

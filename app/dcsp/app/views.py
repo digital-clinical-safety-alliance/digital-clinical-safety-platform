@@ -1,147 +1,83 @@
-"""Manages the views for the dcsp app
+"""Manages the views for the DCSP app
 
 This is part of a Django web server app that is used to create a static site in
-mkdocs. It utilises several other functions git, github, env manipulation and 
-mkdocs
+mkdocs.
 
 Functions:
-    index: placeholder
-    member_landing_page: placeholder
-    build: placeholder
-    document_update: placeholder
-    document_update: placeholder
-    document_new: placeholder
-    entry_update: placeholder
-    hazard_comment: placeholder
-    hazards_open: placeholder
-    mkdoc_redirect: placeholder
-    upload_to_github: placeholder
-    setup_step: placeholder
-    std_context: placeholder
-    start_afresh: placeholder
-    custom_404: placeholder
-    custom_405: placeholder
+    index: landing page for DCSP app, redirects logged members.
+    member_landing_page: landing page for logged in members
+    start_new_project: start a new project, import from git or from clean slate.
+    setup_documents: build up the documents for the static site.
+    project_build_asap: build the static site ad hoc
+    project_documents: main page for document editing.
+    view_docs: provides static site via NGINX X-Accel-Redirect
+    document_new: create a new document.
+    document_update: edit of main documents.
+    entry_update: create a new entry or update a preexisting one.
+    entry_select: select an entry file to edit.
+    upload_to_external_repository: git commit and push project to external 
+                                   repository.
+    std_context: provides a standard collection of values for views.
+    user_accessible_projects: provides a list of projects a user has access to.
+    placeholders: gets placeholders (used in document_update to convert
+                  placeholders to their values).
+    build_documents: builds the static webpages via mkdocs.
+    custom_404: custom 404 (not found) page.
+    custom_405: custom 405 (method not allowed) page.
 """
+
 import os
-import sys
 from fnmatch import fnmatch
-import shutil
-from typing import Any, TextIO
+from typing import Any, TextIO, Callable
 from datetime import datetime
 import json
 from functools import wraps
-import difflib
+from django.db.models import QuerySet
+from pathlib import Path
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpRequest
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from django.utils.functional import SimpleLazyObject
 from django.db.models.query import QuerySet
-from django.db.models import Q, F
+from django.db.models import F
 from django.utils import timezone
 
+from app.decorators import project_access
 
 # TODO - may not work in production
 from django.contrib.staticfiles.views import serve
 
 from .models import (
     User,
-    UserProfile,
     Project,
     ProjectGroup,
-    UserProjectAttribute,
 )
 
 import app.functions.constants as c
 from app.functions.constants import EnvKeysPH
 from app.functions.projects_builder import ProjectBuilder
 
-# TODO can this be removed?
-sys.path.append(c.FUNCTIONS_APP)
+
 from app.functions.env_manipulation import ENVManipulator
 from app.functions.mkdocs_control import MkdocsControl
-from app.functions.docs_builder import Builder
 from app.functions.git_control import GitController
-from app.functions.general_fuctions import snake_to_title
+from app.functions.general_fuctions import snake_to_title, kebab_to_title
 
 
 from .forms import (
     ProjectSetupInitialForm,
     ProjectSetupStepTwoForm,
-    InstallationForm,
     TemplateSelectForm,
     PlaceholdersForm,
     DocumentNewForm,
     DocumentUpdateForm,
-    MDFileSelectForm,
     EntryUpdateForm,
     UploadToGithubForm,
-    HazardCommentForm,
 )
 
 
-def project_access(func):
-    """A decorator for project access
-
-    functions:
-        wrapper: tests correct state before getting setup_step and then passing
-                 function.
-    """
-
-    @wraps(func)
-    def wrapper(request: HttpRequest, project_id: str, *args, **kwargs):
-        """Wraps around the page function.
-
-        Args:
-            request (HttpRequest):
-            project_id (str): datanase primary key for project
-
-        Returns:
-            HttpResponse | func: error responses or runs func.
-        """
-        project_id_int: int = 0
-        projects: dict = {}
-        project_builder: ProjectBuilder
-        project_config: dict
-        setup_step: int = 0
-
-        if not (request.method == "POST" or request.method == "GET"):
-            return render(request, "405.html", std_context(), status=405)
-
-        if not project_id.isdigit():
-            return render(request, "404.html", std_context(), status=404)
-
-        project_id_int = int(project_id)
-
-        if not Project.objects.filter(id=project_id_int).exists():
-            messages.error(
-                request,
-                f"'Project { project_id }' does not exist",
-            )
-            return render(request, "404.html", std_context(), status=404)
-
-        projects = user_accessible_projects(request)
-
-        if not any(
-            project["doc_id"] == project_id_int for project in projects
-        ):
-            context = {"message": "You do not have access to this project!"}
-            return render(
-                request, "403.html", context | std_context(), status=403
-            )
-
-        project_builder = ProjectBuilder(project_id_int)
-        project_config = project_builder.configuration_get()
-        setup_step = project_config["setup_step"]
-
-        return func(request, project_id_int, setup_step, *args, **kwargs)
-
-    return wrapper
-
-
-# TODO #39 needs unit testing
 def index(request: HttpRequest) -> HttpResponse:
     """Landing page for DCSP app
 
@@ -154,7 +90,8 @@ def index(request: HttpRequest) -> HttpResponse:
         HttpResponse: for loading the correct webpage
     """
     context: dict[str, Any] = {
-        "NON_EXISTENT_VARIABLE": "NON_EXISTENT_VARIABLE"
+        "page_title": "Welcome to the Digital Clinical Safety Platform",
+        "NON_EXISTENT_VARIABLE": "NON_EXISTENT_VARIABLE",
     }
 
     if request.method != "GET":
@@ -166,7 +103,6 @@ def index(request: HttpRequest) -> HttpResponse:
     return render(request, "index.html", context | std_context())
 
 
-# TODO needs unit testing
 @login_required
 def member_landing_page(request: HttpRequest) -> HttpResponse:
     """Landing page for members
@@ -180,9 +116,9 @@ def member_landing_page(request: HttpRequest) -> HttpResponse:
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    context: dict[str, Any] = {}
-    # projects
+    projects: list[dict[str, Any]] = []
     viewed_documents: bool = False
+    context: dict[str, Any] = {}
 
     if request.method != "GET":
         return render(request, "405.html", std_context(), status=405)
@@ -194,6 +130,7 @@ def member_landing_page(request: HttpRequest) -> HttpResponse:
     )
 
     context = {
+        "page_title": "Safety documents",
         "available_projects": projects,
         "viewed_documents": viewed_documents,
     }
@@ -202,11 +139,14 @@ def member_landing_page(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
-def start_new_project(request: HttpRequest) -> HttpResponse:
+def start_new_project(
+    request: HttpRequest,
+) -> HttpResponse:
     """Setup a new project
 
-    Import a current git repository or start fresh. A clinical safety document
-    folder will be added if not already present.
+    Create a project by importing an external git repository or starting from a
+    blank slate. A clinical safety document folder will be added if not already
+    present.
 
     Args:
         request (HttpRequest): request from user
@@ -215,18 +155,15 @@ def start_new_project(request: HttpRequest) -> HttpResponse:
         HttpResponse: for loading the correct webpage
     """
     context: dict[str, Any] = {}
+    form: ProjectSetupInitialForm | ProjectSetupStepTwoForm
+    setup_choice: str = ""
+    external_repo_url: str = ""
     setup_step: int = 0
     inputs: dict = {}
-    inputs_GUI: dict = {}
-    groups_list: list = []
-    members_list: list = []
-    members_string: str = ""
-    members_list_fullnames: list = []
-    # new_project
     project_builder: ProjectBuilder
-    final_message: str = ""
     build_status: bool = False
     build_errors: str = ""
+    project_id: str = ""
 
     if not (request.method == "POST" or request.method == "GET"):
         return render(request, "405.html", std_context(), status=405)
@@ -238,6 +175,7 @@ def start_new_project(request: HttpRequest) -> HttpResponse:
         request.session["inputs"] = {}
 
         context = {
+            "page_title": "Setup a new project",
             "setup_step": setup_step,
             "form": ProjectSetupInitialForm(),
         }
@@ -255,9 +193,9 @@ def start_new_project(request: HttpRequest) -> HttpResponse:
             if form.is_valid():
                 setup_step = 2
                 request.session["project_setup_step"] = setup_step
-                request.session[
-                    "project_setup_1_form_data"
-                ] = form.cleaned_data
+                request.session["project_setup_1_form_data"] = (
+                    form.cleaned_data
+                )
                 setup_choice = form.cleaned_data["setup_choice"]
 
                 if setup_choice == "import":
@@ -266,51 +204,33 @@ def start_new_project(request: HttpRequest) -> HttpResponse:
                     ]
 
                     if "github.com/" in external_repo_url:
-                        # print("A Github repository")
                         request.session["inputs"]["repository_type"] = "github"
                     elif "gitlab.com/" in external_repo_url:
-                        # print("A Gitlab repository")
                         request.session["inputs"]["repository_type"] = "gitlab"
                     elif "gitbucket" in external_repo_url:
-                        # print("A GitBucket repository")
                         request.session["inputs"][
                             "repository_type"
                         ] = "gitbucket"
                     else:
-                        # print("another type of repository")
                         request.session["inputs"]["repository_type"] = "other"
 
-                    context = {
-                        "setup_choice": snake_to_title(setup_choice),
-                        "form": ProjectSetupStepTwoForm(),
-                        "setup_step": setup_step,
-                    }
+                # start_anew just jumps straight to the next step
+                context = {
+                    "page_title": "Setup a new project",
+                    "setup_choice": snake_to_title(setup_choice),
+                    "form": ProjectSetupStepTwoForm(),
+                    "setup_step": setup_step,
+                }
 
-                    return render(
-                        request,
-                        "start_new_project.html",
-                        context | std_context(),
-                    )
-
-                elif setup_choice == "start_anew":
-                    context = {
-                        "setup_choice": snake_to_title(setup_choice),
-                        "form": ProjectSetupStepTwoForm(),
-                        "setup_step": setup_step,
-                    }
-
-                    return render(
-                        request,
-                        "start_new_project.html",
-                        context | std_context(),
-                    )
-                else:
-                    return render(
-                        request, "500.html", std_context(), status=500
-                    )
+                return render(
+                    request,
+                    "start_new_project.html",
+                    context | std_context(),
+                )
 
             else:
                 context = {
+                    "page_title": "Setup a new project",
                     "form": form,
                     "setup_step": setup_step,
                 }
@@ -319,17 +239,25 @@ def start_new_project(request: HttpRequest) -> HttpResponse:
                     request,
                     "start_new_project.html",
                     context | std_context(),
+                    status=400,
                 )
 
         elif setup_step == 2:
             form = ProjectSetupStepTwoForm(request.POST)
             if form.is_valid():
+                setup_choice = request.session["project_setup_1_form_data"][
+                    "setup_choice"
+                ]
+                if setup_choice != "start_anew" and setup_choice != "import":
+                    return render(
+                        request, "500.html", std_context(), status=500
+                    )
+
                 setup_step = 3
                 request.session["project_setup_step"] = setup_step
-
-                request.session[
-                    "project_setup_2_form_data"
-                ] = form.cleaned_data
+                request.session["project_setup_2_form_data"] = (
+                    form.cleaned_data
+                )
 
                 inputs = request.session["project_setup_1_form_data"].copy()
                 inputs.update(request.session["project_setup_2_form_data"])
@@ -337,71 +265,27 @@ def start_new_project(request: HttpRequest) -> HttpResponse:
                     "setup_choice"
                 ]
 
-                if setup_choice == "start_anew":
-                    inputs.pop("external_repo_url_import")
-                    inputs.pop("external_repo_username_import")
-                    inputs.pop("external_repo_password_token_import")
-                elif (
-                    request.session["project_setup_1_form_data"][
-                        "setup_choice"
-                    ]
-                    != "import"
-                ):
-                    return render(
-                        request, "500.html", std_context(), status=500
-                    )
-
                 request.session["inputs"].update(inputs)
 
-                for key, value in inputs.items():
-                    key = key.replace("import", "")
-                    key = key.replace("start_anew", "")
-                    key = snake_to_title(key)
-
-                    if key == "Setup choice":
-                        inputs_GUI[key] = snake_to_title(value)
-
-                    elif key == "Groups":
-                        groups_list = list(
-                            ProjectGroup.objects.filter(
-                                id__in=value
-                            ).values_list("name", flat=True)
-                        )
-                        inputs_GUI[key] = ", ".join(groups_list)
-                        if inputs_GUI[key] == "":
-                            inputs_GUI[key] = "<i>none selected</i>"
-
-                    elif key == "Members":
-                        members_list = User.objects.filter(
-                            id__in=value
-                        ).values("id", "first_name", "last_name")
-                        members_list_fullnames = [
-                            f"{member['first_name']} {member['last_name']}"
-                            for member in members_list
-                        ]
-                        inputs_GUI[key] = ", ".join(members_list_fullnames)
-                        if inputs_GUI[key] == "":
-                            inputs_GUI[key] = "<i>none selected</i>"
-
-                    elif any(
-                        keyword in key for keyword in ["password", "token"]
-                    ):
-                        key = key.replace("password token", "password / token")
-                        inputs_GUI[key] = "***"
-                    else:
-                        inputs_GUI[key] = value
-
                 context = {
+                    "page_title": "Setup a new project",
                     "setup_choice": snake_to_title(setup_choice),
-                    "inputs_GUI": inputs_GUI,
+                    "inputs_GUI": start_new_project_step_2_input_GUI(inputs),
                     "setup_step": setup_step,
                     "CLINICAL_SAFETY_FOLDER": c.CLINICAL_SAFETY_FOLDER,
                 }
 
                 return render(
+                    request, "start_new_project.html", context | std_context()
+                )
+            else:
+                context = {"form": form, "setup_step": setup_step}
+
+                return render(
                     request,
                     "start_new_project.html",
                     context | std_context(),
+                    status=400,
                 )
 
         elif setup_step == 3:
@@ -409,7 +293,10 @@ def start_new_project(request: HttpRequest) -> HttpResponse:
             request.session["project_setup_step"] = setup_step
 
             project_builder = ProjectBuilder()
-            build_status, build_errors = project_builder.new_build(request)
+            (
+                build_status,
+                build_errors,
+            ) = project_builder.new_build(request)
 
             if not build_status:
                 messages.error(
@@ -418,8 +305,8 @@ def start_new_project(request: HttpRequest) -> HttpResponse:
                 )
 
                 context = {
+                    "page_title": "Error with data supplied",
                     "setup_step": setup_step,
-                    "title": "Error with data supplied",
                     "restart_button": "yes",
                 }
 
@@ -427,65 +314,46 @@ def start_new_project(request: HttpRequest) -> HttpResponse:
                     request,
                     "start_new_project.html",
                     context | std_context(),
+                    status=400,
                 )
 
             inputs = request.session["inputs"]
+
             messages.success(
                 request,
                 f"You have successfully created the project titled '{inputs['project_name']}'.",
             )
 
-            # TODO - need to update this with a real destination for the documents
-            document_url = f"setup_documents/{ request.session['project_id'] }"
+            project_id = request.session["project_id"]
 
             request.session.pop("project_id")
 
             context = {
+                "page_title": "Complete",
                 "setup_step": setup_step,
-                "document_url": document_url,
-                "title": "Complete",
-                # "CLINICAL_SAFETY_FOLDER": c.CLINICAL_SAFETY_FOLDER,
+                "project_id": project_id,
             }
 
             return render(
-                request,
-                "start_new_project.html",
-                context | std_context(),
+                request, "start_new_project.html", context | std_context()
             )
 
         elif setup_step == 4:
             return redirect("/start_new_project")
 
-    # Should never really get here, but added for mypy
-    return render(request, "500.html", std_context(), status=500)
 
-
-@login_required
 @project_access
 def setup_documents(
-    request: HttpRequest, project_id: int, setup_step: int
+    request: HttpRequest,
+    project_id: int,
+    setup_step: int,
 ) -> HttpResponse:
-    """Build page, carrying out steps to initialise a static site
+    """Setup the safety documents prior to building them
 
-    Acting as a single page application, this function undertakes several
-    steps to set up the mkdocs static site. The state of the installation is
-    stored in an .env file as 'setup_step'. There are 4 steps in the
-    installation process (labelled steps None, 1, 2 and 3).
-
-    - None: Initial step for the installation process. No value stored for the
-    step_step in the .env file. During this step the user is asked if they want
-    a 'stand alone' or an 'integrated' installation.
-        - Stand alone: this setup is very the DCSP app is only used for hazard
-          documentation, with no source code integration. Basically the version
-          control is managed by the DCSP app.
-        - Integrated: the DCSP is integrated into an already version controlled
-          source base, for example along side already written source code.
-    - 1: In this step the user is asked to chose a template for the static
-         website.
-    - 2: In this step the user is asked to enter values for placeholders for the
-         static site.
-    - 3: The static site is now built and mkdocs has been started and the site
-         should be visible.
+    After the project has been initialised via 'start_new_project' above, this
+    method setups the safety documents, enabling safety documents to then be
+    built. The state of the installation is stored in an setup.ini file as
+    'setup_step'.
 
     Args:
         request (HttpRequest): request from user
@@ -493,41 +361,31 @@ def setup_documents(
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    project_id_int: int = 0
-    project_builder: ProjectBuilder
+    project_builder: ProjectBuilder = ProjectBuilder(project_id)
     context: dict[str, Any] = {}
-    placeholders: dict[str, str] = {}
     template_choice: str = ""
-    form: InstallationForm | TemplateSelectForm | PlaceholdersForm
-    mkdocs: MkdocsControl
+    form: TemplateSelectForm | PlaceholdersForm
 
-    project_id_int = int(project_id)
-    project_builder = ProjectBuilder(project_id_int)
-    time_now = timezone.now()
-
-    # TODO this should really be started at '1' eg step 1.
-    if setup_step == 0:
+    if setup_step == 1:
         if request.method == "GET":
             context = {
-                "form": TemplateSelectForm(project_id_int),
-                "project_id": project_id_int,
+                "page_title": "Select Template",
+                "form": TemplateSelectForm(project_id),
+                "project_id": project_id,
             }
 
             return render(
                 request,
-                "template_select.html",
+                "setup_documents_template_select.html",
                 context | std_context(project_id),
             )
 
         elif request.method == "POST":
-            form = TemplateSelectForm(project_id_int, request.POST)  # type: ignore[assignment]
+            form = TemplateSelectForm(project_id, request.POST)  # type: ignore[assignment]
             if form.is_valid():
-                project_builder.configuration_set("setup_step", 1)
+                project_builder.configuration_set("setup_step", 2)
                 template_choice = form.cleaned_data["template_choice"]
-
-                project_build = ProjectBuilder(project_id_int)
-
-                project_build.copy_templates(template_choice)
+                project_builder.copy_templates(template_choice)
 
                 messages.success(
                     request,
@@ -535,98 +393,114 @@ def setup_documents(
                 )
 
                 context = {
-                    "form": PlaceholdersForm(project_id_int),
-                    "project_id": project_id_int,
+                    "page_title": "Edit placeholders",
+                    "form": PlaceholdersForm(project_id),
+                    "project_id": project_id,
+                    "project_side_bars": True,
                 }
 
                 return render(
                     request,
-                    "placeholders_show.html",
+                    "setup_documents_placeholders_show.html",
                     context | std_context(project_id),
                 )
             else:
                 context = {
+                    "page_title": "Select Template",
                     "form": form,
-                    "project_id": project_id_int,
+                    "project_id": project_id,
                 }
 
                 return render(
                     request,
-                    "template_select.html",
+                    "setup_documents_template_select.html",
                     context | std_context(project_id),
+                    status=400,
                 )
 
-    elif setup_step >= 1:
+    elif setup_step >= 2:
         if request.method == "GET":
             context = {
-                "form": PlaceholdersForm(project_id_int),
-                "project_id": project_id_int,
+                "page_title": "Edit placeholders",
+                "form": PlaceholdersForm(project_id),
+                "project_id": project_id,
                 "project_name": Project.objects.get(id=project_id).name,
+                "project_side_bars": True,
             }
-            # return render(request, "test.html")
 
             return render(
                 request,
-                "placeholders_show.html",
+                "setup_documents_placeholders_show.html",
                 context | std_context(project_id),
             )
 
         elif request.method == "POST":
-            form = PlaceholdersForm(project_id_int, data=request.POST)  # type: ignore[assignment]
+            form = PlaceholdersForm(project_id, request.POST)  # type: ignore[assignment]
             if form.is_valid():
-                project_builder.configuration_set("setup_step", 2)
+                project_builder.configuration_set("setup_step", 3)
 
-                placeholders = project_builder.get_placeholders()
+                project_builder.save_placeholders_from_form(form)
 
-                for p in placeholders:
-                    placeholders[p] = form.cleaned_data[p]
-
-                project_builder.save_placeholders(placeholders)
-
-                project = get_object_or_404(Project, id=project_id)
-                project.last_modified = time_now
-                project.save()
+                project_timestamp(project_id)
 
                 context = {
+                    "page_title": "Documents published",
                     "project_id": project_id,
                     "project_name": Project.objects.get(id=project_id).name,
+                    "project_side_bars": True,
                 }
 
                 return render(
                     request,
-                    "placeholders_saved.html",
+                    "setup_documents_placeholders_saved.html",
                     context | std_context(project_id),
                 )
             else:
                 context = {
+                    "page_title": "Edit placeholders",
                     "form": form,
-                    "project_id": project_id_int,
+                    "project_id": project_id,
                     "project_name": Project.objects.get(id=project_id).name,
+                    "project_side_bars": True,
                 }
 
                 return render(
                     request,
-                    "placeholders_show.html",
+                    "setup_documents_placeholders_show.html",
                     context | std_context(project_id),
+                    status=400,
                 )
 
-    # Should never really get here, but added for mypy
-    return render(request, "500.html", std_context(), status=500)
 
-
-@login_required
 @project_access
 def project_build_asap(
-    request: HttpRequest, project_id: int, setup_step: int
+    request: HttpRequest,
+    project_id: int,
+    _: int,
 ) -> HttpResponse:
-    """ """
+    """Ad hoc build of the static site
+
+    This function allows the user to build the static site ad hoc. This is
+    useful if the user has made changes to the documents and wants to see the
+    changes immediately.
+
+    Args:
+        request (HttpRequest): request from user
+        project_id (int): primary key of project
+
+    Returns:
+        HttpResponse: for loading the webpage
+    """
     context: dict[str, Any] = {}
     build_output: str = ""
+    mkdocs_control: MkdocsControl = MkdocsControl(project_id)
 
     if request.method == "GET":
         context = {
+            "page_title": "Build documents",
             "project_id": project_id,
             "project_name": Project.objects.get(id=project_id).name,
+            "project_side_bars": True,
         }
 
         return render(
@@ -635,12 +509,14 @@ def project_build_asap(
             context | std_context(project_id),
         )
     elif request.method == "POST":
-        build_output = build_documents(int(project_id), force=True)
+        build_output = mkdocs_control.build_documents(force=True)
 
         context = {
+            "page_title": "Build documents",
             "project_id": project_id,
             "build_output": build_output,
             "project_name": Project.objects.get(id=project_id).name,
+            "project_side_bars": True,
         }
 
         return render(
@@ -649,81 +525,135 @@ def project_build_asap(
             context | std_context(project_id),
         )
 
-    # Should never really get here, but added for mypy
-    return render(request, "500.html", std_context(), status=500)
 
-
-@login_required
 @project_access
 def project_documents(
-    request: HttpRequest, project_id: int, setup_step: int
+    request: HttpRequest,
+    project_id: int,
+    _: int,
 ) -> HttpResponse:
     """Shows the project main page
 
-    --- TODO
+    This provides an overview of the project and the documents that are part of
+    it.
 
     Args:
-        request (HttpRequest): request from user
+        request (HttpRequest): request from user.
+        project_id (int): primary key of project.
 
     Returns:
-        HttpResponse: for loading the correct webpage
+        HttpResponse: for loading the correct webpage.
     """
-    project: Project = Project.objects.get(id=project_id)
+    project: Project = None
+    members: QuerySet = None
+    groups: QuerySet = None
+    context: dict[str, Any] = {}
+
+    if request.method != "GET":
+        return render(request, "405.html", std_context(), status=405)
+
+    project = Project.objects.get(id=project_id)
     members = project.member.all()
-    groups: ProjectGroup = ProjectGroup.objects.filter(project_access=project)
-    context: dict[str, Any] = {
+    groups = ProjectGroup.objects.filter(project_access=project)
+
+    context = {
+        "page_title": "--- Placeholder ---",
+        "page_title": project.name,
         "project": project,
         "members": members,
         "groups": groups,
         "project_id": project_id,
         "project_name": project.name,
+        "project_side_bars": True,
     }
     return render(
-        request, "project_documents.html", context | std_context(project_id)
+        request,
+        "project_documents.html",
+        context | std_context(project_id),
     )
 
 
-# TODO - Need to limit who can view (perhaps private, members-only, and open access views)
-@login_required
 def view_docs(
-    request: HttpRequest, project_id: str, doc_path: str = ""
+    request: HttpRequest,
+    project_id: str,
+    doc_path: str = "",
 ) -> HttpResponse:
-    """Functionality for  X-Accel-Redirect from django to nginx
+    """Delivers controlled access to static site material
 
-    ---TODO
+    Delivers controlled access to static site pages. It uses the NGINX
+    X-Accel-Redirect. Depending on if the project's documents have private,
+    membership or public access, the user will be able to view the documents.
+    Hence, access to the static pages are also dependent on if the user is
+    authenticated.
 
     Args:
         request (HttpRequest): request from user
+        project_id (str): primary key of project
+        doc_path (str): path to the document
 
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    context: dict[str, Any] = {}
-    document_content = ""
-    internal_path: str = ""
-    # redirect_path
     project_id_int: int
+    accessible_projects: list[dict[str, str]] = []
+    internal_path: str = ""
+    mkdocs_control: MkdocsControl = None
+    file: TextIO = None
+    document_content = ""
+    context: dict[str, Any] = {}
+    content_type: str = "invalid"
+    file_extension: str = ""
+    key: str = ""
+    value: str = ""
+    response: HttpResponse = None
 
     if project_id.isdigit():
         project_id_int = int(project_id)
     else:
-        return render(request, "500.html", std_context(), status=500)
+        return render(request, "404.html", std_context(), status=404)
 
-    # TODO - error if no project_id supplied, it is not an int and/or not an active project
+    if not Project.objects.filter(id=project_id_int).exists():
+        messages.error(request, f"'Project { project_id }' does not exist")
+        return render(request, "404.html", std_context(), status=404)
 
-    internal_path = os.path.join(
-        "/documentation-pages", f"project_{ project_id}", doc_path
+    project = Project.objects.get(id=project_id)
+
+    if project.access == c.StaticSiteView.MEMBERS.value:
+        if not request.user.is_authenticated:
+            messages.error(
+                request,
+                f"You do not have access to 'project { project_id }'. "
+                "This is a members only project.",
+            )
+            return render(request, "403.html", std_context(), status=403)
+
+    elif project.access == c.StaticSiteView.PRIVATE.value:
+        accessible_projects = user_accessible_projects(request)
+        if not any(
+            doc
+            for doc in accessible_projects
+            if doc["doc_id"] == project_id_int
+        ):
+            messages.error(
+                request, f"You do not have access to 'project { project_id }'."
+            )
+            return render(request, "403.html", std_context(), status=403)
+
+    internal_path = (
+        Path(c.DOCUMENTATION_PAGES) / f"project_{project_id}" / doc_path
     )
 
-    build_documents(project_id_int)
+    file_extension = Path(internal_path).suffix[1:]
 
-    # TODO #41 - may have to convert os.path to Path... all over the shop!
-    if not os.path.isfile(
-        internal_path
-    ):  # and not os.path.isdir(internal_path):
+    if file_extension == "html":
+        mkdocs_control = MkdocsControl(project_id)
+        mkdocs_control.build_documents()
+
+    if not Path(internal_path).is_file():
+        messages.error(request, f"File '{ doc_path }' does not exist.")
         return render(request, "404.html", context=std_context(), status=404)
 
-    if internal_path.endswith(".html"):
+    if file_extension == "html":
         file = open(internal_path, "r")
         document_content = file.read()
         context = {
@@ -736,10 +666,6 @@ def view_docs(
             context | std_context(project_id_int),
         )
     else:
-        content_type = "invalid"
-        _, file_extension = os.path.splitext(internal_path)
-        file_extension = file_extension.replace(".", "")
-
         for key, value in c.MIME_TYPES.items():
             if file_extension == key:
                 content_type = value
@@ -749,128 +675,44 @@ def view_docs(
         response["X-Accel-Redirect"] = internal_path
         return response
 
-    # Should never really get here, but added for mypy
-    return render(request, "500.html", std_context(), status=500)
 
-
-@login_required
 @project_access
-def document_update(
+def document_new(
     request: HttpRequest,
     project_id: int,
     setup_step: int,
 ) -> HttpResponse:
-    """Function for editing of markdown files in the static site
+    """To create a new safety document
 
-    A webpage to allow the user to edit the markdown files used in the
-    static site on mkdocs.
+    This will allow the user to create a new safety document, which are stored as
+    markdown files. A new directory will be created if it does not already exist.
 
     Args:
         request (HttpRequest): request from user
+        project_id (int): primary key of project
+        setup_step (int): the step in the setup process
 
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    files: list[str] = []
-    name: str = ""
-    md_file: str = ""
-    loop_exit: bool = False
-    form: MDFileSelectForm
     context: dict[str, Any] = {}
-    form_fields: dict[str, str] = {}
-    docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+    form: DocumentNewForm = None
+    project: ProjectBuilder = None
+    document_name_new: str = ""
 
     if setup_step < 2:
         return redirect(f"/setup_documents/{ project_id }")
 
     if request.method == "GET":
-        # TODO - perhaps a message that docs folder is missing should be presented.
-
-        if not os.path.isdir(docs_dir):
-            return render(request, "500.html", std_context(), status=500)
-
-        for _, __, files in os.walk(docs_dir):
-            for name in files:
-                if fnmatch(name, "*.md"):
-                    md_file = name
-                    loop_exit = True
-                    break
-            if loop_exit:
-                break
-
-    elif request.method == "POST":
-        form = MDFileSelectForm(project_id, data=request.POST)
-        if form.is_valid():
-            md_file = form.cleaned_data["document_name"]
-        else:
-            context = {
-                "form": form,
-                "project_id": project_id,
-                "placeholders": placeholders(project_id),
-                "nav_top": "True",
-            }
-            return render(
-                request,
-                "document_update.html",
-                context | std_context(project_id),
-            )
-
-    with open(f"{ docs_dir }{ md_file }", "r") as file:
-        form_fields = {
-            "document_markdown": file.read(),
-            "document_name": md_file,
-        }
-
-    context = {
-        "MDFileSelectForm": MDFileSelectForm(
-            project_id,
-            initial={"document_name": md_file},
-        ),
-        "form": DocumentUpdateForm(project_id, initial=form_fields),
-        "document_name": md_file,
-        "project_id": project_id,
-        "placeholders": placeholders(project_id),
-        "nav_top": "True",
-    }
-
-    return render(
-        request, "document_update.html", context | std_context(project_id)
-    )
-
-
-@login_required
-@project_access
-def document_new(
-    request: HttpRequest, project_id: int, setup_step: int
-) -> HttpResponse:
-    """To create a new markdown file
-
-    This will allow the user to create a new markdown file with subdirectories
-    if required.
-
-    Args:
-        request (HttpRequest): request from user
-        project_id (int): primary key of project
-        setup_step (int): not used in this function
-    Returns:
-        HttpResponse: for loading the correct webpage
-    """
-    context: dict[str, Any] = {}
-    form: DocumentNewForm
-    project: ProjectBuilder
-    valid: bool = True
-    error_messages: str = ""
-
-    if not (request.method == "GET" or request.method == "POST"):
-        return render(request, "405.html", std_context(), status=405)
-
-    if request.method == "GET":
         context = {
+            "page_title": "Create a new safety document",
             "form": DocumentNewForm(project_id),
             "project_id": project_id,
         }
         return render(
-            request, "document_new.html", context | std_context(project_id)
+            request,
+            "document_new.html",
+            context | std_context(project_id),
         )
 
     elif request.method == "POST":
@@ -887,58 +729,69 @@ def document_new(
                 f"Document '{ document_name_new }' has been created",
             )
 
-            context = {"form": form, "project_id": project_id}
+            context = {
+                "page_title": "New document created",
+                "form": form,
+                "project_id": project_id,
+            }
+
             return render(
                 request, "document_new.html", context | std_context(project_id)
             )
 
         else:
-            context = {"form": form, "project_id": project_id}
+            context = {
+                "page_title": "Create a new safety document",
+                "form": form,
+                "project_id": project_id,
+            }
+
             return render(
-                request, "document_new.html", context | std_context(project_id)
+                request,
+                "document_new.html",
+                context | std_context(project_id),
+                status=400,
             )
 
-    # For mypy
-    return render(request, "500.html", status=500)
 
-
-@login_required
 @project_access
 def document_update(
     request: HttpRequest, project_id: int, setup_step: int
 ) -> HttpResponse:
-    """Saves the markdown file
+    """Save the safety document
 
     If no issues are found after running the markdown file through a linter
-    then the file is saved.
+    the file is saved.
 
     Args:
         request (HttpRequest): request from user
+        project_id (int): primary key of project
+        setup_step (int): the step in the setup process
 
     Returns:
         HttpResponse: for loading the correct webpage
     """
     form: DocumentUpdateForm
-    document_markdown_file_read: str = ""
+    document_name_initial: str = ""
     document_name: str = ""
+    document_markdown_initial: str = ""
     document_markdown: str = ""
-    file_path: str = ""
+    document_markdown_file_read: str = ""
+    form_data: dict[str, str] = {}
+    docs_dir: str = (
+        f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+    )
     file: TextIO
     context: dict[str, Any] = {}
-    project: Project
-    docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
-
-    if not os.path.isdir(docs_dir):
-        return render(request, "500.html", std_context(), status=500)
 
     if setup_step < 2:
         return redirect(f"/setup_documents/{ project_id }")
 
     if request.method == "GET":
-        # form = document_update_form_initialise(project_id)
         form = DocumentUpdateForm(project_id)
 
         context = {
+            "page_title_left": "Edit safety document",
             "form": form,
             "project_id": project_id,
             "placeholders": placeholders(project_id),
@@ -946,7 +799,9 @@ def document_update(
         }
 
         return render(
-            request, "document_update.html", context | std_context(project_id)
+            request,
+            "document_update.html",
+            context | std_context(project_id),
         )
 
     elif request.method == "POST":
@@ -961,7 +816,7 @@ def document_update(
             document_markdown = form.cleaned_data["document_markdown"]
 
             if document_name_initial != document_name:
-                with open(f"{ docs_dir }{ document_name }", "r") as file:
+                with open(Path(docs_dir) / document_name, "r") as file:
                     document_markdown_file_read = file.read()
                     document_markdown_file_read = (
                         document_markdown_file_read.replace("\n", "\r\n")
@@ -973,6 +828,7 @@ def document_update(
                 }
 
                 context = {
+                    "page_title_left": "Edit safety document",
                     "form": DocumentUpdateForm(
                         project_id,
                         initial=form_data,
@@ -989,15 +845,10 @@ def document_update(
                 )
 
             elif document_markdown_initial != document_markdown:
-                file_path = f"{ docs_dir }{ document_name }"
+                with open(Path(docs_dir) / document_name, "r") as file:
+                    file.write(document_markdown)
 
-                file = open(file_path, "w")
-                file.write(document_markdown)
-                file.close()
-
-                project = get_object_or_404(Project, id=project_id)
-                project.last_modified = timezone.now()
-                project.save()
+                project_timestamp(project_id)
 
                 form_data = {
                     "document_name": document_name,
@@ -1006,11 +857,15 @@ def document_update(
 
                 messages.success(
                     request,
-                    f'Mark down file "{ document_name }" has been successfully saved',
+                    f"Mark down file '{ document_name }' has been successfully saved",
                 )
 
                 context = {
-                    "form": DocumentUpdateForm(project_id, initial=form_data),
+                    "page_title_left": "Edit safety document",
+                    "form": DocumentUpdateForm(
+                        project_id,
+                        initial=form_data,
+                    ),
                     "project_id": project_id,
                     "placeholders": placeholders(project_id),
                     "nav_top": "True",
@@ -1023,9 +878,10 @@ def document_update(
             else:
                 messages.success(
                     request,
-                    f"As no changes have been made, no save has been made",
+                    "As no changes have been made, no save has been made",
                 )
                 context = {
+                    "page_title_left": "Edit safety document",
                     "form": form,
                     "project_id": project_id,
                     "placeholders": placeholders(project_id),
@@ -1039,6 +895,7 @@ def document_update(
 
         else:
             context = {
+                "page_title_left": "Edit safety document",
                 "form": form,
                 "project_id": project_id,
                 "placeholders": placeholders(project_id),
@@ -1048,35 +905,38 @@ def document_update(
                 request,
                 "document_update.html",
                 context | std_context(project_id),
+                status=400,
             )
 
-    # For mypy
-    return render(request, "500.html", status=500)
 
-
-@login_required
 @project_access
 def entry_update(
     request: HttpRequest,
     project_id: int,
-    setup_step: int,
+    _: int,
     entry_type: str,
     id_new: str,
 ) -> HttpResponse:
-    """Log hazards
+    """Create or update an entry
 
-    --- TODO
+    Creates a new entry (for example a hazard or incident) or updates a pre-
+    existing one.
 
     Args:
-        request (HttpRequest): request from user
+        request (HttpRequest): request user.
+        project_id (int): the primary key of the project.
+        entry_type (str): type of entry (eg hazard, incident)
+        id_new (str): an entry file number or "new" to create a new entry.
 
     Returns:
         HttpResponse: for loading the correct webpage
     """
+    # print(f"1 - {entry_type}")
     context: dict[str, Any] = {"project_id": project_id}
     form: EntryUpdateForm
     project_builder: ProjectBuilder
     entry_update_outcome: bool = False
+    page_title: str = ""
 
     if not (request.method == "GET" or request.method == "POST"):
         return render(request, "405.html", std_context(), status=405)
@@ -1087,81 +947,117 @@ def entry_update(
         if not project.entry_exists(entry_type, id_new):
             return render(request, "404.html", std_context(), status=404)
 
+    if not project.entry_type_exists(entry_type):
+        return render(request, "404.html", std_context(), status=404)
+
+    # print(f"2 - {entry_type}")
     if request.method == "GET":
         if id_new == "new":
+            # print(6)
             context = {
+                "page_title": f"Create new { kebab_to_title(entry_type) }",
                 "project_id": project_id,
-                "form": EntryUpdateForm(project_id),
+                "form": EntryUpdateForm(project_id, entry_type),
                 "MKDOCS_TEMPLATE_NUMBER_DELIMITER": c.MKDOCS_TEMPLATE_NUMBER_DELIMITER,
                 "entry_type": entry_type,
                 "id_new": id_new,
+                "project_side_bars": True,
             }
             return render(
-                request, "entry_update.html", context | std_context(project_id)
+                request,
+                "entry_update.html",
+                context | std_context(project_id),
             )
 
         else:
-            print(id_new)
-            form_initial = project.form_initial("hazard", int(id_new))
-            print(form_initial)
+            # print(7)
+            # print(id_new)
+            form_initial = project.form_initial(entry_type, int(id_new))
+            # print(form_initial)
             context = {
+                "page_title": f"Update { kebab_to_title(entry_type) }",
                 "project_id": project_id,
-                "form": EntryUpdateForm(project_id, initial=form_initial),
+                "form": EntryUpdateForm(
+                    project_id,
+                    entry_type,
+                    initial=form_initial,
+                ),
                 "MKDOCS_TEMPLATE_NUMBER_DELIMITER": c.MKDOCS_TEMPLATE_NUMBER_DELIMITER,
                 "entry_type": entry_type,
                 "id_new": id_new,
+                "project_side_bars": True,
             }
             return render(
-                request, "entry_update.html", context | std_context(project_id)
+                request,
+                "entry_update.html",
+                context | std_context(project_id),
             )
 
-    if request.method == "POST":
-        form = EntryUpdateForm(project_id, request.POST)
+    elif request.method == "POST":
+        form = EntryUpdateForm(project_id, entry_type, request.POST)
+        # print(1)
         # print(request.POST)
         if form.is_valid():
             project_builder = ProjectBuilder(int(project_id))
             # print(form.cleaned_data)
 
+            project_timestamp(project_id)
+
             entry_update_outcome = project_builder.entry_update(
-                form.cleaned_data, entry_type, id_new
+                form.cleaned_data,
+                entry_type,
+                id_new,
             )
 
             context = {
+                "page_title": f"{ kebab_to_title(entry_type) } saved",
                 "project_id": project_id,
-                "form": EntryUpdateForm(project_id),
+                "form": EntryUpdateForm(project_id, entry_type),
                 "entry_update_outcome": entry_update_outcome,
                 "MKDOCS_TEMPLATE_NUMBER_DELIMITER": c.MKDOCS_TEMPLATE_NUMBER_DELIMITER,
                 "entry_type": entry_type,
                 "id_new": id_new,
+                "project_side_bars": True,
             }
             return render(
-                request, "entry_saved.html", context | std_context(project_id)
+                request,
+                "entry_saved.html",
+                context | std_context(project_id),
             )
 
         else:
             # TODO - need better error messaging per field
+
+            if id_new == "new":
+                page_title = f"Create new { kebab_to_title(entry_type) }"
+            else:
+                page_title = f"Update { kebab_to_title(entry_type) }"
+
             context = {
+                "page_title": page_title,
                 "form": form,
                 "project_id": project_id,
                 "entry_type": entry_type,
                 "id_new": id_new,
+                "project_side_bars": True,
             }
             return render(
-                request, "entry_update.html", context | std_context(project_id)
+                request,
+                "entry_update.html",
+                context | std_context(project_id),
             )
 
-    # For mypy
-    return render(request, "500.html", status=500)
 
-
-@login_required
 @project_access
 def entry_select(
-    request: HttpRequest, project_id: int, setup_step: int
+    request: HttpRequest,
+    project_id: int,
+    setup_step: int,
+    entry_type: str,
 ) -> HttpResponse:
     """Hazard selection to edit
 
-    Show selection of hazards that can be edited
+    Show selection of entries that can be edited
 
     Args:
         request (HttpRequest): request from user
@@ -1170,235 +1066,43 @@ def entry_select(
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    context: dict[str, Any] = {"project_id": project_id}
+    context: dict[str, Any] = {}
     form: EntryUpdateForm
     project_builder: ProjectBuilder
-    hazards: bool = False
+    entries: bool = False
 
     if not request.method == "GET":
-        return render(request, "405.html", std_context(), status=405)
+        return render(
+            request,
+            "405.html",
+            std_context(),
+            status=405,
+        )
+
+    # TODO - Need to check if entry_type is valid
 
     project_builder = ProjectBuilder(int(project_id))
-    hazards = project_builder.hazards_all_get()
+    entries = project_builder.entries_all_get(entry_type)
 
     context = {
+        "page_title": f"Select { kebab_to_title(entry_type) } to edit",
         "project_id": project_id,
-        "hazards": hazards,
+        "entries": entries,
+        "entry_type": entry_type,
+        "project_side_bars": True,
     }
     return render(
-        request, "entry_select.html", context | std_context(project_id)
+        request,
+        "entry_select.html",
+        context | std_context(project_id),
     )
 
 
 @login_required
-@project_access
-def entry_edit(
-    request: HttpRequest, project_id: int, setup_step: int, hazard_id: str
+# TODO - testing needed
+def upload_to_external_repository(
+    request: HttpRequest,
 ) -> HttpResponse:
-    """Hazard selection to edit
-
-    Show selection of hazards that can be edited
-
-    Args:
-        request (HttpRequest): request from user
-        project_id (int): primary key of the project
-
-    Returns:
-        HttpResponse: for loading the correct webpage
-    """
-    context: dict[str, Any] = {"project_id": project_id}
-    form: EntryUpdateForm
-    project_builder: ProjectBuilder
-    hazards: bool = False
-    project: ProjectBuilder
-    form_initial: dict
-
-    if not (request.method == "GET" or request.method == "POST"):
-        return render(request, "405.html", std_context(), status=405)
-
-    # TODO need to check if hazard_id exists
-
-    if request.method == "GET":
-        print(hazard_id)
-        project = ProjectBuilder(project_id)
-        form_initial = project.form_initial("hazard", hazard_id)
-
-        print(form_initial)
-        context = {
-            "project_id": project_id,
-            "form": EntryUpdateForm(project_id, initial=form_initial),
-            "MKDOCS_TEMPLATE_NUMBER_DELIMITER": c.MKDOCS_TEMPLATE_NUMBER_DELIMITER,
-        }
-        return render(
-            request, "entry_edit.html", context | std_context(project_id)
-        )
-
-    # For mypy
-    return render(request, "500.html", status=500)
-
-
-@login_required
-def hazard_comment(request: HttpRequest, hazard_number: "str") -> HttpResponse:
-    """Adds a comment to an issue
-
-    If an issue is available, will add a comment on GitHub
-
-    Args:
-        request (HttpRequest): request from user
-
-    Returns:
-        HttpResponse: for loading the correct webpage
-    """
-    gc: GitController
-    hazards_open_full: list[dict[str, Any]] = []
-    hazard: dict[str, Any] = {}
-    hazard_open: dict = {}
-    form: HazardCommentForm
-    context: dict[str, Any] = {}
-
-    if not (request.method == "GET" or request.method == "POST"):
-        return render(request, "405.html", std_context(), status=405)
-
-    try:
-        int(hazard_number)
-    except ValueError:
-        messages.error(
-            request,
-            f"hazard_number '{hazard_number }' is not valid",
-        )
-        return render(request, "400.html", std_context(), status=400)
-
-    if request.method == "GET":
-        gc = GitController(
-            github_repo=settings.GITHUB_REPO,
-            env_location=settings.ENV_LOCATION,
-        )
-        hazards_open_full = gc.hazards_open()
-
-        for hazard in hazards_open_full:
-            if hazard["number"] == int(hazard_number):
-                hazard_open = hazard.copy()
-                break
-
-        if not hazard_open:
-            messages.error(
-                request,
-                f"hazard_number '{hazard_number }' is not valid",
-            )
-            return render(request, "400.html", std_context(), status=400)
-
-        context = {
-            "hazard_open": hazard_open,
-            "form": HazardCommentForm(
-                initial={"comment": c.TEMPLATE_HAZARD_COMMENT}
-            ),
-            "hazard_number": hazard_number,
-        }
-        return render(
-            request, "hazard_comment.html", context | std_context(project_id)
-        )
-
-    if request.method == "POST":
-        form = HazardCommentForm(request.POST)
-        if form.is_valid():
-            comment = form.cleaned_data["comment"]
-            gc = GitController()
-            # TODO - need error handling here
-            gc.add_comment_to_hazard(
-                hazard_number=int(hazard_number), comment=comment
-            )
-            messages.success(
-                request,
-                f"Hazard '{ hazard_number }' updated.",
-            )
-            context = {"form": LogHazardForm()}
-            return render(
-                request,
-                "hazard_comment.html",
-                context | std_context(project_id),
-            )
-        else:
-            context = {"form": form}
-            return render(
-                request,
-                "hazard_comment.html",
-                context | std_context(project_id),
-            )
-
-    # Should never really get here, but added for mypy
-    return render(request, "500.html", std_context(), status=500)
-
-
-@login_required
-# TODO - testing needed
-def hazards_open(request: HttpRequest) -> HttpResponse:
-    """Title
-
-    Description
-
-    Args:
-        request (HttpRequest): request from user
-
-    Returns:
-        HttpResponse: for loading the correct webpage
-    """
-    context: dict[str, Any] = {}
-    gc: GitController
-    hazards_open: list[dict] = []
-
-    if not (request.method == "GET" or request.method == "POST"):
-        return render(request, "405.html", std_context(), status=405)
-
-    if request.method == "GET":
-        # TODO need to check github credentials are valid
-        gc = GitController()
-        hazards_open = gc.hazards_open()
-        context = {"hazards_open": hazards_open}
-
-        return render(request, "hazards_open.html", context | std_context())
-
-    if request.method == "POST":
-        return HttpResponse("POST handling not yet built")
-
-    # Should never really get here, but added for mypy
-    return render(request, "500.html", std_context(), status=500)
-
-
-@login_required
-def mkdoc_redirect(request: HttpRequest, path: str) -> HttpResponse:
-    """Title
-
-    Description
-
-    Args:
-        request (HttpRequest): request from user
-        path (str): path after domain url
-    Returns:
-        HttpResponse: for loading the correct webpage
-    """
-    mkdocs: MkdocsControl
-    host_url: str = request.get_host().split(":")[0]
-
-    if not request.method == "GET":
-        return render(request, "405.html", std_context(), status=405)
-
-    mkdocs = MkdocsControl()
-    mkdocs.start()
-
-    # TODO - need message page for if mkdocs is not running
-
-    if path == "home":
-        return redirect(f"http://{ host_url }:9000")
-    else:
-        return redirect(f"http://{ host_url }:9000/{ path }")
-
-    # Should never really get here, but added for mypy
-    return render(request, "500.html", std_context(), status=500)
-
-
-@login_required
-# TODO - testing needed
-def upload_to_github(request: HttpRequest) -> HttpResponse:
     """Title
 
     Description
@@ -1414,13 +1118,23 @@ def upload_to_github(request: HttpRequest) -> HttpResponse:
     form: UploadToGithubForm
 
     if not (request.method == "GET" or request.method == "POST"):
-        return render(request, "405.html", std_context(), status=405)
+        return render(
+            request,
+            "405.html",
+            std_context(),
+            status=405,
+        )
 
     if request.method == "GET":
-        context = {"form": UploadToGithubForm()}
+        context = {
+            "page_title": "--- Placeholder ---",
+            "form": UploadToGithubForm(),
+        }
 
         return render(
-            request, "upload_to_github.html", context | std_context()
+            request,
+            "upload_to_external_repository.html",
+            context | std_context(),
         )
 
     if request.method == "POST":
@@ -1434,86 +1148,57 @@ def upload_to_github(request: HttpRequest) -> HttpResponse:
                 request,
                 f"Uploaded to Github with a comment of '{ comment }'",
             )
-            context = {"form": UploadToGithubForm()}
+            context = {
+                "page_title": "--- Placeholder ---",
+                "form": UploadToGithubForm(),
+            }
             return render(
-                request, "upload_to_github.html", context | std_context()
+                request,
+                "upload_to_external_repository.html",
+                context | std_context(),
             )
 
         else:
-            context = {"form": form}
+            context = {"page_title": "--- Placeholder ---", "form": form}
             return render(
-                request, "upload_to_github.html", context | std_context()
+                request,
+                "upload_to_external_repository.html",
+                context | std_context(),
             )
-
-    # Should never really get here, but added for mypy
-    return render(request, "500.html", std_context(), status=500)
 
 
 # -----
 
 
-# TODO needs testing
-def setup_step_get(env_location: str = settings.ENV_LOCATION) -> int:
-    """Pulls 'setup_step" from .env and converts to int
+def std_context(project_id: int = 0) -> dict[str, Any]:
+    """Standard Context
 
-    Extracts the setup step from the local environment file and returns this as
-    an integer
+    Provides a standard collection of values that can be used in page renderings.
 
     Args:
-        env_location (str): location of the environmental variables file.
-
-    Returns:
-        int: value of setup_step, sets to zero (0) if variable is set to empty
-             string or does not exist in the env file.
-    """
-    env_m: ENVManipulator = ENVManipulator(env_location)
-    setup_step: str | None = env_m.read("setup_step")
-    return_value: int = 0
-
-    if setup_step == None or setup_step == "":
-        return_value = 0
-    else:
-        return_value = int(setup_step)  # type: ignore[arg-type]
-
-    return return_value
-
-
-def std_context(project_id: int = 0) -> dict[str, Any]:
-    """Title
-
-    Description
+        project_id (int): primary key of project.
 
     Returns:
         dict[str,Any]: context that is comment across the different views
     """
-
+    project: ProjectBuilder
     std_context_dict: dict[str, Any] = {}
-    docs_available: bool = False
-    setup_step: int = 0
     entry_templates: list[str] = []
-
-    setup_step = setup_step_get()
-
-    if setup_step >= 2:
-        docs_available = True
 
     if project_id > 0:
         project = ProjectBuilder(project_id)
         entry_templates = project.entry_template_names()
-        # print(entry_templates)
 
     std_context_dict = {
-        "START_AFRESH": settings.START_AFRESH,
-        "docs_available": docs_available,
-        "FORM_ELEMENTS_MAX_WIDTH": c.FORM_ELEMENTS_MAX_WIDTH,
         "entry_templates": entry_templates,
     }
 
     return std_context_dict
 
 
-# TODO - will need to also grant access to public open access documents.
-def user_accessible_projects(request: HttpRequest) -> list[dict[str, str]]:
+def user_accessible_projects(
+    request: HttpRequest,
+) -> list[dict[str, Any]] | list[None]:
     """Finds all documents that the user has access to
 
     Checking against user.id, finds all documents that the user is owner of
@@ -1525,23 +1210,30 @@ def user_accessible_projects(request: HttpRequest) -> list[dict[str, str]]:
     Returns:
         list: a list of documents
     """
-    current_user: SimpleLazyObject = request.user
-    user_id: int = current_user.id
-    documents_owner_member: QuerySet
+    user_id: int = (
+        int(str(request.user.id)) if request.user.id is not None else 0
+    )
+    documents_owner: QuerySet
+    documents_member: QuerySet
     project_group: QuerySet
     documents_sorted: list = []
     documents_combined: list = []
 
-    documents_owner_member = (
-        Project.objects.values(
-            doc_id=F("id"),
-            doc_name=F("name"),
-            doc_last_accessed=F("userprojectattribute__last_accessed"),
-        )
-        .filter(Q(owner=user_id) | Q(member=user_id))
-        .order_by("name", "id")
-        .distinct("name")
-    )
+    documents_owner = Project.objects.values(
+        doc_id=F("id"),
+        doc_name=F("name"),
+        doc_last_accessed=F("userprojectattribute__last_accessed"),
+    ).filter(owner=user_id)
+
+    # print(documents_owner)
+
+    documents_member = Project.objects.values(
+        doc_id=F("id"),
+        doc_name=F("name"),
+        doc_last_accessed=F("userprojectattribute__last_accessed"),
+    ).filter(member=user_id)
+
+    # print(documents_member)
 
     project_group = (
         ProjectGroup.objects.values(
@@ -1552,16 +1244,30 @@ def user_accessible_projects(request: HttpRequest) -> list[dict[str, str]]:
             ),
         )
         .filter(member=user_id)
-        .order_by("project_access__name", "project_access__id")
+        .order_by(
+            "project_access__name",
+            "project_access__id",
+        )
         .distinct("project_access__name")
     )
 
-    for record in documents_owner_member:
-        documents_combined.append(record)
+    if documents_owner:
+        for record in documents_owner:
+            documents_combined.append(record)
 
-    for item in project_group:
-        if all(item["doc_id"] != d["doc_id"] for d in documents_combined):
+    if documents_member:
+        for record in documents_member:
+            documents_combined.append(record)
+
+    if project_group:
+        for item in project_group:
             documents_combined.append(item)
+
+    # print(documents_combined)
+    documents_combined = list(
+        {tuple(sorted(d.items())): d for d in documents_combined}.values()
+    )
+    # print(documents_combined)
 
     for i in range(len(documents_combined)):
         if documents_combined[i]["doc_last_accessed"] != None:
@@ -1571,7 +1277,10 @@ def user_accessible_projects(request: HttpRequest) -> list[dict[str, str]]:
 
     documents_sorted = sorted(
         documents_combined,
-        key=lambda x: (x["doc_last_accessed"] or datetime.min, x["doc_id"]),
+        key=lambda x: (
+            x["doc_last_accessed"] or datetime.min,
+            x["doc_id"],
+        ),
         reverse=True,
     )
     # TODO #45 - figure out why {'doc_id': None, 'doc_name': None, 'doc_last_accessed': None} and stop it.
@@ -1579,9 +1288,67 @@ def user_accessible_projects(request: HttpRequest) -> list[dict[str, str]]:
         item
         for item in documents_sorted
         if item
-        != {"doc_id": None, "doc_name": None, "doc_last_accessed": None}
+        != {
+            "doc_id": None,
+            "doc_name": None,
+            "doc_last_accessed": None,
+        }
     ]
+
+    if documents_sorted == [{}]:
+        documents_sorted = []
+
     return documents_sorted
+
+
+def start_new_project_step_2_input_GUI(
+    inputs: dict[str, str]
+) -> dict[str, str]:
+    """ """
+    key: str = ""
+    value: str = ""
+    inputs_GUI: dict = {}
+    groups_list: list = []
+    members_list: QuerySet
+    members_list_fullnames: list = []
+
+    for key, value in inputs.items():
+        key = key.replace("import", "")
+        key = key.replace("start_anew", "")
+        key = snake_to_title(key)
+
+        if key == "Setup choice":
+            inputs_GUI[key] = snake_to_title(value)
+
+        elif key == "Groups":
+            groups_list = list(
+                ProjectGroup.objects.filter(id__in=value).values_list(
+                    "name", flat=True
+                )
+            )
+            inputs_GUI[key] = ", ".join(groups_list)
+            if inputs_GUI[key] == "":
+                inputs_GUI[key] = "<i>none selected</i>"
+
+        elif key == "Members":
+            members_list = User.objects.filter(id__in=value).values(
+                "id", "first_name", "last_name"
+            )
+            members_list_fullnames = [
+                f"{member['first_name']} {member['last_name']}"
+                for member in members_list
+            ]
+            inputs_GUI[key] = ", ".join(members_list_fullnames)
+            if inputs_GUI[key] == "":
+                inputs_GUI[key] = "<i>none selected</i>"
+
+        elif any(keyword in key for keyword in ["password", "token"]):
+            key = key.replace("password token", "password / token")
+            inputs_GUI[key] = "***"
+        else:
+            inputs_GUI[key] = value
+
+    return inputs_GUI
 
 
 def placeholders(project_id: int) -> str:
@@ -1611,50 +1378,13 @@ def placeholders(project_id: int) -> str:
     return json.dumps(placeholders)
 
 
-def build_documents(project_id: int, force: bool = False) -> str:
-    """Build the documents static pages
-
-    Builds the documents static pages if any documents have been modified since
-    last build.
-
-    Args:
-        project_id (str): the primary key for the project
-    """
-    mkdocs: MkdocsControl = MkdocsControl(project_id)
-    project: Project
+def project_timestamp(project_id: int) -> None:
+    """ """
     time_now = timezone.now()
-    build_output: str = ""
-    last_build: datetime
-    last_modified: datetime
-    preprocessor_output: str = ""
-
-    project = get_object_or_404(Project, id=project_id)
-    last_build = project.last_built
-    last_modified = project.last_modified
-
-    if (
-        isinstance(last_modified, datetime)
-        and isinstance(last_build, datetime)
-        and not force
-    ):
-        if last_modified < last_build:
-            return ""
-
-    preprocessor_output = mkdocs.preprocessor()
-    if preprocessor_output == "":
-        return "Preprocessor error!"
-
-    build_output = mkdocs.build()
-    if build_output == "":
-        return "mkdocs build error!"
-
-    build_output = f"{ preprocessor_output } {build_output}"
-
-    project.last_built = time_now
-    project.build_output = build_output
+    project: Project = get_object_or_404(Project, id=project_id)
+    project.last_modified = time_now
     project.save()
-
-    return build_output
+    return
 
 
 def custom_404(request: HttpRequest, exception) -> HttpResponse:
@@ -1684,4 +1414,9 @@ def custom_405(request: HttpRequest, exception) -> HttpResponse:
         HttpResponse: for loading the correct webpage
     """
 
-    return render(request, "405.html", context=std_context(), status=405)
+    return render(
+        request,
+        "405.html",
+        context=std_context(),
+        status=405,
+    )

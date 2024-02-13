@@ -23,12 +23,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push doc-build image
+      - name: Build and push CICD image
         uses: docker/build-push-action@v5
         with:
           context: ./dockerfiles/app/
           file: ./dockerfiles/app/Dockerfile
-          tags: cotswoldsmaker/dcsp-doc-builder:latest
+          target: cicd
+          tags: cotswoldsmaker/dcsp-doc-builder-cicd:latest
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -53,16 +54,17 @@ jobs:
         run: >
           docker-compose -f docker-compose-cicd-docs-builder.yml up --exit-code-from dcsp-docs-builder-cicd
       
-      #- name: Build and push production image
-      #  uses: docker/build-push-action@v5
-      #  with:
-      #    context: ./dockerfiles/app/
-      #    file: ./dockerfiles/app/Dockerfile-prod
-      #    tags: cotswoldsmaker/dcsp:prod
-      #    push: true
-      #    cache-from: type=gha
-      #    cache-to: type=gha,mode=max
-      #    platforms: linux/amd64
+      - name: Build and push PRODUCTION image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./dockerfiles/app/
+          file: ./dockerfiles/app/Dockerfile
+          target: prod
+          tags: cotswoldsmaker/dcsp-doc-builder-prod:latest
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
   
 
   deploy:

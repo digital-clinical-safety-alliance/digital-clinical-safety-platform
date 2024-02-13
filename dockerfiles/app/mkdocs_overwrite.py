@@ -1,6 +1,7 @@
 """Overwrites files to enable "Hazard" headings
 
 """
+
 from pathlib import Path
 import shutil
 from typing import Any
@@ -17,6 +18,6 @@ files = [file for file in files if file.is_file()]
 for source_file in files:
     destination_file = str(source_file)
     destination_file = destination_file.replace(source_directory, "")
-    print(source_file)
-    print(destination_file)
+    # print(source_file)
+    # print(destination_file)
     shutil.copy2(str(source_file), destination_file)

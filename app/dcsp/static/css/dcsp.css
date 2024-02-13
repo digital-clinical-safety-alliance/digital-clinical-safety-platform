@@ -2,8 +2,17 @@
     padding: 20px;
   }
 
-.pad_10 {
+.pad-10-dcsp {
     padding: 10px;
+}
+
+
+.pad-20-dcsp {
+    padding: 20px;
+}
+
+.pad-r-10 {
+    padding-right: 10px;
 }
 
 .max-w-800 {
@@ -32,6 +41,19 @@
 
 .max-w-50 {
     max-width: 50px;
+}
+
+.max-w-100pc {
+    max-width: 100%;
+}
+
+.bold-dcsp {
+    font-weight: bold;
+}
+
+.red-bold {
+    color:red; 
+    font-weight: bold;
 }
 
 /* For the loading animation */
@@ -105,10 +127,6 @@
     background-color:#1e2129;
 }
 
-.padding-20-dcsp {
-    padding-left: 20px;
-}
-
 .bar-dcsp {
     background-color: #4051b5;
 }
@@ -180,4 +198,3 @@
 .form-control::-ms-input-placeholder { /* Microsoft Edge */
     color: #e2e4e9d1;
 }
-

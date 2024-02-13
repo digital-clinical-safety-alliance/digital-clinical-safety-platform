@@ -2,22 +2,12 @@
 
 {% block main %}
     <div class="row">
-        <div class="col d-sm-none d-md-none d-lg-block d-xl-block"></div>
-        <div class="col-12 col-md-6 mx-auto">
-            <h2>Build documents</h2>
-        </div>
-        <div class="col"></div>
-    </div>
-
-    <div class="row">
 
         {% include "project_side_bar_left.html" %}
 
-
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-lg-6">
 
             {% include "message_error.html" %}
-
 
             <p>
                 Use this page to build the safety documents afresh (useful if you
@@ -31,12 +21,11 @@
                           method="post">
                         {% csrf_token %}
 
-                        <div align="right">
+                        <div class="right">
                             <button class="btn btn-secondary"
                                     type="submit"
-                                    style="float: right"
                                     id="id_button"
-                                    onclick="submitForm()">BUILD</button>
+                                    onclick="submitForm()">Build</button>
                         </div>
                     </form>
                 </div>
@@ -52,22 +41,16 @@
                   method="post">
                 {% csrf_token %}
 
-                <div align="right">
+                <div class="right">
                     <button class="btn btn-secondary"
                             type="submit"
-                            style="float: right"
                             id="id_button"
-                            onclick="submitForm()">BUILD</button>
+                            onclick="submitForm()">Build</button>
                 </div>
             </form>
         </div>
-        <div class="col d-sm-none d-md-none d-lg-block d-xl-block">
-            <h5>Latest activity:</h5>
-            <ul>
-                <li>Activity 1</li>
-                <li>Activity 2</li>
-                <li>Activity 3</li>
-            </ul>
-        </div>
+
+        {% include "project_side_bar_right.html" %}
+ 
     </div>
 {% endblock %}

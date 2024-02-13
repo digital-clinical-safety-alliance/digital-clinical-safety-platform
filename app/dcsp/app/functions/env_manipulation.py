@@ -11,7 +11,10 @@ import app.functions.constants as c
 
 
 class ENVManipulator:
-    def __init__(self, env_path: str = c.ENV_PATH_PLACEHOLDERS) -> None:
+    def __init__(
+        self,
+        env_path: str = c.ENV_PATH_PLACEHOLDERS,
+    ) -> None:
         """Initialise the env path
 
         Initialise the env path
@@ -48,8 +51,15 @@ class ENVManipulator:
             del env_variables[variable_to_delete]
             open(self.env_path, "w").close()
 
-            for key2, value2 in env_variables.items():
-                set_key(self.env_path, str(key2), str(value2))
+            for (
+                key2,
+                value2,
+            ) in env_variables.items():
+                set_key(
+                    self.env_path,
+                    str(key2),
+                    str(value2),
+                )
 
         return variable_set
 

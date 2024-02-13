@@ -33,10 +33,6 @@ GITHUB_REPO = c.REPO_NAME
 MKDOCS_LOCATION = c.MKDOCS
 MKDOCS_DOCS_LOCATION = c.MKDOCS_DOCS
 TESTING = False
-START_AFRESH = True
-
-if not DEBUG:
-    START_AFRESH = False
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -73,7 +69,12 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
-            os.path.join(BASE_DIR, "app", "templates", "app"),
+            os.path.join(
+                BASE_DIR,
+                "app",
+                "templates",
+                "app",
+            ),
             os.path.join(BASE_DIR, "app", "templates"),
         ],
         "APP_DIRS": True,
@@ -97,7 +98,8 @@ WSGI_APPLICATION = "dcsp.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": os.environ.get(
-            "POSTGRES_ENGINE", "django.db.backends.sqlite3"
+            "POSTGRES_ENGINE",
+            "django.db.backends.sqlite3",
         ),
         "NAME": os.environ.get("POSTGRES_DB", BASE_DIR / "db.sqlite3"),
         "USER": os.environ.get("POSTGRES_USER", "user"),

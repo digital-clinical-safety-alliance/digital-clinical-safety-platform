@@ -5,7 +5,10 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("app", "0005_remove_project_external_repo_password_token_and_more"),
+        (
+            "app",
+            "0005_remove_project_external_repo_password_token_and_more",
+        ),
     ]
 
     operations = [

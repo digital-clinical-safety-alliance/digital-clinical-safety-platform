@@ -79,3 +79,6 @@ Either 'open', 'transferred' or 'closed'.
 
 ### Residual Hazard Risk Assessment
 BLAH
+
+### Code associated with hazard
+[code]

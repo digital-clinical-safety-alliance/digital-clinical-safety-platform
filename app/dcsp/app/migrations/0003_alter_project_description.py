@@ -12,6 +12,10 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="project",
             name="description",
-            field=models.TextField(blank=True, max_length=1000, null=True),
+            field=models.TextField(
+                blank=True,
+                max_length=1000,
+                null=True,
+            ),
         ),
     ]

@@ -2,18 +2,16 @@
 
 {% block main %}
 
-  {% if form.errors %}
-    <p style='color:red; font-weight: bold;'>Your username and password didn't match. Please try again.</p>
-  {% endif %}
+  {% if form.errors %}<p class="red-bold">Your username and password didn't match. Please try again.</p>{% endif %}
 
   {% if next %}
     {% if user.is_authenticated %}
-      <p style='color:red; font-weight: bold;'>
+      <p class="red-bold">
         Your account doesn't have access to this page. To proceed,
         please login with an account that has access.
       </p>
     {% else %}
-      <p style='color:red; font-weight: bold;'>Please login to see this page.</p>
+      <p class="red-bold">Please login to see this page.</p>
     {% endif %}
   {% endif %}
 
@@ -40,7 +38,7 @@
              required=""
              id="id_password">
     </div>
-    <div align="right">
+    <div class="right">
       <button class="btn btn-secondary ml-auto" type="submit">Login</button>
     </div>
     <input type="hidden" name="next" value="{{ next }}">

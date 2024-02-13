@@ -1,6 +1,6 @@
 {% load custom_filters %}
 
-<div class="col d-sm-none d-md-none d-lg-block d-xl-block">
+<div class="col d-none d-lg-block d-xl-block">
     <div class="pb-2 font-dcsp">
         <b>{{ project_name }}</b>
     </div>
@@ -11,9 +11,6 @@
         <a class="link-dcsp"
            id="id_link_project_side_bar_left"
            onclick="url_click('{% url "view_docs" project_id "index.html" %}')">Published view</a>
-    </div>
-    <div class="pb-2">
-        <a class="link-dcsp" href="{% url 'project_build_asap' project_id %}">Build ASAP</a>
     </div>
     <div class="pb-2">
         <a class="link-dcsp" href="{% url 'setup_documents' project_id %}">Placeholders</a>
@@ -28,7 +25,10 @@
             {{ entry|kebab_to_title }}:
             <a class="link-dcsp"
                href="{% url 'entry_update' project_id entry 'new' %}">New</a>
-            <a class="link-dcsp" href="{% url 'entry_select' project_id %}">Edit</a>
+            <a class="link-dcsp" href="{% url 'entry_select' project_id entry %}">Edit</a>
         </div>
     {% endfor %}
+    <div class="pb-2">
+        <a class="link-dcsp" href="{% url 'project_build_asap' project_id %}">Build documents</a>
+    </div>
 </div>

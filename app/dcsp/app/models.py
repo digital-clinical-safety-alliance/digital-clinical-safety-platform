@@ -2,81 +2,107 @@
 
 """
 
-import os
-from django.db import models
+# mypy: disable-error-code="type-arg"
+# TODO - need to figure out how to give the right type hints below
+
+from django.db.models import (
+    Model,
+    TextField,
+    CharField,
+    OneToOneField,
+    ManyToManyField,
+    ForeignKey,
+    DateTimeField,
+    CASCADE,
+)
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
-from datetime import date
+
+import app.functions.constants as c
 
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(
+class UserProfile(Model):
+    user: OneToOneField = OneToOneField(
         User,
         verbose_name=_("user"),
-        on_delete=models.CASCADE,
+        on_delete=CASCADE,
     )
 
-    default_github_username = models.CharField(
+    default_github_username: CharField = CharField(
         max_length=256, blank=True, null=True
     )
 
-    default_github_host = models.CharField(
+    default_github_host: CharField = CharField(
         max_length=256, blank=True, null=True
     )
 
-    github_token = models.CharField(max_length=256, blank=True, null=True)
+    github_token: CharField = CharField(max_length=256, blank=True, null=True)
 
 
-class Project(models.Model):
-    name = models.CharField(max_length=256, blank=True, null=True)
+class Project(Model):
+    name: CharField = CharField(max_length=256, blank=True, null=True)
 
-    description = models.TextField(max_length=1000, blank=True, null=True)
+    description: TextField = TextField(max_length=1000, blank=True, null=True)
 
-    owner = models.ForeignKey(
+    owner: ForeignKey = ForeignKey(
         User,
         related_name="owner_foreign_key",
         verbose_name=_("owner"),
-        on_delete=models.CASCADE,
+        on_delete=CASCADE,
     )
 
-    member = models.ManyToManyField(
-        User, related_name="member_many_to_many", blank=True
+    member: ManyToManyField = ManyToManyField(
+        User,
+        related_name="member_many_to_many",
+        blank=True,
     )
 
-    user_interaction = models.ManyToManyField(
+    user_interaction: ManyToManyField = ManyToManyField(
         User,
         related_name="last_updated_by_user_many_to_many",
         through="UserProjectAttribute",
         blank=True,
     )
 
-    last_modified = models.DateTimeField(blank=True, null=True)
+    ACCESS_CHOICES = [
+        (c.StaticSiteView.PUBLIC.value, _("Public")),
+        (c.StaticSiteView.MEMBERS.value, _("Members")),
+        (c.StaticSiteView.PRIVATE.value, _("Private")),
+    ]
 
-    last_built = models.DateTimeField(blank=True, null=True)
+    access = CharField(
+        max_length=10,
+        choices=ACCESS_CHOICES,
+        default=c.StaticSiteView.PUBLIC.value,
+    )
 
-    build_output = models.TextField(max_length=5000, blank=True, null=True)
+    last_modified: DateTimeField = DateTimeField(blank=True, null=True)
 
-    external_repo_url = models.CharField(max_length=256, blank=True, null=True)
+    last_built: DateTimeField = DateTimeField(blank=True, null=True)
 
-    def __str__(self):
+    build_output: TextField = TextField(max_length=5000, blank=True, null=True)
+
+    external_repo_url: CharField = CharField(
+        max_length=256, blank=True, null=True
+    )
+
+    def __str__(self) -> str:
         return f"{ self.id } - { self.owner } - { self.name }"
 
     class Meta:
         ordering = ["id"]
 
 
-class UserProjectAttribute(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+class UserProjectAttribute(Model):
+    user: ForeignKey = ForeignKey(User, on_delete=CASCADE)
 
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project: ForeignKey = ForeignKey(Project, on_delete=CASCADE)
 
-    last_accessed = models.DateTimeField(auto_now=True)
+    last_accessed: DateTimeField = DateTimeField(auto_now=True)
 
-    repo_username = models.CharField(max_length=256, blank=True, null=True)
+    repo_username: CharField = CharField(max_length=256, blank=True, null=True)
 
-    repo_password_token = models.CharField(
-        max_length=256, blank=True, null=True
-    )
+    repo_password_token = CharField(max_length=256, blank=True, null=True)
 
     class Meta:
         unique_together = ("user", "project")
@@ -84,12 +110,12 @@ class UserProjectAttribute(models.Model):
     # TODO #38 - audit functionality
 
 
-class ProjectGroup(models.Model):
-    name = models.CharField(max_length=256, blank=True, null=True)
+class ProjectGroup(Model):
+    name: CharField = CharField(max_length=256, blank=True, null=True)
 
-    member = models.ManyToManyField(User, blank=True)
+    member: ManyToManyField = ManyToManyField(User, blank=True)
 
-    project_access = models.ManyToManyField(Project, blank=True)
+    project_access: ManyToManyField = ManyToManyField(Project, blank=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{ self.name }"

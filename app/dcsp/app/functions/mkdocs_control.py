@@ -6,26 +6,38 @@ Classes:
     MkdocsControl: manage mkdocs server
 """
 
-import psutil
 import time as t
 import os
-from typing import TextIO, Any
+from typing import Any
+from subprocess import CompletedProcess  # nosec B404
 import subprocess  # nosec B404
 from pathlib import Path
 from fnmatch import fnmatch
 import re
 from jinja2 import Environment, FileSystemLoader
+from datetime import datetime
 
-from django.template.loader import render_to_string
+from django.template.loader import (
+    render_to_string,
+)
+from django.utils import timezone
+
+from app.models import Project
 
 import app.functions.constants as c
-from app.functions.projects_builder import ProjectBuilder
-from app.functions.doctring_manipulation import DocstringManipulation
+from app.functions.projects_builder import (
+    ProjectBuilder,
+)
+from app.functions.doctring_manipulation import (
+    DocstringManipulation,
+)
 
 
 class MkdocsControl:
     def __init__(
-        self, project_id: int | str, projects_folder: str = c.PROJECTS_FOLDER
+        self,
+        project_id: int | str,
+        projects_folder: str = c.PROJECTS_FOLDER,
     ) -> None:
         """Initialises the MkDocsControl class
 
@@ -46,13 +58,14 @@ class MkdocsControl:
 
         self.project_id = int(project_id)
 
+        # TODO should check in model if project ID exists
         if self.project_id <= 0:
             raise ValueError(
                 f"'project_id of '{ project_id }' must be 1 or more"
             )
 
         self.documentation_pages = (
-            f"/documentation-pages/project_{ self.project_id }"
+            f"{ c.DOCUMENTATION_PAGES }/project_{ self.project_id }"
         )
 
         if not Path(self.documentation_pages).is_dir():
@@ -80,7 +93,7 @@ class MkdocsControl:
         entries_entries_dir: str = f"{ entries_dir }{ entry_type }s/"
         entry_template_dir: str = f"{ self.documents_directory }templates/"
         files_to_check: list[str] = []
-        docstring: DocstringManipulation()
+        docstring: DocstringManipulation
         # file
         # entry_file
         contents_str: str = ""
@@ -91,7 +104,7 @@ class MkdocsControl:
         warnings: str = ""
         entries: list[dict] = []
         project: ProjectBuilder
-        contents_list: dict[str, str] = {}
+        contents_list: list[dict[str, Any]] = []
         entry_form: dict[str, Any]
         icon_html: str = ""
         code_html: str = ""
@@ -137,6 +150,9 @@ class MkdocsControl:
         docstring = DocstringManipulation(self.project_id)
         referenced_hazards = docstring.docstring_all()
 
+        """for h in referenced_hazards:
+            print(h)"""
+
         for file in files_to_check:
             icon_html = ""
             function_hazards = []
@@ -162,12 +178,14 @@ class MkdocsControl:
                         # print(function_hazards)
 
             project = ProjectBuilder(self.project_id)
-            contents_list = project.entry_read_with_field_types(file)
+            # TODO - need to figure out which entry_types are preprocessed
+            contents_list = project.entry_read_with_field_types("hazard", file)
 
             for field in contents_list:
                 if field["field_type"] == "icon":
                     env = Environment(
-                        loader=FileSystemLoader(entry_template_dir)
+                        loader=FileSystemLoader(entry_template_dir),
+                        autoescape=True,
                     )
                     template = env.get_template(f"{ entry_type }-icons.md")
                     context = {"contents_list": contents_list}
@@ -180,18 +198,28 @@ class MkdocsControl:
                     for function in referenced_hazards:
                         for hazard in function["hazards"]:
                             if hazard["hazard_number"] == entry_number:
-                                code_html += f"[{ function['function_name'] }](../../{ function['doc_file_path'] }#hazards)\n"
+                                code_html += (
+                                    f"[{ function['function_name'].replace('.py', '') }"
+                                    f".{ hazard['module_name']}](../../{ function['doc_file_path'] }"
+                                    f"#{ hazard['module_name']}_hazard)\n\n"
+                                )
 
-                    code_html = code_html.rstrip("\n")
+                    code_html = code_html.rstrip("\n\n")
 
                     if not code_html:
-                        code_html = "Hazard not mentioned in code source"
+                        code_html = "Hazard not mentioned in source code"
 
             entry_form = project.entry_file_read_to_form(
-                contents_list, icon_html, code_html
+                contents_list,
+                icon_html,
+                code_html,
             )
 
-            project.entry_update(entry_form, entry_type, entry_number)
+            project.entry_update(
+                entry_form,
+                entry_type,
+                entry_number,
+            )
             pattern = re.compile(
                 r"<!--\s*\[icon\]\s*-->.*?<!--\s*\[iconend\]\s*-->",
                 re.DOTALL,
@@ -200,7 +228,8 @@ class MkdocsControl:
             contents_str = contents_str.replace("../../", "../")
             icon_html = icon_html.replace("../../", "../")
             icon_html = icon_html.replace(
-                'class="icon-large"', 'class="icon-small"'
+                'class="icon-large"',
+                'class="icon-small"',
             )
 
             entries.append(
@@ -213,11 +242,18 @@ class MkdocsControl:
             )
 
         # Creating the summary
-        env = Environment(loader=FileSystemLoader(entry_template_dir))
-        template = env.get_template(f"{ entry_type }-summary.md")
+        env = Environment(
+            loader=FileSystemLoader(entry_template_dir), autoescape=True
+        )
+        template = env.get_template(
+            f"{ entry_type }{ c.ENTRY_SUMMARY_SUFFIX }"
+        )
         context = {"entries": entries}
         md_content = template.render(context)
-        summary_file = open(f"{ entries_dir }{ entry_type }-summary.md", "w")
+        summary_file = open(
+            f"{ entries_dir }{ entry_type }{ c.ENTRY_SUMMARY_SUFFIX }",
+            "w",
+        )
         summary_file.write(md_content)
         summary_file.close()
 
@@ -235,9 +271,9 @@ class MkdocsControl:
         """ """
         command: list[str] = []
         command_output_dir: str = (
-            f"/documentation-pages/project_{ self.project_id }"
+            f"{ c.DOCUMENTATION_PAGES }/project_{ self.project_id }"
         )
-        command_output: str = "error"  # default
+        command_output: CompletedProcess[str]
         command_output_html: str = ""
         stdout_result: str = ""
         stderr_result: str = ""
@@ -247,7 +283,12 @@ class MkdocsControl:
                 f"'{ command_output_dir }' directory does not exist"
             )
 
-        command = ["/usr/local/bin/mkdocs", "build", "-d", command_output_dir]
+        command = [
+            "/usr/local/bin/mkdocs",
+            "build",
+            "-d",
+            command_output_dir,
+        ]
 
         command_output = subprocess.run(
             command,
@@ -256,7 +297,7 @@ class MkdocsControl:
             cwd=self.documents_directory,
             capture_output=True,
             text=True,
-        )
+        )  # nosec B603
 
         if command_output.returncode == 0:
             command_output_html += "<b>Successful mkdocs build</b>"
@@ -274,3 +315,47 @@ class MkdocsControl:
         command_output_html += f"<b>Stderr:</b> { stderr_result }"
 
         return command_output_html
+
+    def build_documents(self, force: bool = False) -> str:
+        """Build the documents static pages
+
+        Builds the documents static pages if any documents have been modified since
+        last build.
+
+        Args:
+            project_id (str): the primary key for the project
+        """
+        project: Project
+        time_now = timezone.now()
+        build_output: str = ""
+        last_build: datetime
+        last_modified: datetime
+        preprocessor_output: str = ""
+
+        project = project = Project.objects.get(id=self.project_id)
+        last_build = project.last_built
+        last_modified = project.last_modified
+
+        if (
+            isinstance(last_modified, datetime)
+            and isinstance(last_build, datetime)
+            and not force
+        ):
+            if last_modified < last_build:
+                return ""
+
+        preprocessor_output = self.preprocessor()
+        if preprocessor_output == "":
+            return "Preprocessor error!"
+
+        build_output = self.build()
+        if build_output == "":
+            return "mkdocs build error!"
+
+        build_output = f"{ preprocessor_output } {build_output}"
+
+        project.last_built = time_now
+        project.build_output = build_output
+        project.save()
+
+        return build_output

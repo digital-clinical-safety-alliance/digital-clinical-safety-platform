@@ -83,3 +83,8 @@ curl -X GET https://hub.docker.com/v2/repositories/cotswoldsmaker/dcsp/tags
 >> python3 manage.py migrate
 >> python3 manage.py createsuperuser
 >> manage.py collectstatic
+
+
+Fast get into cicd folder
+
+>> docker exec -it --workdir=/dcsp/cicd dcsp-docs-builder bash

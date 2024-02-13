@@ -35,7 +35,9 @@ from pathlib import Path
 sys.path.append("/dcsp/app/dcsp/")  # TODO temp
 import app.functions.constants as c
 from app.functions.constants import GhCredentials
-from app.functions.email_functions import EmailFunctions
+from app.functions.email_functions import (
+    EmailFunctions,
+)
 
 
 class GitHubController:
@@ -43,7 +45,7 @@ class GitHubController:
         """ """
         if username == "":
             raise ValueError("'username' cannot be empty")
-        if password_token == "":
+        if password_token == "":  # nosec B105
             raise ValueError("'password_token' cannot be empty")
 
         self.username: str = username
@@ -69,7 +71,7 @@ class GitHubController:
 
 
 if __name__ == "__main__":
-    gh = GitHubController()
+    gh = GitHubController("", "")
 
     url = "https://github.com/digital-clinical-safety-alliance/digital-clinical-safety-platform"
 
@@ -177,8 +179,8 @@ class GitController:
             self.github_token = str(dot_values.get("GITHUB_TOKEN") or "")
             if (
                 self.github_token == None
-                or self.github_token == ""  # nosec B105, B107
-            ):
+                or self.github_token == ""  # nosec B105
+            ):  # nosec B105, B107
                 raise ValueError(
                     f"'{ c.EnvKeysPH.GITHUB_TOKEN.value }' has not been set as an argument or in .env"
                 )
@@ -197,7 +199,9 @@ class GitController:
 
     # TODO #28 - need to find a good way to see if github token and username pair is valid
     # TODO #29 - need to handle 404, 500, Timeout and connection errors
-    def check_github_credentials(self) -> dict[str, str | bool | None]:
+    def check_github_credentials(
+        self,
+    ) -> dict[str, str | bool | None]:
         """Checking Github credentials
 
         If no organisation is provided, then username will be used for repo storage location
@@ -221,7 +225,10 @@ class GitController:
         try:
             username_request = requests.get(
                 f"https://api.github.com/users/{ self.github_username }",
-                auth=(self.github_username, self.github_token),
+                auth=(
+                    self.github_username,
+                    self.github_token,
+                ),
                 timeout=10,
             )
         except requests.exceptions.ConnectionError:
@@ -249,7 +256,10 @@ class GitController:
         try:
             repo_request = requests.get(
                 f"https://api.github.com/repos/{ self.repo_domain_name() }/{ self.github_repo }",
-                auth=(self.github_organisation, self.github_token),
+                auth=(
+                    self.github_organisation,
+                    self.github_token,
+                ),
                 timeout=10,
             )
         except requests.exceptions.ConnectionError:
@@ -265,7 +275,10 @@ class GitController:
             repo_exists = True
 
             # patch
-            g = Github(self.github_username, self.github_token)
+            g = Github(
+                self.github_username,
+                self.github_token,
+            )
             repo = g.get_repo(
                 f"{ self.repo_domain_name() }/{ self.github_repo }"
             )
@@ -313,7 +326,10 @@ class GitController:
         try:
             organisation_request = requests.get(
                 f"https://api.github.com/users/{ organisation }",
-                auth=(self.github_organisation, self.github_token),
+                auth=(
+                    self.github_organisation,
+                    self.github_token,
+                ),
                 timeout=10,
             )
         except requests.exceptions.ConnectionError:
@@ -357,7 +373,10 @@ class GitController:
         repos_found: list[str] = []
         repo: Repository.Repository
 
-        g = Github(self.github_username, self.github_token)
+        g = Github(
+            self.github_username,
+            self.github_token,
+        )
 
         try:
             github_user = g.get_user(github_user_org)
@@ -372,7 +391,9 @@ class GitController:
         return repos_found
 
     def current_repo_on_github(
-        self, github_user_org: str, github_repo: str
+        self,
+        github_user_org: str,
+        github_repo: str,
     ) -> bool:
         """Checks if supplied repository is on GitHub
 
@@ -396,7 +417,11 @@ class GitController:
         else:
             return False
 
-    def create_repo(self, github_use_org: str, github_repo: str) -> bool:
+    def create_repo(
+        self,
+        github_use_org: str,
+        github_repo: str,
+    ) -> bool:
         """Create a new repository on GitHub
 
         If does not already exist, this function will create a new repository
@@ -423,12 +448,19 @@ class GitController:
         except ValueError as error:
             raise ValueError(f"{ error }")
 
-        g = Github(self.github_username, self.github_token)
+        g = Github(
+            self.github_username,
+            self.github_token,
+        )
         github_get = g.get_organization(github_use_org)
         github_get.create_repo(github_repo)
         return True
 
-    def delete_repo(self, github_use_org: str, github_repo: str) -> bool:
+    def delete_repo(
+        self,
+        github_use_org: str,
+        github_repo: str,
+    ) -> bool:
         """Delete a repository on GitHub
 
         If in existence, then deletes repository on GitHub.
@@ -448,7 +480,10 @@ class GitController:
         if not self.current_repo_on_github(github_use_org, github_repo):
             return False
 
-        g = Github(self.github_username, self.github_token)
+        g = Github(
+            self.github_username,
+            self.github_token,
+        )
         github_get = g.get_organization(github_use_org)
         repo = github_get.get_repo(github_repo)
         repo.delete()
@@ -537,7 +572,12 @@ class GitController:
             child.wait()
         return True
 
-    def entry_update(self, title: str, body: str, labels: list[str]) -> None:
+    def entry_update(
+        self,
+        title: str,
+        body: str,
+        labels: list[str],
+    ) -> None:
         """Uses GitHub issues to log a new hazard
 
         Hazards are logged as issues on GitHub
@@ -563,7 +603,10 @@ class GitController:
                     f"'{ label }' is not a valid hazard label. Please review label.yml for available values."
                 )
 
-        g = Github(self.github_username, self.github_token)
+        g = Github(
+            self.github_username,
+            self.github_token,
+        )
 
         try:
             repo = g.get_repo(
@@ -581,7 +624,9 @@ class GitController:
 
         return
 
-    def available_hazard_labels(self, details: str = "full") -> list:
+    def available_hazard_labels(
+        self, details: str = "full"
+    ) -> list[dict[str, str]] | list[str]:
         """Provides a list of available hazard labels
 
         Reads from the labels yaml file and returns a list of valid hazard labels
@@ -633,7 +678,7 @@ class GitController:
         Returns:
             bool: True if a valid label, False if not.
         """
-        issues_yml: list = self.available_hazard_labels("name_only")
+        issues_yml: list[str] = self.available_hazard_labels("name_only")
         label_name: str = ""
 
         for label_name in issues_yml:
@@ -642,7 +687,9 @@ class GitController:
 
         return False
 
-    def hazards_open(self) -> list[dict[str, Any]]:
+    def hazards_open(
+        self,
+    ) -> list[dict[str, Any]]:
         """Returns a list of open hazards on GitHub
 
         Grabs open hazards (which are actually GitHub Issues) from GitHub
@@ -655,12 +702,15 @@ class GitController:
         """
         g: Github
         hazards_open: list[dict[str, Any]] = []
-        label_list: list = []
+        label_list: list[str] = []
         issue: Any
         open_issues: PaginatedList.PaginatedList
         repo: Repository.Repository
 
-        g = Github(self.github_username, self.github_token)
+        g = Github(
+            self.github_username,
+            self.github_token,
+        )
 
         try:
             repo = g.get_repo(
@@ -735,7 +785,10 @@ class GitController:
         if comment == "":
             raise ValueError("No comment has been provided")
 
-        g = Github(self.github_username, self.github_token)
+        g = Github(
+            self.github_username,
+            self.github_token,
+        )
 
         try:
             repo = g.get_repo(

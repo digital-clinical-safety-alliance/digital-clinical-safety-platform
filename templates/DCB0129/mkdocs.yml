@@ -11,7 +11,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [] # Define paths here for your code
+          paths: [../app/bmi-calc/app, ../app/bmi-calc/app/functions]
 
 theme:
   name: material

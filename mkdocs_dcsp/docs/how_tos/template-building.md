@@ -2,9 +2,11 @@
 
 Outlined below are methods for creating the different templates needed for 
 clinical safety documentation.
-## How to build a hazard template
-
-* Place in 'CS-documents/templates folder/hazard-template.md'
+## How to build an entry template
+* Entries are instances of items that you wish to log. For example a hazard or
+incident.
+* Place in 'CS-documents/templates/[entry name]-template.md'
+* Do not use front matter (material between two treble hashes ('---'))
 * Headings can use any number hashtags (#)
 * Under the heading, the following attributes can be used to change the field 
 type:
@@ -19,6 +21,9 @@ type:
     2 - More line wording
 * Do not use 1. 2. 3. as this leads to automatically line numbering that you
 will not want when the markdown files are eventually built.
+* Anything after a semi colon will be removed from the selection field during
+editing, but will be available for the user to see if they click on the 'More
+info' help text.
 
 ## How are calculate fields calculated
 Calculated fields use the values of other 'laballed' fields. These 'labelled'

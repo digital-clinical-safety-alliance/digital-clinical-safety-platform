@@ -2,6 +2,9 @@
 
 """
 
+# mypy: disable-error-code="type-arg"
+# TODO - need to type these
+
 from django.contrib import admin
 from .models import (
     UserProfile,
@@ -9,7 +12,9 @@ from .models import (
     ProjectGroup,
     UserProjectAttribute,
 )
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.admin import (
+    UserAdmin as BaseUserAdmin,
+)
 from django.contrib.auth.models import User
 from django import forms
 from django.forms.widgets import TextInput

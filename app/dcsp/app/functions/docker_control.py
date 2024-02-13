@@ -1,6 +1,7 @@
 """Managing Docker and Dockerhub
 
 """
+
 import requests
 import json
 from dotenv import dotenv_values
@@ -70,13 +71,16 @@ class DockerHubController:
         print(full_results)
         return full_results
 
-    def get_tags(self, user_name: str, respository: str) -> list:
+    def get_tags(self, user_name: str, respository: str) -> list[str]:
         """Get names"""
         tags: list[str] = []
 
         request_results = requests.get(
             f"https://hub.docker.com/v2/repositories/{ user_name }/{ respository }/tags",
-            auth=(self.dockerhub_username, self.dockerhub_password),
+            auth=(
+                self.dockerhub_username,
+                self.dockerhub_password,
+            ),
             timeout=10,
         )
         results = json.loads(request_results.content.decode())["results"]
@@ -85,14 +89,20 @@ class DockerHubController:
         return tags
 
     def delete_image_by_tag(
-        self, user_name: str, repository: str, tag_name: str
+        self,
+        user_name: str,
+        repository: str,
+        tag_name: str,
     ) -> bool:
         """ """
         print(self.dockerhub_username)
         print(self.dockerhub_password)
         request_results = requests.delete(
             f"https://hub.docker.com/v2/repositories/{ user_name }/{ repository }/tags/{ tag_name }/",
-            auth=(self.dockerhub_username, self.dockerhub_password),
+            auth=(
+                self.dockerhub_username,
+                self.dockerhub_password,
+            ),
             timeout=10,
         )
 

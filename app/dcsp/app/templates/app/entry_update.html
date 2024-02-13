@@ -3,128 +3,61 @@
 {% load custom_filters %}
 
 {% block main %}
-  <div class="row">
-    <div class="col"></div>
-    <div class="col-12 col-md-6 mx-auto">
-      <h2>Create new hazard</h2>
+    <div class="row">
+
+        {% include "project_side_bar_left.html" %}
+ 
+        <div class="col-12 col-md-6">
+
+            {% include "message_error.html" %}
+
+            {% include "error_summary.html" %}
+
+            <!-- For the multiselect field -->
+            <link rel="stylesheet"
+                  href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
+
+            <form action="{% url 'entry_update' project_id entry_type id_new %}"
+                  method="post">
+                {% csrf_token %}
+
+                {% for field in form %}
+ 
+                    {% if field.name|starts_with:'-' %}
+                        <hr class="border border-primary border-2 opacity-50">
+                        {{ field }}
+
+                    {% elif field.is_hidden %}
+                        {{ field }}
+
+                    {% else %}
+                        <div class="mb-3">
+                            <label for="id_{{ field.name }}">{{ field.label }}</label>
+                            <br>
+                            {{ field }}
+                            {% if field.help_text %}
+
+                                {% include "modal.html" %}
+
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                {% if id_new == "new" %}
+                    <button class="btn btn-secondary right" type="submit">Create {{ entry_type|kebab_to_title }}</button>
+                {% else %}
+                    <button class="btn btn-secondary right" type="submit">Update {{ entry_type|kebab_to_title }}</button>
+                {% endif %}
+            </form>
+        </div>
+ 
+        {% include "project_side_bar_right.html" %}
+
     </div>
-    <div class="col"></div>
-  </div>
-  <div class="row">
 
-    {% include "project_side_bar_left.html" %}
+    {% include "javascript_jinja/entry_update.js" %}
 
- 
-    <div class="col-12 col-md-6">
-
-      {% include "message_error.html" %}
-
-      {% include "error_summary.html" %}
-
-      <!-- For the multiselect field -->
-      <link rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
-
-      <form action="{% url 'entry_update' project_id 'hazard' id_new %}"
-            method="post">
-        {% csrf_token %}
-
-        {% for field in form %}
- 
-          {% if field.name|starts_with:'-' %}
-            <hr class="border border-primary border-2 opacity-50">
-            {{ field }}
-
-          {% elif field.is_hidden %}
-            {{ field }}
-
-          {% else %}
-            <div class="mb-3">
-              <label for="id_{{ field.name }}">{{ field.label }}</label>
-              <br>
-              {{ field }}
-              {% if field.help_text %}
-
-                {% include "modal.html" %}
-
-              {% endif %}
-            </div>
-          {% endif %}
-        {% endfor %}
-        {% if id_new == "new" %}
-          <button class="btn btn-secondary right" type="submit">Create {{ entry_type }}</button>
-        {% else %}
-          <button class="btn btn-secondary right" type="submit">Update {{ entry_type }}</button>
-        {% endif %}
-      </form>
-    </div>
- 
-
-    {% include "project_side_bar_right.html" %}
-
-  </div>
-
-  <script>
-    var labelsForCalculations = {{ form.labels_for_calculations|safe }};
-    var calculationField = {{ form.calculation_field|safe }};
-
-
-    function handleFieldChange(event) {
-      var calculationKey = {};
-      var searchKey = "";
-      var calculation_output = "";
-
-      for (var key in labelsForCalculations) {
-        var changedValue = document.getElementById(key).value.split("{{ MKDOCS_TEMPLATE_NUMBER_DELIMITER }}")[0].trim();
-        if (changedValue == ""){
-          changedValue = 0
-        }
-
-        calculationKey[labelsForCalculations[key]] = changedValue;
-        
-      }
-
-      for (const element of calculationField) {
-        searchKey = ""
-        var matched = false;
-        var calculationFieldID = document.getElementById(element["id"]);
-
-        //console.log(element);
-        for (const [key, value] of Object.entries(element["monitor_labels"])) {
-          for (const [key2, value2] of Object.entries(calculationKey)) {
-            if (key2 == value){
-              searchKey += key2 + value2 + "-"
-            }
-          }
-        }
-
-        if (searchKey.endsWith('-')) {
-          searchKey = searchKey.slice(0, -1);
-        }
-
-        for (const [key3, value3] of Object.entries(element["choices"])) {
-          if (value3.includes(searchKey)){
-            calculationFieldID.value = key3;
-            matched = true;
-            break;
-          }
-        }
-
-        if (matched == false){
-          calculationFieldID.value = "";
-        }
-      }
-    }
-
-    for (var key in labelsForCalculations) {
-      const field = document.getElementById(key);
-      if (field) {
-        field.addEventListener('change', handleFieldChange);
-      }
-    }
-
-  </script>
-{% endblock %}
+{% endblock main %}

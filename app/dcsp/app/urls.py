@@ -1,5 +1,6 @@
 """URL management
 """
+
 from django.urls import path, re_path
 from django.views.generic.base import RedirectView
 from app import views
@@ -23,27 +24,31 @@ urlpatterns = [
         views.document_update,
         name="document_update",
     ),
-    path("document_new/<project_id>", views.document_new, name="document_new"),
+    path(
+        "document_new/<project_id>",
+        views.document_new,
+        name="document_new",
+    ),
     path(
         "entry_update/<project_id>/<entry_type>/<id_new>",
         views.entry_update,
         name="entry_update",
     ),
-    path("entry_select/<project_id>", views.entry_select, name="entry_select"),
     path(
-        "hazard_comment/<hazard_number>",
-        views.hazard_comment,
-        name="hazard_comment",
+        "entry_select/<project_id>/<entry_type>",
+        views.entry_select,
+        name="entry_select",
     ),
-    path("hazards_open", views.hazards_open, name="hazards_open"),
     path(
-        "mkdoc_redirect",
-        RedirectView.as_view(url="mkdoc_redirect/home", permanent=False),
-        name="mkdoc_redirect_home",
+        "upload_to_external_repository",
+        views.upload_to_external_repository,
+        name="upload_to_external_repository",
     ),
-    path("mkdoc_redirect/<path>", views.mkdoc_redirect, name="mkdoc_redirect"),
-    path("upload_to_github", views.upload_to_github, name="upload_to_github"),
-    path("member", views.member_landing_page, name="member_landing_page"),
+    path(
+        "member",
+        views.member_landing_page,
+        name="member_landing_page",
+    ),
     path(
         "start_new_project",
         views.start_new_project,

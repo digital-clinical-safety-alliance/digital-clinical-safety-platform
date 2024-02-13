@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block main %}
+    <div class="row">
+ 
+        {% include "project_side_bar_left.html" %}
+
+        <div class="col-12 col-lg-6">
+ 
+
+            {% include "message_error.html" %}
+
+            <h5 class="font-dcsp">Adjust placeholders as needed</h5>
+
+            {% include "error_summary.html" %}
+
+            <form id="id_form" action="/setup_documents/{{ project_id }}" method="post">
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label font-dcsp"
+                               for="id_{{ field.name }}"
+                               id="id_label_{{ field.name }}">{{ field.label | safe }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <div id="id_{{ field.name }}" class="invalid-feedback">{{ error|escape }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <button class="btn btn-secondary right"
+                        id="id_button"
+                        type="submit"
+                        onclick="submitForm()">Submit</button>
+ 
+            </form>
+        </div>
+
+        {% include "project_side_bar_right.html" %}
+
+    </div>
+{% endblock main %}

@@ -5,13 +5,20 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("app", "0006_project_last_built_project_last_modified"),
+        (
+            "app",
+            "0006_project_last_built_project_last_modified",
+        ),
     ]
 
     operations = [
         migrations.AddField(
             model_name="project",
             name="build_output",
-            field=models.TextField(blank=True, max_length=5000, null=True),
+            field=models.TextField(
+                blank=True,
+                max_length=5000,
+                null=True,
+            ),
         ),
     ]

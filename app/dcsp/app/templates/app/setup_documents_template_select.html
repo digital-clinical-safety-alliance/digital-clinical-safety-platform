@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block main %}
+    <div class="row">
+	
+        <div class="col">placeholder</div>
+        <div class="col-12 col-lg-6">
+
+            {% include "message_error.html" %}
+
+            {% include "error_summary.html" %}
+
+            <form action="/setup_documents/{{ project_id }}" method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                    {% if field.errors %}{% endif %}
+                    <div class="mb-3">
+                        <label class="form-label"
+                               for="id_{{ field.name }}"
+                               id="id_label_{{ field.name }}">
+                            <a name="{{ field.label }}"></a>{{ field.label }}
+                        </label>
+                        {{ field }}
+                    </div>
+                    {% if field.errors %}{% endif %}
+                {% endfor %}
+
+                <div class="formWrapper">{{ templates_html|safe }}</div>
+
+                <button class="btn btn-secondary right" type="submit">Submit</button>
+            </form>
+        </div>
+	
+        <div class="col">placeholder</div>
+    </div>
+{% endblock main %}

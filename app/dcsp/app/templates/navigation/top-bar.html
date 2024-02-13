@@ -1,0 +1,54 @@
+{% load custom_filters %}
+
+<li class="nav-item">
+   <a class="nav-link link-white-dcsp"
+      href="{% url 'project_documents' project_id %}">Overview</a>
+</li>
+<li class="nav-item">
+   <a class="nav-link link-white-dcsp"
+      id="id_link"
+      onclick="url_click('{% url "view_docs" project_id "index.html" %}')">Published view</a>
+</li>
+<li class="nav-item">
+   <a class="nav-link link-white-dcsp"
+      href="{% url 'setup_documents' project_id %}">Placeholders</a>
+</li>
+
+<li class="nav-item dropdown">
+   <a class="nav-link dropdown-toggle link-white-dcsp"
+      href="#"
+      id="navbarDropdown"
+      role="button"
+      data-bs-toggle="dropdown"
+      aria-haspopup="true"
+      aria-expanded="false">Document</a>
+   <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+      <a class="dropdown-item font-black-dcsp"
+         href="{% url 'document_new' project_id %}">New</a>
+      <a class="dropdown-item font-black-dcsp"
+         href="{% url 'document_update' project_id %}">Edit</a>
+   </div>
+</li>
+
+{% for entry in entry_templates %}
+   <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle link-white-dcsp"
+         href="#"
+         id="navbarDropdown"
+         role="button"
+         data-bs-toggle="dropdown"
+         aria-haspopup="true"
+         aria-expanded="false">{{ entry|kebab_to_title }}</a>
+      <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+         <a class="dropdown-item font-black-dcsp"
+            href="{% url 'entry_update' project_id entry 'new' %}">New</a>
+         <a class="dropdown-item font-black-dcsp"
+            href="{% url 'entry_select' project_id entry %}">Edit</a>
+      </div>
+   </li>
+{% endfor %}
+
+<li class="nav-item">
+   <a class="nav-link link-white-dcsp"
+      href="{% url 'project_build_asap' project_id %}">Build documents</a>
+</li>

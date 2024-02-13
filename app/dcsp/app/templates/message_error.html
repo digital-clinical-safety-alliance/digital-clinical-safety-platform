@@ -2,10 +2,10 @@
 
 {% if messages|has_tag:'success' %}
   <div class="p-3 mb-3 field-color-dcsp border border-info rounded-3 {{ FORM_ELEMENTS_MAX_WIDTH }}">
-    <ul style="max-width: 100%">
+    <ul class="max-w-100pc">
       {% for message in messages %}
         {% if message.tags == 'success' %}
-          <div style="width:100%">
+          <div class="max-w-100pc">
             <strong>
               <li>{{ message }}</li>
             </strong>
@@ -18,11 +18,9 @@
 
 {% if messages|has_tag:'error' %}
   <div class="p-2 mb-3 bg-danger rounded-3 {{ FORM_ELEMENTS_MAX_WIDTH }}">
-    <ul style="max-width: 100%">
+    <ul class="max-w-100pc">
       {% for message in messages %}
-        {% if message.tags == 'error' %}
-          <div class="text-light fw-bold" style="width:100%">{{ message }}</div>
-        {% endif %}
+        {% if message.tags == 'error' %}<div class="text-light fw-bold max-w-100pc">{{ message }}</div>{% endif %}
       {% endfor %}
     </ul>
   </div>

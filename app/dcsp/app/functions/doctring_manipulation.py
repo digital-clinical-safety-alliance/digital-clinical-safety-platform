@@ -1,11 +1,12 @@
 """ """
+
 import os
 import ast
 import re
 import fnmatch
 from pathlib import Path
 import yaml
-from typing import Any
+from typing import Any, Tuple
 
 import app.functions.constants as c
 
@@ -16,7 +17,7 @@ class DocstringManipulation:
         self.project_id: int = project_id
         return
 
-    def docstring_all(self) -> list[str]:
+    def docstring_all(self) -> list[dict[str, Any]]:
         """ """
         docs_folder: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
         markdown_files: list[Path] = list(Path(docs_folder).rglob("*.md"))
@@ -27,6 +28,7 @@ class DocstringManipulation:
         code_path: Path
 
         for file_path in markdown_files:
+            # print(markdown_files)
             with open(file_path, "r") as file:
                 lines = file.readlines()
                 matching_lines = [
@@ -43,6 +45,7 @@ class DocstringManipulation:
                             "function_name": matching_lines[0],
                         }
                     )
+                    # print(hazard_docs_attributes)
 
         for index, function_info in enumerate(hazard_docs_attributes):
             function_name = function_info["function_name"]
@@ -59,9 +62,11 @@ class DocstringManipulation:
             item for item in hazard_docs_attributes if "hazards" in item
         ]
 
+        # print(hazard_docs_attributes)
+
         return hazard_docs_attributes
 
-    def extract_docstrings(self, filename: str):
+    def extract_docstrings(self, filename: str) -> list[Tuple[str, str, Any]]:
         with open(filename, "r") as file:
             tree = ast.parse(file.read(), filename=filename)
 
@@ -69,14 +74,20 @@ class DocstringManipulation:
         for node in ast.walk(tree):
             if isinstance(
                 node,
-                (ast.FunctionDef, ast.AsyncFunctionDef),
+                (
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef,
+                ),
             ):
                 module_name = node.name
 
                 if (
                     node.body
                     and isinstance(node.body[0], ast.Expr)
-                    and isinstance(node.body[0].value, ast.Constant)
+                    and isinstance(
+                        node.body[0].value,
+                        ast.Constant,
+                    )
                 ):
                     docstrings.append(
                         (
@@ -89,47 +100,60 @@ class DocstringManipulation:
 
         return docstrings
 
-    def extract_hazard(self, filename: str) -> list[str]:
+    def extract_hazard(self, filename: str) -> list[dict[str, Any]]:
         """ """
         docstrings = self.extract_docstrings(filename)
-        section_content: list = []
+        # print(docstrings)
+        section_content: list[dict[str, Any]] = []
 
         """for value in docstrings:
             print(value)"""
 
-        for module_name, name, docstring in docstrings:
+        # print(docstrings)
+        for (
+            module_name,
+            name,
+            docstring,
+        ) in docstrings:
             if "Hazards:" in docstring:
+                # print(module_name)
+                """print(name)
+                print(docstring)"""
                 # print(docstring)
 
                 section_found = False
-                section_content = []
                 section_name = "Hazards:"
                 hazard_number: str | None = None
 
                 for line in docstring.splitlines():
                     if section_found:
-                        # Check if the line is indented (has whitespace at the beginning)
+                        # print(line)
                         if line.strip() == "" or '"""' in line:
-                            # Stop reading when the next line is blank or contains """
-                            break
+                            section_found = False
 
-                        # Extract the content inside parentheses using regular expression
-                        match = re.search(r"\(([^)]+)\)", line)
-                        hazard_number = (
-                            match.group(1).strip() if match else None
-                        )
+                        else:
+                            match = re.search(r"\(([^)]+)\)", line)
+                            hazard_number = (
+                                match.group(1).strip() if match else None
+                            )
 
-                        if not hazard_number.isdigit():
-                            hazard_number = None
-
-                        # Remove leading whitespace and append the line to the section content
-                        section_content.append(
-                            {
-                                "hazard_full": line.lstrip(),
-                                "hazard_number": hazard_number,
-                            }
-                        )
+                            if not str(hazard_number).isdigit():
+                                hazard_number = None
+                            """print(module_name)
+                            print(line.lstrip())
+                            print(hazard_number)"""
+                            section_content.append(
+                                {
+                                    "module_name": module_name,
+                                    "hazard_full": line.lstrip(),
+                                    "hazard_number": hazard_number,
+                                }
+                            )
+                            # print(section_content)
                     elif line.strip() == f"{section_name}":
                         section_found = True
+
+        # print("--")
+        # print(section_content)
 
         return section_content

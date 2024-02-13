@@ -5,12 +5,9 @@ services:
     build: 
       context: ./dockerfiles/app
       dockerfile: Dockerfile
+      target: dev
     container_name: dcsp-docs-builder
     #restart: unless-stopped
-    #ports:
-    #  - "80:80"
-    #  - "443:443"
-    #  - "9000:9000"
     volumes:
       - ./:/dcsp
       # TODO #36 - These will need to be converted into a volume at some point

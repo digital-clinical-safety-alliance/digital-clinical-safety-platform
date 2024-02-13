@@ -1,13 +1,29 @@
----
-title: Incident
-number: number
----
+### Incident name
+A name for an incident
 
-# Incident name
+### Incident type (patient)
+[select]
+1 - Near miss
+2 - Patient harm
 
-# Incident type
+### Inicident type (digital)
+[multiselect]
+1 - Data loss
+2 - Corrupt data
+3 - Cyber attack
+4 - System not accessible
 
-# Outline of incident
+### Incident severity
+[select]
+1 - Minor
+2 - Moderate
+3 - Moderately severe
+4 - Severe
+5 - Death
 
-# Hiden information (patient specific information)
+### Outline of incident
+Placeholder
+
+### Hidden information (patient specific information)
+Placeholder
 

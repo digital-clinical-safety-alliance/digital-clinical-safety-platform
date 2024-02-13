@@ -4,7 +4,6 @@ Classes:
     InstallationForm: placeholder
     TemplateSelectForm: placeholder
     PlaceholdersForm: placeholder
-    MDFileSelectForm: placeholder
     DocumentUpdateForm: placeholder
     LogHazardForm: placeholder
     HazardCommentForm: placeholder
@@ -17,6 +16,8 @@ Functions:
 
 from django import forms
 from django.conf import settings
+from django.db.models import QuerySet
+from django.utils.translation import gettext_lazy as _
 
 from .models import (
     User,
@@ -31,20 +32,32 @@ import glob
 from fnmatch import fnmatch
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 import app.functions.constants as c
 from app.functions.constants import GhCredentials
 
 sys.path.append(c.FUNCTIONS_APP)
-from app.functions.git_control import GitController
-from app.functions.email_functions import EmailFunctions
-from app.functions.projects_builder import ProjectBuilder
-from app.functions.general_fuctions import valid_linux_path, list_to_string
+from app.functions.git_control import (
+    GitController,
+)
+from app.functions.email_functions import (
+    EmailFunctions,
+)
+from app.functions.projects_builder import (
+    ProjectBuilder,
+)
+from app.functions.general_fuctions import (
+    valid_linux_path,
+    list_to_string,
+)
 
 
 def validated_response(
-    self, field: str, valid: bool, error_message: str
+    self,
+    field: str,
+    valid: bool,
+    error_message: str,
 ) -> None:
     """A general function to create form validation results
 
@@ -114,7 +127,7 @@ class ProjectSetupInitialForm(forms.Form):
         choices=CHOICES_1,
         widget=forms.Select(
             attrs={
-                "class": "form-select w-auto field-color-dcsp font-dcsp border-info",
+                "class": c.SELECT_STYLE,
                 "onChange": "change_visibility()",
             }
         ),
@@ -154,6 +167,28 @@ class ProjectSetupInitialForm(forms.Form):
         ),
     )
 
+    def clean(self) -> dict:
+        """ """
+        cleaned_data: Any = self.cleaned_data
+        setup_choice: str = cleaned_data["setup_choice"]
+        external_repo_url_import: str = cleaned_data[
+            "external_repo_url_import"
+        ]
+
+        if setup_choice == "start_anew":
+            cleaned_data.pop("external_repo_url_import", None)
+            cleaned_data.pop("external_repo_username_import", None)
+            cleaned_data.pop("external_repo_password_token_import", None)
+        else:
+            validated_response(
+                self,
+                "external_repo_url_import",
+                not " " in external_repo_url_import,
+                "Spaces are not allowed in a url",
+            )
+
+        return cleaned_data
+
 
 class ProjectSetupStepTwoForm(forms.Form):
     """ProjectSetupStepTwoForm
@@ -165,7 +200,7 @@ class ProjectSetupStepTwoForm(forms.Form):
     def __init__(self, *args, **kwargs) -> None:
         """Initialise the fields for the second step of project setup"""
         super(ProjectSetupStepTwoForm, self).__init__(*args, **kwargs)
-        groups_list: list = []
+        groups_list: QuerySet
         choices_list_1: list = []
         choices_list_2: list = []
 
@@ -187,6 +222,23 @@ class ProjectSetupStepTwoForm(forms.Form):
                     "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
                     "rows": 3,
                     "autocomplete": "description",
+                }
+            ),
+        )
+
+        CHOICES = (
+            (c.StaticSiteView.PUBLIC.value, _("Public")),
+            (c.StaticSiteView.MEMBERS.value, _("Members")),
+            (c.StaticSiteView.PRIVATE.value, _("Private")),
+        )
+
+        self.fields["access"] = forms.ChoiceField(
+            choices=CHOICES,
+            initial=c.StaticSiteView.PUBLIC.value,
+            widget=forms.Select(
+                attrs={
+                    "class": c.SELECT_STYLE,
+                    "onChange": "change_visibility()",
                 }
             ),
         )
@@ -238,9 +290,9 @@ class ProjectSetupStepTwoForm(forms.Form):
         )
 
 
-# TODO - might be able to remove this form
+"""# TODO - might be able to remove this form
 class InstallationForm(forms.Form):
-    """For managing initial installation parameters
+    For managing initial installation parameters
 
     Two options are available for the initial set up step for DCSP.
     - Stand alone (SA): The first is a stand alone setup which manages git and
@@ -264,7 +316,7 @@ class InstallationForm(forms.Form):
         github_token_SA: GitHub token.
         code_location_I: Location of code. This is used when DCSP is integrated
                          into another code base.
-    """
+    
 
     CHOICES = (
         ("", ""),
@@ -282,7 +334,7 @@ class InstallationForm(forms.Form):
         choices=CHOICES,
         widget=forms.Select(
             attrs={
-                "class": "form-select w-auto",
+                "class": c.SELECT_STYLE,
                 "onChange": "change_visibility()",
             }
         ),
@@ -351,7 +403,7 @@ class InstallationForm(forms.Form):
     )
 
     def clean(self) -> dict:
-        """Cleans data from InstallationForm
+        Cleans data from InstallationForm
 
         Checks all data for errors and prepares validation results if there are
         errors.
@@ -368,7 +420,7 @@ class InstallationForm(forms.Form):
             github_repo_SA: if repository does not exist or user does not have
                             admin rights to the repository
             code_location_I: if space in directory path.
-        """
+        
         cleaned_data: Any = self.cleaned_data
         installation_type: str = cleaned_data["installation_type"]
         github_username: str = cleaned_data["github_username_SA"]
@@ -459,7 +511,7 @@ class InstallationForm(forms.Form):
                 not " " in code_location,
                 "Invalid path",
             )
-        return cleaned_data
+        return cleaned_data"""
 
 
 class TemplateSelectForm(forms.Form):
@@ -478,7 +530,7 @@ class TemplateSelectForm(forms.Form):
         these as options in a selection field for the user.
         """
         super(TemplateSelectForm, self).__init__(*args, **kwargs)
-        project: ProjectBuilder = ProjectBuilder()
+        project: ProjectBuilder = ProjectBuilder(project_id)
         templates: list[str] = project.document_templates_get()
         template: str = ""
         choices_list: list = []
@@ -493,7 +545,7 @@ class TemplateSelectForm(forms.Form):
 
         self.fields["template_choice"] = forms.ChoiceField(
             choices=CHOICES,
-            widget=forms.Select(attrs={"class": "form-select w-auto"}),
+            widget=forms.Select(attrs={"class": c.SELECT_STYLE}),
         )
 
 
@@ -525,7 +577,10 @@ class PlaceholdersForm(forms.Form):
         project_build = ProjectBuilder(project_id)
         placeholders = project_build.get_placeholders()
 
-        for placeholder, value in placeholders.items():
+        for (
+            placeholder,
+            value,
+        ) in placeholders.items():
             self.fields[placeholder] = forms.CharField(
                 required=False,
                 initial=value,
@@ -555,35 +610,6 @@ class PlaceholdersForm(forms.Form):
             )
 
         return cleaned_data
-
-
-class MDFileSelectForm(forms.Form):
-    """Selection of the markdown file to edit
-
-    Provides a selection of markdown files that can be edited. These are shown
-    within their respective subfolders.
-    """
-
-    def __init__(self, project_id: int, *args, **kwargs) -> None:
-        """Initialisation of the selection field
-
-        Searches the docs folder and searches for markdown files, noting the
-        any subfolders. These are then provided as a selection field.
-        """
-        super(MDFileSelectForm, self).__init__(*args, **kwargs)
-        CHOICES = tuple(md_files(project_id))
-
-        self.fields["document_name"] = forms.ChoiceField(
-            choices=CHOICES,
-            widget=forms.Select(
-                attrs={
-                    "class": "form-select w-auto field-color-dcsp font-dcsp border-info",
-                    "onChange": "form.submit()",
-                }
-            ),
-        )
-
-    # Don't need to clean ChoiceFields apparently
 
 
 class DocumentNewForm(forms.Form):
@@ -617,12 +643,16 @@ class DocumentNewForm(forms.Form):
         error_messages_1: list = []
         error_messages_2: list = []
 
-        valid_1, error_messages_1 = valid_linux_path(document_name)
+        (
+            valid_1,
+            error_messages_1,
+        ) = valid_linux_path(document_name)
 
         project = ProjectBuilder(self.project_id)
-        valid_2, error_messages_2 = project.document_create_check(
-            document_name
-        )
+        (
+            valid_2,
+            error_messages_2,
+        ) = project.document_create_check(document_name)
 
         errors_all = list_to_string(error_messages_1 + error_messages_2)
 
@@ -657,8 +687,7 @@ class DocumentUpdateForm(forms.Form):
         self.project_id: int = project_id
         document_name: str = ""
         docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
-        initial_data: dict = self.initial or {}
-        document_name: str = ""
+        initial_data: Mapping = self.initial or {}
         document_markdown: str = ""
 
         # TODO - perhaps a message that docs folder is missing should be presented.
@@ -673,13 +702,16 @@ class DocumentUpdateForm(forms.Form):
                 if loop_exit:
                     break
 
-            with open(f"{ docs_dir }{ document_name }", "r") as file:
+            with open(
+                f"{ docs_dir }{ document_name }",
+                "r",
+            ) as file:
                 document_markdown = file.read()
                 document_markdown = document_markdown.replace("\n", "\r\n")
 
         else:
-            document_name: str = initial_data.get("document_name", "")
-            document_markdown: str = initial_data.get("document_markdown", "")
+            document_name = initial_data.get("document_name", "")
+            document_markdown = initial_data.get("document_markdown", "")
 
         CHOICES = tuple(md_files(self.project_id))
 
@@ -688,7 +720,7 @@ class DocumentUpdateForm(forms.Form):
             initial=document_name,
             widget=forms.Select(
                 attrs={
-                    "class": "form-select w-auto field-color-dcsp font-dcsp border-info",
+                    "class": c.SELECT_STYLE,
                     "onChange": "form.submit()",
                 }
             ),
@@ -758,39 +790,34 @@ class DocumentUpdateForm(forms.Form):
 
 
 class EntryUpdateForm(forms.Form):
-    """Allows user to log a new hazard
+    def __init__(
+        self,
+        project_id: int,
+        entry_type: str,
+        *args,
+        **kwargs,
+    ) -> None:
+        """Initialise the entry form
 
-    Form for adding a new hazard for the clinical safety case.
-
-    Args:
-        labels_for_calculations: (dict[str, str]): for all of the available labels
-        calculation_field: (list[dict[str, str]]): list of values to help a
-                                                   calculate field calculate its
-                                                   value based on other labelled
-                                                   fields
-    """
-
-    labels_for_calculations: dict[str, str] = {}
-    calculation_field: list[dict[str, str]] = []
-
-    def __init__(self, project_id: int, *args, **kwargs) -> None:
-        """Initialise the hazard log form
-
-        Gets available hazard labels and creates fields for a new hazard log.
+        Gets available entry labels for entry form
 
         Fields:
-            title: title of the new hazard.
-            body: main text of the hazard.
-            labels: hazard labels.
+            horizontal_line: a horizontal line across the web page.
+            TODO:TODO
         """
         super(EntryUpdateForm, self).__init__(*args, **kwargs)
         project: ProjectBuilder = ProjectBuilder(project_id)
-        hazard_template: list[dict[str, Any]] = project.entry_file_read()
+        entry_template: list[dict[str, Any]] = project.entry_file_read(
+            entry_type
+        )
+
         field_type: str = ""
         help_text: str = ""
+        self.labels_for_calculations: dict[str, str] = {}
         labels_for_calculations: dict[str, str] = {}
+        self.calculation_field: list[dict[str, Any]] = []
 
-        for index, field in enumerate(hazard_template):
+        for index, field in enumerate(entry_template):
             help_text = ""
 
             if field["field_type"] == "horizontal_line":
@@ -822,7 +849,7 @@ class EntryUpdateForm(forms.Form):
                     help_text=f"{index}|{help_text}",
                     widget=forms.Select(
                         attrs={
-                            "class": "form-select w-auto field-color-dcsp font-dcsp border-info",
+                            "class": c.SELECT_STYLE,
                         }
                     ),
                 )
@@ -865,7 +892,10 @@ class EntryUpdateForm(forms.Form):
 
                 # Match only labels that are required for this calculation field
                 for label in field["labels"]:
-                    for key, value in self.labels_for_calculations.items():
+                    for (
+                        key,
+                        value,
+                    ) in self.labels_for_calculations.items():
                         for label2 in value:
                             if label2 == label:
                                 labels_for_calculations[key] = value

@@ -1,20 +1,26 @@
+{% load static %}
 <!DOCTYPE html>
-<!-- TODO #53 need to check if can leave with two head and two bodies (as another head and body 
-    are imported with document_content)-->
+{# djlint:off H030,H031 #}
 <html lang="en">
+    {# djlint:on #}
+    <!-- TODO #53 need to check if can leave with two head and two bodies (as another head and body
+    are imported with document_content)-->
+
     <head id="main-head">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Digital Clinical Safety Platform</title>
-        <link rel="stylesheet" href="/static/css/dcsp.css">
+        <link rel="stylesheet" href="{% static 'css/dcsp.css' %}">
     </head>
     <body class="background-dcsp" id="main-body">
-        <div class="padding-20-dcsp font-white-dcsp">
-            <h1>
-                Published documents view -
-                <a class="link-white-dcsp font-18-dcsp"
-                   href="/project_documents/{{ project_id }}">edit documents</a>
-            </h1>
+        <div class="pad-10-dcsp font-white-dcsp">
+            <div class="font-18-dcsp">
+                <span class="pad_r_10 bold-dcsp">Published documents view</span>
+                <a class="link-white-dcsp font-18-dcsp pad-r-10-dcsp "
+                   href="{% url 'index' %}">home</a>
+                <a class="link-white-dcsp font-18-dcsp pad-r-10-dcsp "
+                   href="{% url 'project_documents' project_id %}">edit</a>
+            </div>
         </div>
     </body>
 </html>
