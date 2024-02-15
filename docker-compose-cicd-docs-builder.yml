@@ -10,7 +10,7 @@ services:
       - users_docs:/users_docs
     env_file:
       - .env
-    working_dir: /dcsp/app
+    working_dir: /dcsp/cicd
     entrypoint: bash PID_1_cicd.sh
 
 volumes:
