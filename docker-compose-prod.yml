@@ -10,7 +10,7 @@ services:
       - projects:/projects
       - documentation-pages:/documentation-pages
     env_file:
-      - .env
+      - .env_prod
     working_dir: /dcsp/app
     depends_on:
       - dcsp-postgres-prod

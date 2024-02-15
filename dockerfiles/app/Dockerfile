@@ -6,6 +6,8 @@ WORKDIR /dcsp
 # user and group 1001 enables access on github actions
 ARG UNAME=dcspuser
 ARG FOLDER=/dcsp
+ARG FOLDER_PROJECTS=/projects
+ARG FOLDER_DOCUMENTATION_PAGES=/documentation-pages
 ARG UID=1001
 ARG GID=1001
 
@@ -31,6 +33,10 @@ RUN groupadd -g $GID -o $UNAME
 RUN useradd -m -u $UID -g $GID -o -s /bin/bash $UNAME
 RUN chown -R $UNAME $FOLDER
 RUN chmod -R g+rw $FOLDER
+RUN chown -R $UNAME $FOLDER_PROJECTS
+RUN chmod -R g+rw $FOLDER_PROJECTS
+RUN chown -R $UNAME $FOLDER_DOCUMENTATION_PAGES
+RUN chmod -R g+rw $FOLDER_DOCUMENTATION_PAGES
 
 # run 'pip freeze' without node, as node adds 3 files which 'pip install' 
 # cannot install

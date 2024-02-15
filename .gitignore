@@ -2,7 +2,7 @@
 .DS_Store
 /dcsp/app/dcsp/app/tests/test_docs/mkdocs/docs/*
 /dcsp/app/dcsp/app/tests/test_docs/mkdocs_empty_folders/docs/*
-.env_placeholders
+.env_prod
 #mkdocs/docs/
 
 # Byte-compiled / optimized / DLL files
