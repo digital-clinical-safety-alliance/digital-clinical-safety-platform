@@ -25,7 +25,10 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("name", models.CharField(blank=True, max_length=256, null=True)),
+                (
+                    "name",
+                    models.CharField(blank=True, max_length=256, null=True),
+                ),
                 (
                     "description",
                     models.TextField(blank=True, max_length=1000, null=True),
@@ -98,7 +101,8 @@ class Migration(migrations.Migration):
                 (
                     "project",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="app.project"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="app.project",
                     ),
                 ),
                 (
@@ -129,7 +133,10 @@ class Migration(migrations.Migration):
                     "default_github_username",
                     models.CharField(blank=True, max_length=256, null=True),
                 ),
-                ("test", models.CharField(blank=True, max_length=256, null=True)),
+                (
+                    "test",
+                    models.CharField(blank=True, max_length=256, null=True),
+                ),
                 (
                     "default_github_host",
                     models.CharField(blank=True, max_length=256, null=True),
@@ -160,10 +167,15 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("name", models.CharField(blank=True, max_length=256, null=True)),
+                (
+                    "name",
+                    models.CharField(blank=True, max_length=256, null=True),
+                ),
                 (
                     "member",
-                    models.ManyToManyField(blank=True, to=settings.AUTH_USER_MODEL),
+                    models.ManyToManyField(
+                        blank=True, to=settings.AUTH_USER_MODEL
+                    ),
                 ),
                 (
                     "project_access",
