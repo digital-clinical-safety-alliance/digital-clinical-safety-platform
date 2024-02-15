@@ -39,7 +39,7 @@ services:
       - "80:80"
     volumes:
       - ./app/dcsp/static/:/static/:ro
-      - ./nginx/dev/:/etc/nginx/:ro
+      - ./nginx/prod/:/etc/nginx/:ro
       - documentation-pages:/documentation-pages
       - ./logs/nginx/:/var/log/nginx/
     depends_on:
@@ -61,7 +61,7 @@ volumes:
   postgres_data:
   projects:
   documentation-pages:
-  
+
 networks:
   documentation-pages:
   cross-site:
