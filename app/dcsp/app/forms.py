@@ -33,7 +33,7 @@ import app.functions.constants as c
 
 sys.path.append(c.FUNCTIONS_APP)
 import app.functions.projects_builder as projects_builder
-from app.functions.general_fuctions import (
+from app.functions.general_functions import (
     valid_linux_path,
     list_to_string,
 )

@@ -22,7 +22,7 @@ sys.path.append(c.FUNCTIONS_APP)
 import app.views as views
 from app.models import Project, UserProjectAttribute
 import app.tests.data_views as d
-from app.functions.general_fuctions import snake_to_title
+from app.functions.general_functions import snake_to_title
 
 
 def log_in(self):

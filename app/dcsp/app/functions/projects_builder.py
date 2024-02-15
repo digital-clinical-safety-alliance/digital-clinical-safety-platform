@@ -44,7 +44,7 @@ from app.functions.git_control import (
 from app.functions.text_manipulation import (
     kebab_to_title,
 )
-from app.functions.general_fuctions import (
+from app.functions.general_functions import (
     list_to_string,
 )
 

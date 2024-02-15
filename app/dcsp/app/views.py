@@ -64,7 +64,7 @@ from app.functions.projects_builder import ProjectBuilder
 from app.functions.env_manipulation import ENVManipulator
 from app.functions.mkdocs_control import MkdocsControl
 from app.functions.git_control import GitController
-from app.functions.general_fuctions import snake_to_title, kebab_to_title
+from app.functions.general_functions import snake_to_title, kebab_to_title
 
 
 from .forms import (
