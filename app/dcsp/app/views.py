@@ -26,13 +26,12 @@ Functions:
     custom_405: custom 405 (method not allowed) page.
 """
 
-import os
 from fnmatch import fnmatch
-from typing import Any, TextIO, Callable
+from typing import Any, TextIO, Optional, Dict
 from datetime import datetime
 import json
 from functools import wraps
-from django.db.models import QuerySet
+
 from pathlib import Path
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -43,6 +42,9 @@ from django.conf import settings
 from django.db.models.query import QuerySet
 from django.db.models import F
 from django.utils import timezone
+from django.db.models import QuerySet
+from django.contrib.auth.models import User
+from django.forms.models import model_to_dict
 
 from app.decorators import project_access
 
@@ -50,7 +52,6 @@ from app.decorators import project_access
 from django.contrib.staticfiles.views import serve
 
 from .models import (
-    User,
     Project,
     ProjectGroup,
 )
@@ -139,7 +140,7 @@ def member_landing_page(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
-def start_new_project(
+def start_new_project(  # type: ignore[return]
     request: HttpRequest,
 ) -> HttpResponse:
     """Setup a new project
@@ -159,7 +160,7 @@ def start_new_project(
     setup_choice: str = ""
     external_repo_url: str = ""
     setup_step: int = 0
-    inputs: dict = {}
+    inputs: dict[str, str] = {}
     project_builder: ProjectBuilder
     build_status: bool = False
     build_errors: str = ""
@@ -193,9 +194,9 @@ def start_new_project(
             if form.is_valid():
                 setup_step = 2
                 request.session["project_setup_step"] = setup_step
-                request.session["project_setup_1_form_data"] = (
-                    form.cleaned_data
-                )
+                request.session[
+                    "project_setup_1_form_data"
+                ] = form.cleaned_data
                 setup_choice = form.cleaned_data["setup_choice"]
 
                 if setup_choice == "import":
@@ -255,9 +256,9 @@ def start_new_project(
 
                 setup_step = 3
                 request.session["project_setup_step"] = setup_step
-                request.session["project_setup_2_form_data"] = (
-                    form.cleaned_data
-                )
+                request.session[
+                    "project_setup_2_form_data"
+                ] = form.cleaned_data
 
                 inputs = request.session["project_setup_1_form_data"].copy()
                 inputs.update(request.session["project_setup_2_form_data"])
@@ -343,7 +344,7 @@ def start_new_project(
 
 
 @project_access
-def setup_documents(
+def setup_documents(  # type: ignore[return]
     request: HttpRequest,
     project_id: int,
     setup_step: int,
@@ -381,7 +382,7 @@ def setup_documents(
             )
 
         elif request.method == "POST":
-            form = TemplateSelectForm(project_id, request.POST)  # type: ignore[assignment]
+            form = TemplateSelectForm(project_id, request.POST)
             if form.is_valid():
                 project_builder.configuration_set("setup_step", 2)
                 template_choice = form.cleaned_data["template_choice"]
@@ -435,7 +436,7 @@ def setup_documents(
             )
 
         elif request.method == "POST":
-            form = PlaceholdersForm(project_id, request.POST)  # type: ignore[assignment]
+            form = PlaceholdersForm(project_id, request.POST)
             if form.is_valid():
                 project_builder.configuration_set("setup_step", 3)
 
@@ -473,7 +474,7 @@ def setup_documents(
 
 
 @project_access
-def project_build_asap(
+def project_build_asap(  # type: ignore[return]
     request: HttpRequest,
     project_id: int,
     _: int,
@@ -544,9 +545,9 @@ def project_documents(
     Returns:
         HttpResponse: for loading the correct webpage.
     """
-    project: Project = None
-    members: QuerySet = None
-    groups: QuerySet = None
+    project: Optional[Project] = None
+    members: QuerySet[User] = User.objects.none()
+    groups: QuerySet[ProjectGroup] = ProjectGroup.objects.none()
     context: dict[str, Any] = {}
 
     if request.method != "GET":
@@ -597,15 +598,15 @@ def view_docs(
     project_id_int: int
     accessible_projects: list[dict[str, str]] = []
     internal_path: str = ""
-    mkdocs_control: MkdocsControl = None
-    file: TextIO = None
+    mkdocs_control: Optional[MkdocsControl] = None
+    file: Optional[TextIO] = None
     document_content = ""
     context: dict[str, Any] = {}
     content_type: str = "invalid"
     file_extension: str = ""
     key: str = ""
     value: str = ""
-    response: HttpResponse = None
+    response: Optional[HttpResponse] = None
 
     if project_id.isdigit():
         project_id_int = int(project_id)
@@ -630,16 +631,14 @@ def view_docs(
     elif project.access == c.StaticSiteView.PRIVATE.value:
         accessible_projects = user_accessible_projects(request)
         if not any(
-            doc
-            for doc in accessible_projects
-            if doc["doc_id"] == project_id_int
+            doc for doc in accessible_projects if doc["doc_id"] == project_id
         ):
             messages.error(
                 request, f"You do not have access to 'project { project_id }'."
             )
             return render(request, "403.html", std_context(), status=403)
 
-    internal_path = (
+    internal_path = str(
         Path(c.DOCUMENTATION_PAGES) / f"project_{project_id}" / doc_path
     )
 
@@ -677,7 +676,7 @@ def view_docs(
 
 
 @project_access
-def document_new(
+def document_new(  # type: ignore[return]
     request: HttpRequest,
     project_id: int,
     setup_step: int,
@@ -696,8 +695,8 @@ def document_new(
         HttpResponse: for loading the correct webpage
     """
     context: dict[str, Any] = {}
-    form: DocumentNewForm = None
-    project: ProjectBuilder = None
+    form: Optional[DocumentNewForm] = None
+    project: Optional[ProjectBuilder] = None
     document_name_new: str = ""
 
     if setup_step < 2:
@@ -755,7 +754,7 @@ def document_new(
 
 
 @project_access
-def document_update(
+def document_update(  # type: ignore[return]
     request: HttpRequest, project_id: int, setup_step: int
 ) -> HttpResponse:
     """Save the safety document
@@ -778,9 +777,7 @@ def document_update(
     document_markdown: str = ""
     document_markdown_file_read: str = ""
     form_data: dict[str, str] = {}
-    docs_dir: str = (
-        f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
-    )
+    docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
     file: TextIO
     context: dict[str, Any] = {}
 
@@ -910,10 +907,10 @@ def document_update(
 
 
 @project_access
-def entry_update(
+def entry_update(  # type: ignore[return]
     request: HttpRequest,
     project_id: int,
-    _: int,
+    setup_step: int,
     entry_type: str,
     id_new: str,
 ) -> HttpResponse:
@@ -925,23 +922,22 @@ def entry_update(
     Args:
         request (HttpRequest): request user.
         project_id (int): the primary key of the project.
-        entry_type (str): type of entry (eg hazard, incident)
+        setup_step (int): the step in the setup process.
+        entry_type (str): type of entry (eg hazard, incident).
         id_new (str): an entry file number or "new" to create a new entry.
 
     Returns:
-        HttpResponse: for loading the correct webpage
+        HttpResponse: for loading the webpage.
     """
-    # print(f"1 - {entry_type}")
+    project: ProjectBuilder = ProjectBuilder(project_id)
     context: dict[str, Any] = {"project_id": project_id}
+    form_initial: dict[str, str] = {}
     form: EntryUpdateForm
-    project_builder: ProjectBuilder
     entry_update_outcome: bool = False
     page_title: str = ""
 
-    if not (request.method == "GET" or request.method == "POST"):
-        return render(request, "405.html", std_context(), status=405)
-
-    project = ProjectBuilder(project_id)
+    if setup_step < 2:
+        return redirect(f"/setup_documents/{ project_id }")
 
     if id_new != "new":
         if not project.entry_exists(entry_type, id_new):
@@ -950,15 +946,12 @@ def entry_update(
     if not project.entry_type_exists(entry_type):
         return render(request, "404.html", std_context(), status=404)
 
-    # print(f"2 - {entry_type}")
     if request.method == "GET":
         if id_new == "new":
-            # print(6)
             context = {
                 "page_title": f"Create new { kebab_to_title(entry_type) }",
                 "project_id": project_id,
                 "form": EntryUpdateForm(project_id, entry_type),
-                "MKDOCS_TEMPLATE_NUMBER_DELIMITER": c.MKDOCS_TEMPLATE_NUMBER_DELIMITER,
                 "entry_type": entry_type,
                 "id_new": id_new,
                 "project_side_bars": True,
@@ -970,10 +963,7 @@ def entry_update(
             )
 
         else:
-            # print(7)
-            # print(id_new)
             form_initial = project.form_initial(entry_type, int(id_new))
-            # print(form_initial)
             context = {
                 "page_title": f"Update { kebab_to_title(entry_type) }",
                 "project_id": project_id,
@@ -982,7 +972,6 @@ def entry_update(
                     entry_type,
                     initial=form_initial,
                 ),
-                "MKDOCS_TEMPLATE_NUMBER_DELIMITER": c.MKDOCS_TEMPLATE_NUMBER_DELIMITER,
                 "entry_type": entry_type,
                 "id_new": id_new,
                 "project_side_bars": True,
@@ -995,15 +984,10 @@ def entry_update(
 
     elif request.method == "POST":
         form = EntryUpdateForm(project_id, entry_type, request.POST)
-        # print(1)
-        # print(request.POST)
         if form.is_valid():
-            project_builder = ProjectBuilder(int(project_id))
-            # print(form.cleaned_data)
-
             project_timestamp(project_id)
 
-            entry_update_outcome = project_builder.entry_update(
+            entry_update_outcome = project.entry_update(
                 form.cleaned_data,
                 entry_type,
                 id_new,
@@ -1012,9 +996,7 @@ def entry_update(
             context = {
                 "page_title": f"{ kebab_to_title(entry_type) } saved",
                 "project_id": project_id,
-                "form": EntryUpdateForm(project_id, entry_type),
                 "entry_update_outcome": entry_update_outcome,
-                "MKDOCS_TEMPLATE_NUMBER_DELIMITER": c.MKDOCS_TEMPLATE_NUMBER_DELIMITER,
                 "entry_type": entry_type,
                 "id_new": id_new,
                 "project_side_bars": True,
@@ -1026,8 +1008,6 @@ def entry_update(
             )
 
         else:
-            # TODO - need better error messaging per field
-
             if id_new == "new":
                 page_title = f"Create new { kebab_to_title(entry_type) }"
             else:
@@ -1055,34 +1035,33 @@ def entry_select(
     setup_step: int,
     entry_type: str,
 ) -> HttpResponse:
-    """Hazard selection to edit
+    """Displays entries that can be edited
 
-    Show selection of entries that can be edited
+    For the given entry type, displays the entries that can be edited.
 
     Args:
         request (HttpRequest): request from user
         project_id (int): primary key of the project
+        setup_step (int): the step in the setup process
+        entry_type (str): type of entry (eg hazard, incident)
 
     Returns:
         HttpResponse: for loading the correct webpage
     """
     context: dict[str, Any] = {}
-    form: EntryUpdateForm
-    project_builder: ProjectBuilder
-    entries: bool = False
+    project: ProjectBuilder = ProjectBuilder(int(project_id))
+    entries: list[str] = []
 
-    if not request.method == "GET":
-        return render(
-            request,
-            "405.html",
-            std_context(),
-            status=405,
-        )
+    if setup_step < 2:
+        return redirect(f"/setup_documents/{ project_id }")
 
-    # TODO - Need to check if entry_type is valid
+    if request.method != "GET":
+        return render(request, "405.html", std_context(), status=405)
 
-    project_builder = ProjectBuilder(int(project_id))
-    entries = project_builder.entries_all_get(entry_type)
+    if not project.entry_type_exists(entry_type):
+        return render(request, "404.html", std_context(), status=404)
+
+    entries = project.entries_all_get(entry_type)
 
     context = {
         "page_title": f"Select { kebab_to_title(entry_type) } to edit",
@@ -1092,86 +1071,15 @@ def entry_select(
         "project_side_bars": True,
     }
     return render(
-        request,
-        "entry_select.html",
-        context | std_context(project_id),
+        request, "entry_select.html", context | std_context(project_id)
     )
 
 
-@login_required
-# TODO - testing needed
-def upload_to_external_repository(
-    request: HttpRequest,
-) -> HttpResponse:
-    """Title
-
-    Description
-
-    Args:
-        request (HttpRequest): request from user
-
-    Returns:
-        HttpResponse: for loading the correct webpage
-    """
-    context: dict[str, Any] = {}
-    gc: GitController
-    form: UploadToGithubForm
-
-    if not (request.method == "GET" or request.method == "POST"):
-        return render(
-            request,
-            "405.html",
-            std_context(),
-            status=405,
-        )
-
-    if request.method == "GET":
-        context = {
-            "page_title": "--- Placeholder ---",
-            "form": UploadToGithubForm(),
-        }
-
-        return render(
-            request,
-            "upload_to_external_repository.html",
-            context | std_context(),
-        )
-
-    if request.method == "POST":
-        form = UploadToGithubForm(request.POST)
-        if form.is_valid():
-            comment = form.cleaned_data["comment"]
-            gc = GitController()
-            # TODO - need to handle if branch is already up to date
-            gc.commit_and_push(comment)
-            messages.success(
-                request,
-                f"Uploaded to Github with a comment of '{ comment }'",
-            )
-            context = {
-                "page_title": "--- Placeholder ---",
-                "form": UploadToGithubForm(),
-            }
-            return render(
-                request,
-                "upload_to_external_repository.html",
-                context | std_context(),
-            )
-
-        else:
-            context = {"page_title": "--- Placeholder ---", "form": form}
-            return render(
-                request,
-                "upload_to_external_repository.html",
-                context | std_context(),
-            )
-
-
-# -----
+# ----- Helper functions -----
 
 
 def std_context(project_id: int = 0) -> dict[str, Any]:
-    """Standard Context
+    """Provides standard context for the rendered view
 
     Provides a standard collection of values that can be used in page renderings.
 
@@ -1182,8 +1090,8 @@ def std_context(project_id: int = 0) -> dict[str, Any]:
         dict[str,Any]: context that is comment across the different views
     """
     project: ProjectBuilder
-    std_context_dict: dict[str, Any] = {}
     entry_templates: list[str] = []
+    std_context_dict: dict[str, Any] = {}
 
     if project_id > 0:
         project = ProjectBuilder(project_id)
@@ -1198,26 +1106,29 @@ def std_context(project_id: int = 0) -> dict[str, Any]:
 
 def user_accessible_projects(
     request: HttpRequest,
-) -> list[dict[str, Any]] | list[None]:
+) -> list[dict[str, Any]]:
     """Finds all documents that the user has access to
 
-    Checking against user.id, finds all documents that the user is owner of
-    or a member of
+    Provides a list of all documents that the user has access to. This includes
+    documents that the user owns, documents that the user is a member of, and
+    documents that the user has access to through a project group.
 
     Args:
         request (HttpRequest): request from user
 
     Returns:
-        list: a list of documents
+        list[None | dict[str, Any]]: a list of documents
     """
     user_id: int = (
         int(str(request.user.id)) if request.user.id is not None else 0
     )
-    documents_owner: QuerySet
-    documents_member: QuerySet
-    project_group: QuerySet
-    documents_sorted: list = []
-    documents_combined: list = []
+    documents_owner: QuerySet[Any] = Project.objects.none()
+    documents_member: QuerySet[Any] = Project.objects.none()
+    project_group: QuerySet[Any] = ProjectGroup.objects.none()
+    record: Any = {}
+    documents_combined: list[dict[str, Any]] = []
+    documents_sorted: list[dict[str, Any]] = []
+    i: int = 0
 
     documents_owner = Project.objects.values(
         doc_id=F("id"),
@@ -1225,15 +1136,11 @@ def user_accessible_projects(
         doc_last_accessed=F("userprojectattribute__last_accessed"),
     ).filter(owner=user_id)
 
-    # print(documents_owner)
-
     documents_member = Project.objects.values(
         doc_id=F("id"),
         doc_name=F("name"),
         doc_last_accessed=F("userprojectattribute__last_accessed"),
     ).filter(member=user_id)
-
-    # print(documents_member)
 
     project_group = (
         ProjectGroup.objects.values(
@@ -1252,7 +1159,7 @@ def user_accessible_projects(
     )
 
     if documents_owner:
-        for record in documents_owner:
+        for record in list(documents_owner):
             documents_combined.append(record)
 
     if documents_member:
@@ -1260,14 +1167,12 @@ def user_accessible_projects(
             documents_combined.append(record)
 
     if project_group:
-        for item in project_group:
-            documents_combined.append(item)
+        for record in project_group:
+            documents_combined.append(record)
 
-    # print(documents_combined)
     documents_combined = list(
         {tuple(sorted(d.items())): d for d in documents_combined}.values()
     )
-    # print(documents_combined)
 
     for i in range(len(documents_combined)):
         if documents_combined[i]["doc_last_accessed"] != None:
@@ -1283,7 +1188,7 @@ def user_accessible_projects(
         ),
         reverse=True,
     )
-    # TODO #45 - figure out why {'doc_id': None, 'doc_name': None, 'doc_last_accessed': None} and stop it.
+
     documents_sorted = [
         item
         for item in documents_sorted
@@ -1295,8 +1200,8 @@ def user_accessible_projects(
         }
     ]
 
-    if documents_sorted == [{}]:
-        documents_sorted = []
+    """if documents_sorted == [{}]:
+        documents_sorted = []"""
 
     return documents_sorted
 
@@ -1304,13 +1209,23 @@ def user_accessible_projects(
 def start_new_project_step_2_input_GUI(
     inputs: dict[str, str]
 ) -> dict[str, str]:
-    """ """
+    """Converts the inputs into a more user friendly format
+
+    Takes the user inputs from the previous submissions and prepares them for
+    displaying in the GUI.
+
+    Args:
+        inputs (dict[str, str]): inputs from the previous submissions.
+
+    Returns:
+        dict[str, str]: inputs in a GUI friendly format.
+    """
     key: str = ""
     value: str = ""
-    inputs_GUI: dict = {}
-    groups_list: list = []
-    members_list: QuerySet
-    members_list_fullnames: list = []
+    inputs_GUI: dict[str, str] = {}
+    groups_list: list[str] = []
+    members_list: QuerySet[Any] = User.objects.none()
+    members_list_fullnames: list[str] = []
 
     for key, value in inputs.items():
         key = key.replace("import", "")
@@ -1321,11 +1236,13 @@ def start_new_project_step_2_input_GUI(
             inputs_GUI[key] = snake_to_title(value)
 
         elif key == "Groups":
-            groups_list = list(
-                ProjectGroup.objects.filter(id__in=value).values_list(
-                    "name", flat=True
-                )
-            )
+            groups_list = [
+                name
+                for name in ProjectGroup.objects.filter(
+                    id__in=value
+                ).values_list("name", flat=True)
+                if name is not None
+            ]
             inputs_GUI[key] = ", ".join(groups_list)
             if inputs_GUI[key] == "":
                 inputs_GUI[key] = "<i>none selected</i>"
@@ -1361,16 +1278,22 @@ def placeholders(project_id: int) -> str:
         project_id (str): placeholders in a serialised form.
 
     Returns:
-        str: placeholders in serialised form, with empty ones replaced with
+        str: placeholders in serialised form, with empty values replaced with
+             "[key undefined]"
     """
+    project_builder: Optional[ProjectBuilder] = None
+    placeholders: dict[str, str] = {}
+    key: str = ""
+    value: str = ""
+
     if not isinstance(project_id, int):
         return ""
 
     if not Project.objects.filter(id=project_id).exists():
         return ""
 
-    project_builder: ProjectBuilder = ProjectBuilder(int(project_id))
-    placeholders: dict[str, str] = project_builder.get_placeholders()
+    project_builder = ProjectBuilder(int(project_id))
+    placeholders = project_builder.get_placeholders()
     for key, value in placeholders.items():
         if value == "":
             placeholders[key] = f"[{ key } undefined]"
@@ -1378,16 +1301,27 @@ def placeholders(project_id: int) -> str:
     return json.dumps(placeholders)
 
 
-def project_timestamp(project_id: int) -> None:
-    """ """
-    time_now = timezone.now()
-    project: Project = get_object_or_404(Project, id=project_id)
-    project.last_modified = time_now
+def project_timestamp(project_id: int) -> bool:
+    """Updates the last_modified timestamp of a project if it exists.
+
+    Args:
+        project_id (int): The id of the project to update.
+
+    Returns:
+        bool: True if the project exists and was updated, False otherwise.
+    """
+    project: Optional[Project] = None
+
+    if not Project.objects.filter(id=project_id).exists():
+        return False
+
+    project = Project.objects.get(id=project_id)
+    project.last_modified = timezone.now()
     project.save()
-    return
+    return True
 
 
-def custom_404(request: HttpRequest, exception) -> HttpResponse:
+def custom_404(request: HttpRequest, exception: Exception) -> HttpResponse:
     """Title
 
     Description
@@ -1402,7 +1336,7 @@ def custom_404(request: HttpRequest, exception) -> HttpResponse:
     return render(request, "404.html", context=std_context(), status=404)
 
 
-def custom_405(request: HttpRequest, exception) -> HttpResponse:
+def custom_405(request: HttpRequest, exception: Exception) -> HttpResponse:
     """Title
 
     Description

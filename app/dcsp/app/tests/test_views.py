@@ -1,16 +1,18 @@
-import time as t
 import sys
 from pathlib import Path
+from datetime import datetime, timedelta
+import json
 
-from django.test import TestCase, tag, override_settings, Client
+from django.test import TestCase, tag, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
 from unittest.mock import Mock, patch, call
 from app.models import ProjectGroup
-from django.core.handlers.wsgi import WSGIRequest
 from django.contrib.messages import get_messages
+from django.db.models import F
+from django.utils import timezone
 
 import app.functions.constants as c
 
@@ -18,8 +20,9 @@ sys.path.append(c.FUNCTIONS_APP)
 
 # from app.decorators import project_access
 import app.views as views
-from app.models import Project
+from app.models import Project, UserProjectAttribute
 import app.tests.data_views as d
+from app.functions.general_fuctions import snake_to_title
 
 
 def log_in(self):
@@ -291,11 +294,8 @@ class MemberLandingPageTest(TestCase):
 
 
 class StartNewProjectTest(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        ProjectGroup.objects.create(id=1, name="Test Group")
-
     def setUp(self):
+        ProjectGroup.objects.create(id=1, name="Test Group")
         log_in(self)
 
     @patch("app.views.std_context")
@@ -673,10 +673,6 @@ class StartNewProjectTest(TestCase):
 
         self.assertEqual(response.status_code, 302)
 
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
 
 class SetupDocumentsTest(TestCase):
     def setUp(self):
@@ -695,7 +691,12 @@ class SetupDocumentsTest(TestCase):
         project_id = 1
         setup_step = 1
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
 
         mock_std_context.return_value = {"test": "test"}
 
@@ -727,7 +728,12 @@ class SetupDocumentsTest(TestCase):
         setup_step = 1
         test_template = "test_template_1"
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         mock_template_select_form.return_value.is_valid.return_value = True
         mock_project_builder.return_value.configuration_set.return_value = None
         mock_template_select_form.return_value.cleaned_data = {
@@ -773,7 +779,12 @@ class SetupDocumentsTest(TestCase):
         project_id = 1
         setup_step = 1
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         mock_template_select_form.return_value.is_valid.return_value = False
         mock_std_context.return_value = {"test": "test"}
 
@@ -805,7 +816,12 @@ class SetupDocumentsTest(TestCase):
         project_id = 1
         setup_step = 2
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
 
         mock_std_context.return_value = {"test": "test"}
 
@@ -836,7 +852,12 @@ class SetupDocumentsTest(TestCase):
         project_id = 1
         setup_step = 2
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         mock_placeholders_form.return_value.is_valid.return_value = True
         mock_project_builder.return_value.configuration_set.return_value = None
         mock_project_builder.return_value.save_placeholders_from_form.return_value = (
@@ -882,7 +903,12 @@ class SetupDocumentsTest(TestCase):
         project_id = 1
         setup_step = 2
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         mock_placeholders_form.return_value.is_valid.return_value = False
         mock_std_context.return_value = {"test": "test"}
 
@@ -921,7 +947,12 @@ class ProjectBuildASAPTest(TestCase):
         project_id = 1
         setup_step = 2
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.get(f"/project_build_asap/{ project_id }")
@@ -943,7 +974,12 @@ class ProjectBuildASAPTest(TestCase):
         project_id = 1
         setup_step = 2
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         mock_mkdocs_control.return_value.build_documents.return_value = (
             True,
             "All passed",
@@ -980,7 +1016,12 @@ class ProjectDocumentsTest(TestCase):
         project_id = 1
         setup_step = 2
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.delete(f"/project_documents/{ project_id}")
@@ -998,7 +1039,12 @@ class ProjectDocumentsTest(TestCase):
         project_id = 1
         setup_step = 2
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.get(f"/project_documents/{ project_id }")
@@ -1184,9 +1230,11 @@ class ViewDocsTest(TestCase):
         mock_mkdocs_control.return_value.build_documents.assert_called_once_with()
         mock_is_file.assert_called_once_with()
         mock_open.assert_called_once_with(
-            Path(c.DOCUMENTATION_PAGES)
-            / f"project_{ project_id }"
-            / test_page,
+            str(
+                Path(c.DOCUMENTATION_PAGES)
+                / f"project_{ project_id }"
+                / test_page
+            ),
             "r",
         )
         mock_open.return_value.read.assert_called_once_with()
@@ -1235,7 +1283,12 @@ class DocumentNewTest(TestCase):
         project_id = 1
         setup_step = 1
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
 
         response = self.client.get(f"/document_new/{ project_id }")
 
@@ -1253,7 +1306,12 @@ class DocumentNewTest(TestCase):
         project_id = 1
         setup_step = 2
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         # mock_document_new_form - used here
         mock_std_context.return_value = {"test": "test"}
 
@@ -1282,7 +1340,12 @@ class DocumentNewTest(TestCase):
         setup_step = 2
         document_dict = {"document_name": "test_name"}
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         mock_document_new_form.return_value.is_valid.return_value = True
         mock_document_new_form.return_value.cleaned_data = {
             "document_name": "test_name"
@@ -1321,7 +1384,12 @@ class DocumentNewTest(TestCase):
         project_id = 1
         setup_step = 2
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         mock_document_new_form.return_value.is_valid.return_value = False
 
         mock_std_context.return_value = {"test": "test"}
@@ -1351,7 +1419,12 @@ class DocumentUpdateTest(TestCase):
         project_id = 1
         setup_step = 1
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
 
         response = self.client.get(f"/document_update/{ project_id }")
 
@@ -1374,7 +1447,12 @@ class DocumentUpdateTest(TestCase):
         project_id = 1
         setup_step = 2
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         # mock_form - used here
         # mock_placeholders - used here
         mock_std_context.return_value = {"test": "test"}
@@ -1405,15 +1483,18 @@ class DocumentUpdateTest(TestCase):
     ):
         project_id = 1
         setup_step = 2
-        docs_dir: str = (
-            f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
-        )
+        docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
         updated_form_data = {
             "document_name": "another_name.md",
             "document_markdown": "Some safety information",
         }
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         # mock_form - used here
         mock_form.return_value.is_valid.return_value = True
         mock_form.return_value.cleaned_data = {
@@ -1464,15 +1545,18 @@ class DocumentUpdateTest(TestCase):
         setup_step = 2
         document_name = "same_name.md"
         new_text = "new text"
-        docs_dir: str = (
-            f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
-        )
+        docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
         updated_form_data = {
             "document_name": document_name,
             "document_markdown": "new text",
         }
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         # mock_form - used here
         mock_form.return_value.is_valid.return_value = True
         mock_form.return_value.cleaned_data = {
@@ -1526,7 +1610,12 @@ class DocumentUpdateTest(TestCase):
         old_document_name = "same_name.md"
         old_text = "old text"
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         # mock_form - used here
         mock_form.return_value.is_valid.return_value = True
         mock_form.return_value.cleaned_data = {
@@ -1570,7 +1659,12 @@ class DocumentUpdateTest(TestCase):
         project_id = 1
         setup_step = 2
 
-        mock_project_access.return_value = (True, project_id, setup_step)
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
         # mock_form - used here
         mock_form.return_value.is_valid.return_value = False
 
@@ -1587,3 +1681,978 @@ class DocumentUpdateTest(TestCase):
         mock_form.return_value.is_valid.assert_called_once()
         mock_placeholders.assert_called_once_with(project_id)
         mock_std_context.assert_called_once_with(project_id)
+
+
+class EntryUpdateTest(TestCase):
+    def setUp(self):
+        log_in(self)
+        project = Project.objects.create(
+            id=1, owner=self.user, name="Test Project"
+        )
+        project.member.set([self.user])
+        project_group = ProjectGroup.objects.create(id=1, name="Test Group")
+        project_group.project_access.set([project])
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    def test_setup_step_1(self, mock_project_builder, mock_project_access):
+        project_id = 1
+        setup_step = 1
+        entry_type = "hazard"
+        entry_number = 1
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+        # mock_project_builder - used here
+
+        response = self.client.get(
+            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}"
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    @patch("app.views.std_context")
+    def test_entry_nonexistent(
+        self, mock_std_context, mock_project_builder, mock_project_access
+    ):
+        project_id = 1
+        setup_step = 2
+        entry_type = "hazard"
+        entry_number = 1
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+        # mock_project_builder - used here
+        mock_project_builder.return_value.entry_exists.return_value = False
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(
+            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}"
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTemplateUsed(response, "404.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_called_once_with(project_id)
+        mock_project_builder.return_value.entry_exists.assert_called_once_with(
+            entry_type, str(project_id)
+        )
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    @patch("app.views.std_context")
+    def test_entry_type_nonexistent(
+        self, mock_std_context, mock_project_builder, mock_project_access
+    ):
+        project_id = 1
+        setup_step = 2
+        entry_type = "nonexistent_type"
+        entry_number = 1
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+        # mock_project_builder - used here
+        mock_project_builder.return_value.entry_exists.return_value = True
+        mock_project_builder.return_value.entry_type_exists.return_value = (
+            False
+        )
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(
+            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}"
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTemplateUsed(response, "404.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_called_once_with(project_id)
+        mock_project_builder.return_value.entry_exists.assert_called_once_with(
+            entry_type, str(project_id)
+        )
+        mock_project_builder.return_value.entry_type_exists.assert_called_once_with(
+            entry_type
+        )
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    @patch("app.views.kebab_to_title")
+    @patch("app.views.EntryUpdateForm")
+    @patch("app.views.std_context")
+    def test_get_new(
+        self,
+        mock_std_context,
+        mock_form,
+        mock_kebab_to_title,
+        mock_project_builder,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+        entry_type = "nonexistent_type"
+        entry_number = "new"
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+        # mock_project_builder - used here
+        mock_project_builder.return_value.entry_type_exists.return_value = True
+        # mock_kebab_to_title - used here
+        # mock_form - used here
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(
+            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "entry_update.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_called_once_with(project_id)
+        mock_project_builder.return_value.entry_type_exists.assert_called_once_with(
+            entry_type
+        )
+        mock_kebab_to_title.assert_called_once_with(entry_type)
+        mock_form.assert_called_once_with(project_id, entry_type)
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    @patch("app.views.kebab_to_title")
+    @patch("app.views.EntryUpdateForm")
+    @patch("app.views.std_context")
+    def test_get_entry_1(
+        self,
+        mock_std_context,
+        mock_form,
+        mock_kebab_to_title,
+        mock_project_builder,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+        entry_type = "nonexistent_type"
+        entry_number = 1
+        form_initial = {"test": "test"}
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+        # mock_project_builder - used here
+        mock_project_builder.return_value.entry_exists.return_value = True
+        mock_project_builder.return_value.entry_type_exists.return_value = True
+        mock_project_builder.return_value.form_initial.return_value = (
+            form_initial
+        )
+        # mock_kebab_to_title - used here
+        # mock_form - used here
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(
+            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "entry_update.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_called_once_with(project_id)
+        mock_project_builder.return_value.entry_exists.assert_called_once_with(
+            entry_type, str(project_id)
+        )
+        mock_project_builder.return_value.entry_type_exists.assert_called_once_with(
+            entry_type
+        )
+        mock_project_builder.return_value.form_initial.assert_called_once_with(
+            entry_type, entry_number
+        )
+        mock_kebab_to_title.assert_called_once_with(entry_type)
+        mock_form.assert_called_once_with(
+            project_id, entry_type, initial=form_initial
+        )
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    @patch("app.views.EntryUpdateForm")
+    @patch("app.views.project_timestamp")
+    @patch("app.views.kebab_to_title")
+    @patch("app.views.std_context")
+    def test_get_post(
+        self,
+        mock_std_context,
+        mock_kebab_to_title,
+        mock_project_timestamp,
+        mock_form,
+        mock_project_builder,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+        entry_type = "nonexistent_type"
+        entry_number = 1
+        form_initial = {"test": "test"}
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+        # mock_project_builder - used here
+        mock_project_builder.return_value.entry_exists.return_value = True
+        mock_project_builder.return_value.entry_type_exists.return_value = True
+        # mock_form - used here
+        mock_form.return_value.is_valid.return_value = True
+        # mock_project_timestamp - used here
+        mock_project_builder.return_value.entry_update.return_value = {
+            "test": "test"
+        }
+        mock_form.return_value.cleaned_data = form_initial
+        # mock_kebab_to_title - used here
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.post(
+            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}",
+            form_initial,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "entry_saved.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_called_once_with(project_id)
+        mock_project_builder.return_value.entry_exists.assert_called_once_with(
+            entry_type, str(project_id)
+        )
+        mock_project_builder.return_value.entry_type_exists.assert_called_once_with(
+            entry_type
+        )
+
+        mock_form.assert_any_call(project_id, entry_type, request.POST)
+        mock_form.return_value.is_valid.assert_called_once_with()
+        mock_project_timestamp.assert_called_once_with(project_id)
+        mock_project_builder.return_value.entry_update.assert_called_once_with(
+            form_initial, entry_type, str(entry_number)
+        )
+        mock_kebab_to_title.assert_called_once_with(entry_type)
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    @patch("app.views.EntryUpdateForm")
+    @patch("app.views.kebab_to_title")
+    @patch("app.views.std_context")
+    def test_get_post_invalid_entry_number_1(
+        self,
+        mock_std_context,
+        mock_kebab_to_title,
+        mock_form,
+        mock_project_builder,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+        entry_type = "nonexistent_type"
+        entry_number = 1
+        form_initial = {"test": "test"}
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+        # mock_project_builder - used here
+        mock_project_builder.return_value.entry_exists.return_value = True
+        mock_project_builder.return_value.entry_type_exists.return_value = True
+        # mock_form - used here
+        mock_form.return_value.is_valid.return_value = False
+        # mock_kebab_to_title - used here
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.post(
+            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}",
+            form_initial,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "entry_update.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_called_once_with(project_id)
+        mock_project_builder.return_value.entry_exists.assert_called_once_with(
+            entry_type, str(project_id)
+        )
+        mock_project_builder.return_value.entry_type_exists.assert_called_once_with(
+            entry_type
+        )
+
+        mock_form.assert_any_call(project_id, entry_type, request.POST)
+        mock_form.return_value.is_valid.assert_called_once_with()
+        mock_kebab_to_title.assert_called_once_with(entry_type)
+        mock_std_context.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    @patch("app.views.EntryUpdateForm")
+    @patch("app.views.kebab_to_title")
+    @patch("app.views.std_context")
+    def test_get_post_invalid_entry_new(
+        self,
+        mock_std_context,
+        mock_kebab_to_title,
+        mock_form,
+        mock_project_builder,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+        entry_type = "nonexistent_type"
+        entry_number = "new"
+        form_initial = {"test": "test"}
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+        # mock_project_builder - used here
+        mock_project_builder.return_value.entry_type_exists.return_value = True
+        # mock_form - used here
+        mock_form.return_value.is_valid.return_value = False
+        # mock_kebab_to_title - used here
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.post(
+            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}",
+            form_initial,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "entry_update.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_called_once_with(project_id)
+        mock_project_builder.return_value.entry_exists.assert_not_called()
+        mock_project_builder.return_value.entry_type_exists.assert_called_once_with(
+            entry_type
+        )
+
+        mock_form.assert_any_call(project_id, entry_type, request.POST)
+        mock_form.return_value.is_valid.assert_called_once_with()
+        mock_kebab_to_title.assert_called_once_with(entry_type)
+        mock_std_context.assert_called_once_with(project_id)
+
+
+class EntrySelectTest(TestCase):
+    def setUp(self):
+        log_in(self)
+        project = Project.objects.create(
+            id=1, owner=self.user, name="Test Project"
+        )
+        project.member.set([self.user])
+        project_group = ProjectGroup.objects.create(id=1, name="Test Group")
+        project_group.project_access.set([project])
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    def test_setup_step_1(self, mock_project_builder, mock_project_access):
+        project_id = 1
+        setup_step = 1
+        entry_type = "hazard"
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+        # mock_project_builder - used here
+
+        response = self.client.get(
+            f"/entry_select/{ project_id }/{ entry_type }"
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    def test_wrong_method(self, mock_project_builder, mock_project_access):
+        project_id = 1
+        setup_step = 2
+        entry_type = "hazard"
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+        # mock_project_builder - used here
+
+        response = self.client.post(
+            f"/entry_select/{ project_id }/{ entry_type }", {}
+        )
+
+        self.assertEqual(response.status_code, 405)
+        self.assertTemplateUsed(response, "405.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_called_once_with(project_id)
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    @patch("app.views.std_context")
+    def test_entry_type_nonexistent(
+        self, mock_std_context, mock_project_builder, mock_project_access
+    ):
+        project_id = 1
+        setup_step = 2
+        entry_type = "nonexistent_type"
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+        # mock_project_builder - used here
+        mock_project_builder.return_value.entry_type_exists.return_value = (
+            False
+        )
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(
+            f"/entry_select/{ project_id }/{ entry_type }"
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTemplateUsed(response, "404.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_called_once_with(project_id)
+        mock_project_builder.return_value.entry_type_exists.assert_called_once_with(
+            entry_type
+        )
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.ProjectBuilder")
+    @patch("app.views.kebab_to_title")
+    @patch("app.views.std_context")
+    def test_get(
+        self,
+        mock_std_context,
+        mock_kebab_to_title,
+        mock_project_builder,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+        entry_type = "hazard"
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+        # mock_project_builder - used here
+        mock_project_builder.return_value.entry_type_exists.return_value = True
+        # mock_project_builder.return_value.entries_all_get.return_value - used here
+        # mock_kebab_to_title - used here
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(
+            f"/entry_select/{ project_id }/{ entry_type }"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "entry_select.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_project_builder.assert_called_once_with(project_id)
+        mock_project_builder.return_value.entry_type_exists.assert_called_once_with(
+            entry_type
+        )
+        mock_project_builder.return_value.entries_all_get.assert_called_once_with(
+            entry_type
+        )
+        mock_kebab_to_title.assert_called_once_with(entry_type)
+        mock_std_context.assert_called_once_with(project_id)
+
+
+class StdContextTest(TestCase):
+    @patch("app.views.ProjectBuilder")
+    def test_std_context(self, mock_project_builder):
+        project_id = 1
+        entry_templates = ["template1", "template2"]
+
+        mock_project_builder.return_value.entry_template_names.return_value = (
+            entry_templates
+        )
+
+        result = views.std_context(project_id)
+
+        self.assertEqual(result["entry_templates"], entry_templates)
+
+        mock_project_builder.assert_called_once_with(project_id)
+        mock_project_builder.return_value.entry_template_names.assert_called_once_with()
+
+    @patch("app.views.ProjectBuilder")
+    def test_std_context_with_project_id_0(self, mock_project_builder):
+        mock_project_builder.return_value.entry_template_names.return_value = (
+            []
+        )
+
+        result = views.std_context(0)
+
+        self.assertEqual(result["entry_templates"], [])
+        mock_project_builder.assert_not_called()
+
+
+class UserAccessibleProjectsTest(TestCase):
+    def setUp(self):
+        self.user_1 = User.objects.create_user(
+            id=1, username="user_1", password="password_1"
+        )  # nosec B106
+        self.user_2 = User.objects.create_user(
+            id=2, username="user_2", password="password_2"
+        )  # nosec B106
+        self.client = Client()
+        self.client.login(
+            username="user1", password="password_1"
+        )  # nosec B106
+
+    def test_no_records(self):
+        request = HttpRequest()
+        request.user = self.user_1
+
+        documents = views.user_accessible_projects(request)
+
+        self.assertEqual(documents, [])
+
+    def test_user_has_no_access(self):
+        project_id_1 = 1
+        project_id_2 = 2
+        project_name_1 = "Project 1"
+        project_name_2 = "Project 2"
+        project_1 = Project.objects.create(
+            id=project_id_1, owner=self.user_2, name=project_name_1
+        )
+        project_2 = Project.objects.create(
+            id=project_id_2, owner=self.user_2, name=project_name_2
+        )
+        UserProjectAttribute.objects.create(
+            id=1,
+            user=self.user_2,
+            project=project_1,
+            # last_accessed is set automatically
+        )
+        UserProjectAttribute.objects.create(
+            id=2,
+            user=self.user_2,
+            project=project_2,
+            # last_accessed is set automatically
+        )
+
+        request = HttpRequest()
+        request.user = self.user_1
+
+        documents = views.user_accessible_projects(request)
+
+        self.assertEqual(documents, [])
+
+    def test_owner(self):
+        project_id_1 = 1
+        project_id_2 = 2
+        project_name_1 = "Project 1"
+        project_name_2 = "Project 2"
+        project_1 = Project.objects.create(
+            id=project_id_1, owner=self.user_1, name=project_name_1
+        )
+        project_2 = Project.objects.create(
+            id=project_id_2, owner=self.user_2, name=project_name_2
+        )
+        UserProjectAttribute.objects.create(
+            id=1,
+            user=self.user_2,
+            project=project_1,
+            # last_accessed is set automatically
+        )
+        UserProjectAttribute.objects.create(
+            id=2,
+            user=self.user_2,
+            project=project_2,
+            # last_accessed is set automatically
+        )
+
+        request = HttpRequest()
+        request.user = self.user_1
+
+        documents = views.user_accessible_projects(request)
+
+        self.assertEqual(len(documents), 1)
+        self.assertEqual(documents[0]["doc_id"], project_id_1)
+        self.assertEqual(documents[0]["doc_name"], project_name_1)
+        current_datetime = datetime.now()
+        difference = current_datetime - documents[0]["doc_last_accessed"]
+        self.assertLess(difference, timedelta(minutes=5))
+
+    def test_member(self):
+        project_id_1 = 1
+        project_id_2 = 2
+        project_name_1 = "Project 1"
+        project_name_2 = "Project 2"
+        project_1 = Project.objects.create(
+            id=project_id_1, owner=self.user_2, name=project_name_1
+        )
+        project_1.member.set([self.user_1])
+        project_2 = Project.objects.create(
+            id=project_id_2, owner=self.user_2, name=project_name_2
+        )
+        UserProjectAttribute.objects.create(
+            id=1,
+            user=self.user_1,
+            project=project_1,
+            # last_accessed is set automatically
+        )
+        UserProjectAttribute.objects.create(
+            id=2,
+            user=self.user_2,
+            project=project_2,
+            # last_accessed is set automatically
+        )
+
+        request = HttpRequest()
+        request.user = self.user_1
+
+        documents = views.user_accessible_projects(request)
+
+        self.assertEqual(len(documents), 1)
+        self.assertEqual(documents[0]["doc_id"], project_id_1)
+        self.assertEqual(documents[0]["doc_name"], project_name_1)
+        current_datetime = datetime.now()
+        difference = current_datetime - documents[0]["doc_last_accessed"]
+        self.assertLess(difference, timedelta(minutes=5))
+
+    def test_project_group_member(self):
+        project_id_1 = 1
+        project_id_2 = 2
+        project_name_1 = "Project 1"
+        project_name_2 = "Project 2"
+        project_1 = Project.objects.create(
+            id=project_id_1, owner=self.user_2, name=project_name_1
+        )
+        project_2 = Project.objects.create(
+            id=project_id_2, owner=self.user_2, name=project_name_2
+        )
+        UserProjectAttribute.objects.create(
+            id=1,
+            user=self.user_1,
+            project=project_1,
+            # last_accessed is set automatically
+        )
+        UserProjectAttribute.objects.create(
+            id=2,
+            user=self.user_2,
+            project=project_2,
+            # last_accessed is set automatically
+        )
+        group_1 = ProjectGroup.objects.create(id=1, name="Test Group")
+        group_1.project_access.set([project_1])
+        group_1.member.set([self.user_1])
+
+        request = HttpRequest()
+        request.user = self.user_1
+
+        documents = views.user_accessible_projects(request)
+
+        self.assertEqual(len(documents), 1)
+        self.assertEqual(documents[0]["doc_id"], project_id_1)
+        self.assertEqual(documents[0]["doc_name"], project_name_1)
+        current_datetime = datetime.now()
+        difference = current_datetime - documents[0]["doc_last_accessed"]
+        self.assertLess(difference, timedelta(minutes=5))
+
+
+class StartNewProjectStep2InputGUITestCase(TestCase):
+    def setUp(self):
+        self.group1 = ProjectGroup.objects.create(id=1, name="Group 1")
+        self.group2 = ProjectGroup.objects.create(id=2, name="Group 2")
+        self.user_1 = User.objects.create(
+            id=1, username="user_1", first_name="John", last_name="Smith"
+        )
+        self.user_2 = User.objects.create(
+            id=2, username="user_2", first_name="Jane", last_name="Doe"
+        )
+
+    def test_import(self):
+        inputs = d.START_NEW_PROJECT_STEP_2_IMPORT_INPUTS
+
+        expected_output = {
+            "Setup choice": "Import",
+            "External repo url": "www.github.com/test",
+            "External repo username": "test_username",
+            "External repo password / token": "***",
+            "Project name": "Test project",
+            "Description": "A test project",
+            "Groups": "Group 1",
+            "Members": "John Smith",
+        }
+
+        output = views.start_new_project_step_2_input_GUI(inputs)
+        self.assertEqual(output, expected_output)
+
+    def test_start_anew(self):
+        inputs = d.START_NEW_PROJECT_STEP_2_START_ANEW_INPUTS
+
+        expected_output = {
+            "Setup choice": "Start anew",
+            "Project name": "Test project",
+            "Description": "A test project",
+            "Groups": "Group 1",
+            "Members": "John Smith",
+        }
+
+        output = views.start_new_project_step_2_input_GUI(inputs)
+        self.assertEqual(output, expected_output)
+
+    def test_start_anew_no_members_or_groups(self):
+        inputs = {
+            "setup_choice": "start_anew",
+            "project_name": "Test project",
+            "description": "A test project",
+            "groups": [],
+            "members": [],
+        }
+
+        expected_output = {
+            "Setup choice": "Start anew",
+            "Project name": "Test project",
+            "Description": "A test project",
+            "Groups": "<i>none selected</i>",
+            "Members": "<i>none selected</i>",
+        }
+
+        output = views.start_new_project_step_2_input_GUI(inputs)
+        self.assertEqual(output, expected_output)
+
+
+class PlaceholdersTest(TestCase):
+    def test_not_int(self):
+        project_id = "not_int"
+
+        result = views.placeholders(project_id)
+        self.assertEquals(result, "")
+
+    def test_project_nonexistent(self):
+        project_id_1 = 1
+        project_id_2 = 2
+        project_name_1 = "Project 1"
+
+        self.user_1 = User.objects.create_user(
+            id=1, username="user_1", password="password_1"
+        )  # nosec B106
+
+        Project.objects.create(
+            id=project_id_1, owner=self.user_1, name=project_name_1
+        )
+
+        result = views.placeholders(project_id_2)
+        self.assertEquals(result, "")
+
+    @patch("app.views.ProjectBuilder")
+    def test_get_placeholders(self, mock_project_builder):
+        project_id_1 = 1
+        project_name_1 = "Project 1"
+        placeholders = {
+            "placeholder_1": "test_text",
+            "placeholder_2": "test_text",
+        }
+
+        self.user_1 = User.objects.create_user(
+            id=1, username="user_1", password="password_1"
+        )  # nosec B106
+
+        Project.objects.create(
+            id=project_id_1, owner=self.user_1, name=project_name_1
+        )
+
+        # mock_project_builder - used here
+        mock_project_builder.return_value.get_placeholders.return_value = (
+            placeholders.copy()
+        )
+
+        result = views.placeholders(project_id_1)
+        self.assertEquals(result, json.dumps(placeholders))
+
+        mock_project_builder.assert_called_once_with(project_id_1)
+        mock_project_builder.return_value.get_placeholders.assert_called_once_with()
+
+    @patch("app.views.ProjectBuilder")
+    def test_no_placeholders(self, mock_project_builder):
+        project_id_1 = 1
+        project_name_1 = "Project 1"
+        placeholders = {}
+
+        self.user_1 = User.objects.create_user(
+            id=1, username="user_1", password="password_1"
+        )  # nosec B106
+
+        Project.objects.create(
+            id=project_id_1, owner=self.user_1, name=project_name_1
+        )
+
+        # mock_project_builder - used here
+        mock_project_builder.return_value.get_placeholders.return_value = (
+            placeholders.copy()
+        )
+        result = views.placeholders(project_id_1)
+        self.assertEquals(result, json.dumps(placeholders))
+
+        mock_project_builder.assert_called_once_with(project_id_1)
+        mock_project_builder.return_value.get_placeholders.assert_called_once_with()
+
+    @patch("app.views.ProjectBuilder")
+    def test_one_empty_placeholder(self, mock_project_builder):
+        project_id_1 = 1
+        project_name_1 = "Project 1"
+        placeholders = {
+            "placeholder_1": "test_text",
+            "placeholder_empty": "",
+        }
+        placeholders_returned = {
+            "placeholder_1": "test_text",
+            "placeholder_empty": "[placeholder_empty undefined]",
+        }
+
+        self.user_1 = User.objects.create_user(
+            id=1, username="user_1", password="password_1"
+        )  # nosec B106
+
+        Project.objects.create(
+            id=project_id_1, owner=self.user_1, name=project_name_1
+        )
+
+        # mock_project_builder - used here
+        mock_project_builder.return_value.get_placeholders.return_value = (
+            placeholders.copy()
+        )
+
+        result = views.placeholders(project_id_1)
+
+        self.assertEquals(result, json.dumps(placeholders_returned))
+
+        mock_project_builder.assert_called_once_with(project_id_1)
+        mock_project_builder.return_value.get_placeholders.assert_called_once_with()
+
+
+class ProjectTimestampTest(TestCase):
+    def test_nonexistent(self):
+        project_id_1 = 1
+        project_id_2 = 2
+        project_name_1 = "Project 1"
+
+        user_1 = User.objects.create_user(
+            id=1, username="user_1", password="password_1"
+        )  # nosec B106
+
+        Project.objects.create(
+            id=project_id_1, owner=user_1, name=project_name_1
+        )
+
+        result = views.project_timestamp(project_id_2)
+        self.assertFalse(result)
+
+    def test_exists(self):
+        project_id_1 = 1
+        project_name_1 = "Project 1"
+
+        user_1 = User.objects.create_user(
+            id=1, username="user_1", password="password_1"
+        )  # nosec B106
+
+        Project.objects.create(
+            id=project_id_1,
+            owner=user_1,
+            name=project_name_1,
+            last_modified=timezone.now() - timedelta(minutes=10),
+        )
+
+        project_before = Project.objects.get(id=project_id_1)
+        timestamp_before = project_before.last_modified
+
+        result = views.project_timestamp(project_id_1)
+        self.assertTrue(result)
+
+        project_after = Project.objects.get(id=project_id_1)
+        timestamp_after = project_after.last_modified
+
+        self.assertNotEqual(timestamp_before, timestamp_after)
+
+
+class custom_404(TestCase):
+    @patch("app.views.std_context")
+    def test_404(self, mock_std_context):
+        mock_std_context.return_value = {"test": "test"}
+
+        response = views.custom_404(HttpRequest(), Exception())
+        self.assertEqual(response.status_code, 404)
+
+        mock_std_context.assert_called_once_with()
+
+
+class custom_405(TestCase):
+    @patch("app.views.std_context")
+    def test_405(self, mock_std_context):
+        mock_std_context.return_value = {"test": "test"}
+
+        response = views.custom_405(HttpRequest(), Exception())
+        self.assertEqual(response.status_code, 405)
+
+        mock_std_context.assert_called_once_with()

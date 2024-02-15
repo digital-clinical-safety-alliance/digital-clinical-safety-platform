@@ -40,11 +40,6 @@ urlpatterns = [
         name="entry_select",
     ),
     path(
-        "upload_to_external_repository",
-        views.upload_to_external_repository,
-        name="upload_to_external_repository",
-    ),
-    path(
         "member",
         views.member_landing_page,
         name="member_landing_page",

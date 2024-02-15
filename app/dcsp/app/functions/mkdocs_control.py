@@ -102,7 +102,7 @@ class MkdocsControl:
         # entry_number
         # entry_name_match
         warnings: str = ""
-        entries: list[dict] = []
+        entries: list[dict[str, Any]] = []
         project: ProjectBuilder
         contents_list: list[dict[str, Any]] = []
         entry_form: dict[str, Any]

@@ -27,7 +27,7 @@ import app.views as views
 
 def _project_access(
     request: HttpRequest, project_id: str
-) -> tuple[bool, HttpResponse | int, int]:
+) -> tuple[bool, HttpResponse, int, int]:
     """Wrapper around page views"""
     project_id_int: int = 0
     projects: list[dict[str, Any]] = []
@@ -42,12 +42,14 @@ def _project_access(
             False,
             render(request, "405.html", views.std_context(), status=405),
             0,
+            0,
         )
 
     if not project_id.isdigit():
         return (
             False,
             render(request, "404.html", views.std_context(), status=404),
+            0,
             0,
         )
 
@@ -58,6 +60,7 @@ def _project_access(
         return (
             False,
             render(request, "404.html", views.std_context(), status=404),
+            0,
             0,
         )
 
@@ -70,6 +73,7 @@ def _project_access(
             render(
                 request, "403.html", context | views.std_context(), status=403
             ),
+            0,
             0,
         )
 
@@ -97,17 +101,25 @@ def _project_access(
                     status=500,
                 ),
                 0,
+                0,
             )
 
     return (
         True,
+        HttpResponse(),
         project_id_int,
         setup_step,
     )
 
 
 # Rest of the code...
-def project_access(func: Callable) -> Callable:
+def project_access(
+    func: (
+        Callable[[HttpRequest, int, int], HttpResponse]
+        | Callable[[HttpRequest, int, int, str], HttpResponse]
+        | Callable[[HttpRequest, int, int, str, str], HttpResponse]
+    ),
+) -> Callable[[HttpRequest, str], HttpResponse]:
     """A decorator for project access (on the dynamic site)
 
     Restricts access to views based on if the logged in user has access to the
@@ -120,8 +132,8 @@ def project_access(func: Callable) -> Callable:
     @login_required
     @wraps(func)
     def wrapper(
-        request: HttpRequest, project_id: str, *args, **kwargs
-    ) -> HttpResponse | Callable:
+        request: HttpRequest, project_id: str, *args: Any, **kwargs: Any
+    ) -> Any:
         """Wrapper around page views
 
         Args:
@@ -132,18 +144,17 @@ def project_access(func: Callable) -> Callable:
             HttpResponse | Callable: error responses or runs function.
         """
         passed: bool = False
-        project_id_int_httpresponse: HttpResponse | int = 0
+        project_id_int: int = 0
+        httpresponse: HttpResponse = HttpResponse()
         setup_step: int = 0
 
-        passed, project_id_int_httpresponse, setup_step = _project_access(
+        passed, httpresponse, project_id_int, setup_step = _project_access(
             request, project_id
         )
 
         if not passed:
-            return project_id_int_httpresponse
+            return httpresponse
 
-        return func(
-            request, project_id_int_httpresponse, setup_step, *args, **kwargs
-        )
+        return func(request, project_id_int, setup_step, *args, **kwargs)
 
     return wrapper

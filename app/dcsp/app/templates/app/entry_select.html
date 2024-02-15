@@ -20,9 +20,7 @@
                         <a class="link-dcsp"
                            href="{% url 'entry_update' project_id entry_type entry.0.number %}">
                             <strong>{{ entry_type|kebab_to_title }} {{ entry.0.number }}</strong> -
-                            {% for section in entry %}
-                                {% if "name" in section.gui_label %}{{ section.text }}{% endif %}
-                            {% endfor %}
+                            {{ entry.0.name }}
                         </a>
                         <!-- - {{ entry.2.text }}</a>-->
                         <br>
@@ -37,4 +35,4 @@
         {% include "project_side_bar_right.html" %}
 
     </div>
-{% endblock %}
+{% endblock main %}

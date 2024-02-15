@@ -20,8 +20,8 @@ from github import (
     AuthenticatedUser,
     Organization,
     PaginatedList,
-    Issue,
 )
+from github.Issue import Issue
 
 import pexpect
 import yaml
@@ -678,12 +678,19 @@ class GitController:
         Returns:
             bool: True if a valid label, False if not.
         """
-        issues_yml: list[str] = self.available_hazard_labels("name_only")
-        label_name: str = ""
+        issues_yml: list[dict[str, str]] | list[
+            str
+        ] = self.available_hazard_labels("name_only")
+        label_name: str | dict[str, str] = ""
 
         for label_name in issues_yml:
-            if label.lower() in label_name.lower():
+            if (
+                isinstance(label_name, str)
+                and label.lower() in label_name.lower()
+            ):
                 return True
+            elif isinstance(label_name, dict):
+                pass
 
         return False
 
@@ -704,7 +711,7 @@ class GitController:
         hazards_open: list[dict[str, Any]] = []
         label_list: list[str] = []
         issue: Any
-        open_issues: PaginatedList.PaginatedList
+        open_issues: PaginatedList.PaginatedList[Issue]
         repo: Repository.Repository
 
         g = Github(
@@ -777,7 +784,7 @@ class GitController:
         """
         g: Github
         repo: Repository.Repository
-        issue: Issue.Issue
+        issue: Issue
 
         if hazard_number == 0:
             raise ValueError("No Hazard Number has been provided")

@@ -9,7 +9,7 @@
       var calculation_output = "";
 
       for (var key in labelsForCalculations) {
-        var changedValue = document.getElementById(key).value.split("{{ MKDOCS_TEMPLATE_NUMBER_DELIMITER }}")[0].trim();
+        var changedValue = document.getElementById(key).value.split("-")[0].trim();
         if (changedValue == ""){
           changedValue = 0
         }

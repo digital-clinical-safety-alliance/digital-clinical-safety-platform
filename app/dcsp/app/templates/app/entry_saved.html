@@ -24,11 +24,11 @@
       </div>
       <div class="mb-3">
         <a class="link-dcsp"
-           href="{% url 'entry_update' project_id 'hazard' entry_update_outcome.id %}">Edit the same {{ entry_type }}</a>
+           href="{% url 'entry_update' project_id entry_type id_new %}">Edit the same {{ entry_type }}</a>
       </div>
       <div class="mb-3">
         <a class="link-dcsp"
-           href="{% url 'entry_update' project_id 'hazard' 'new' %}">Create another {{ entry_type }}</a>
+           href="{% url 'entry_update' project_id entry_type 'new' %}">Create another {{ entry_type }}</a>
       </div>
  
     </div>

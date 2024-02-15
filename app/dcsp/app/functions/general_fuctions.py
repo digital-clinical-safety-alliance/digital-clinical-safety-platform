@@ -21,7 +21,7 @@ def kebab_to_title(kebab_text: str) -> str:
     return title_text
 
 
-def valid_linux_path(path: str) -> Tuple[bool, str]:
+def valid_linux_path(path: str) -> Tuple[bool, list[str]]:
     """Check if a path is valid in linux syntax"""
     valid: bool = True
     failure_reasons: list[str] = []
@@ -49,7 +49,7 @@ def valid_linux_path(path: str) -> Tuple[bool, str]:
         valid = False
         failure_reasons.append("started with forward slash (eg '/')")
 
-    return valid, list_to_string(failure_reasons)
+    return valid, failure_reasons
 
 
 def list_to_string(list_to_convert: list[str]) -> str:

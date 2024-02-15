@@ -50,10 +50,10 @@ cd /dcsp/cicd
 mypy /dcsp/app/dcsp/app/
 
 # Check the exit code of the type checking command
-#if [ $? -ne 0 ]; then
-#  echo "Type checking failed!"
-#  exit 1
-#fi
+if [ $? -ne 0 ]; then
+  echo "Type checking failed!"
+  exit 1
+fi
 
 # Run unit tests using pytest
 echo "Running unit tests"
@@ -74,6 +74,7 @@ echo "Coverage Percentage: $COVERAGE_PERCENTAGE%"
 echo ""
 coverage report -m
 
+# Check the exit code of the coverage report
 #if [ "$COVERAGE_PERCENTAGE" -lt "$COVERAGE_THRESHOLD" ]
 #  then
 #    echo "Coverage failed: actual $COVERAGE_PERCENTAGE, threshold $COVERAGE_THRESHOLD"
@@ -86,11 +87,10 @@ echo "---------------"
 cd /dcsp/cicd/djlint
 djlint /dcsp/app/dcsp/app/templates --lint
 
-# Check the exit code of the unit testing command
-#if [ $? -ne 0 ]; then
-#  echo "HTML template linting via djLint failed!"
-#  exit 1
-#fi
+if [ $? -ne 0 ]; then
+  echo "HTML template linting via djLint failed!"
+  exit 1
+fi
 
 # If all tests pass, the exit with 0
 echo "Tests passed successfully!"

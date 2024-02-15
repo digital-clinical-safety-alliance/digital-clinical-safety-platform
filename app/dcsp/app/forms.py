@@ -18,42 +18,28 @@ from django import forms
 from django.conf import settings
 from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import User
 
 from .models import (
-    User,
-    UserProfile,
-    Project,
     ProjectGroup,
-    UserProjectAttribute,
 )
 
 import os
-import glob
 from fnmatch import fnmatch
 import sys
-from pathlib import Path
 from typing import Any, Mapping
 
 import app.functions.constants as c
-from app.functions.constants import GhCredentials
 
 sys.path.append(c.FUNCTIONS_APP)
-from app.functions.git_control import (
-    GitController,
-)
-from app.functions.email_functions import (
-    EmailFunctions,
-)
-from app.functions.projects_builder import (
-    ProjectBuilder,
-)
+import app.functions.projects_builder as projects_builder
 from app.functions.general_fuctions import (
     valid_linux_path,
     list_to_string,
 )
 
 
-def validated_response(
+def validated_response(  # type: ignore[no-untyped-def]
     self,
     field: str,
     valid: bool,
@@ -81,7 +67,7 @@ def validated_response(
     return
 
 
-def md_files(project_id: int) -> list:
+def md_files(project_id: int) -> list[tuple[Any, Any]]:
     """Finds markdown files
 
     Looks for markdown files in MKDOCS_PATH. Returns a list of paths.
@@ -95,15 +81,17 @@ def md_files(project_id: int) -> list:
     Raises:
         FileNotFoundError: if the docs location is not a valid directory
     """
-    md_files: list = []
-    file: str = ""
-    choices_list: list = []
+    md_files: list[Any] = []
+    file: Any = ""
+    choices_list: list[tuple[Any, Any]] = []
 
-    project: ProjectBuilder = ProjectBuilder(project_id)
+    project: projects_builder.ProjectBuilder = projects_builder.ProjectBuilder(
+        project_id
+    )
     md_files = project.documents_list()
 
     for file in md_files:
-        choices_list.append([file, file])
+        choices_list.append((file, file))
 
     return choices_list
 
@@ -167,9 +155,9 @@ class ProjectSetupInitialForm(forms.Form):
         ),
     )
 
-    def clean(self) -> dict:
+    def clean(self) -> dict[str, str]:
         """ """
-        cleaned_data: Any = self.cleaned_data
+        cleaned_data: dict[str, str] = self.cleaned_data
         setup_choice: str = cleaned_data["setup_choice"]
         external_repo_url_import: str = cleaned_data[
             "external_repo_url_import"
@@ -197,12 +185,12 @@ class ProjectSetupStepTwoForm(forms.Form):
         project_name_import_start_anew: name of the project
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialise the fields for the second step of project setup"""
         super(ProjectSetupStepTwoForm, self).__init__(*args, **kwargs)
-        groups_list: QuerySet
-        choices_list_1: list = []
-        choices_list_2: list = []
+        groups_list: QuerySet[Any] = ProjectGroup.objects.none()
+        choices_list_1: list[Any] = []
+        choices_list_2: list[Any] = []
 
         self.fields["project_name"] = forms.CharField(
             label="Project name",
@@ -523,17 +511,19 @@ class TemplateSelectForm(forms.Form):
         template_choice: pick the template to use for hazard documentation.
     """
 
-    def __init__(self, project_id: int, *args, **kwargs) -> None:
+    def __init__(self, project_id: int, *args: Any, **kwargs: Any) -> None:
         """Initialise with available templates
 
         Searches in the templates folder for template sub-folders and provides
         these as options in a selection field for the user.
         """
         super(TemplateSelectForm, self).__init__(*args, **kwargs)
-        project: ProjectBuilder = ProjectBuilder(project_id)
+        project: projects_builder.ProjectBuilder = (
+            projects_builder.ProjectBuilder(project_id)
+        )
         templates: list[str] = project.document_templates_get()
         template: str = ""
-        choices_list: list = []
+        choices_list: list[Any] = []
 
         if len(templates) == 0:
             raise Exception("No templates found in templates folder!")
@@ -563,7 +553,7 @@ class PlaceholdersForm(forms.Form):
         [Automatically created]
     """
 
-    def __init__(self, project_id: int, *args, **kwargs) -> None:
+    def __init__(self, project_id: int, *args: Any, **kwargs: Any) -> None:
         """Find placeholders and initialises web app fields
 
         Searches for placeholders in markdown files in doc folder and creates
@@ -574,7 +564,7 @@ class PlaceholdersForm(forms.Form):
         placeholder: str = ""
         value: str = ""
 
-        project_build = ProjectBuilder(project_id)
+        project_build = projects_builder.ProjectBuilder(project_id)
         placeholders = project_build.get_placeholders()
 
         for (
@@ -591,13 +581,13 @@ class PlaceholdersForm(forms.Form):
                 ),
             )
 
-    def clean(self) -> dict:
+    def clean(self) -> dict[str, Any]:
         """Checks placeholders for invalid characters
 
         Current invalid characters are "{}\"'"
         """
         INVALID_CHARACTERS: str = "{}\"'"
-        cleaned_data: Any = self.cleaned_data.copy()
+        cleaned_data: dict[str, Any] = self.cleaned_data.copy()
         key: str = ""
         value: str = ""
 
@@ -615,7 +605,7 @@ class PlaceholdersForm(forms.Form):
 class DocumentNewForm(forms.Form):
     """ """
 
-    def __init__(self, project_id: int, *args, **kwargs) -> None:
+    def __init__(self, project_id: int, *args: Any, **kwargs: Any) -> None:
         """Initialisation of the selection field
 
         Searches the docs folder and searches for markdown files, noting the
@@ -634,21 +624,21 @@ class DocumentNewForm(forms.Form):
             ),
         )
 
-    def clean(self) -> dict:
+    def clean(self) -> dict[str, Any]:
         """Checks if a valid path"""
-        cleaned_data: Any = self.cleaned_data
+        cleaned_data: dict[str, Any] = self.cleaned_data
         document_name: str = cleaned_data["document_name"]
         valid_1: bool = False
         valid_2: bool = False
-        error_messages_1: list = []
-        error_messages_2: list = []
+        error_messages_1: list[str] = []
+        error_messages_2: list[str] = []
 
         (
             valid_1,
             error_messages_1,
         ) = valid_linux_path(document_name)
 
-        project = ProjectBuilder(self.project_id)
+        project = projects_builder.ProjectBuilder(self.project_id)
         (
             valid_2,
             error_messages_2,
@@ -677,7 +667,7 @@ class DocumentUpdateForm(forms.Form):
                  curley brackets (eg {{ placeholder }})
     """
 
-    def __init__(self, project_id: int, *args, **kwargs) -> None:
+    def __init__(self, project_id: int, *args: Any, **kwargs: Any) -> None:
         """Initialisation of the selection field
 
         Searches the docs folder and searches for markdown files, noting the
@@ -687,7 +677,7 @@ class DocumentUpdateForm(forms.Form):
         self.project_id: int = project_id
         document_name: str = ""
         docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
-        initial_data: Mapping = self.initial or {}
+        initial_data: Mapping[str, str] = self.initial or {}
         document_markdown: str = ""
 
         # TODO - perhaps a message that docs folder is missing should be presented.
@@ -748,9 +738,9 @@ class DocumentUpdateForm(forms.Form):
             widget=forms.HiddenInput(attrs={}),
         )
 
-    def clean(self) -> dict:
+    def clean(self) -> dict[str, Any]:
         """ """
-        cleaned_data: Any = self.cleaned_data
+        cleaned_data: dict[str, Any] = self.cleaned_data
         """document_name: str = cleaned_data["document_name"]"""
         # document_markdown: str = cleaned_data["document_markdown"]
         # md_files_list: list = md_files(self.project_id)
@@ -794,8 +784,8 @@ class EntryUpdateForm(forms.Form):
         self,
         project_id: int,
         entry_type: str,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         """Initialise the entry form
 
@@ -806,7 +796,9 @@ class EntryUpdateForm(forms.Form):
             TODO:TODO
         """
         super(EntryUpdateForm, self).__init__(*args, **kwargs)
-        project: ProjectBuilder = ProjectBuilder(project_id)
+        project: projects_builder.ProjectBuilder = (
+            projects_builder.ProjectBuilder(project_id)
+        )
         entry_template: list[dict[str, Any]] = project.entry_file_read(
             entry_type
         )

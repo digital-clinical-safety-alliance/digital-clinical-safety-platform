@@ -12,7 +12,17 @@ from fnmatch import fnmatch
 import re
 import yaml
 import shutil
-from typing import TextIO, Pattern, Tuple, Any, Callable, Any, Dict, Generator
+from typing import (
+    TextIO,
+    Pattern,
+    Tuple,
+    Any,
+    Callable,
+    Any,
+    Dict,
+    Generator,
+    Optional,
+)
 from django.http import HttpRequest
 from pathlib import Path
 from git import Repo
@@ -43,6 +53,8 @@ from ..models import (
     ProjectGroup,
     UserProjectAttribute,
 )
+
+from ..forms import PlaceholdersForm
 
 
 class ProjectBuilder:
@@ -76,7 +88,7 @@ class ProjectBuilder:
         return
 
     @staticmethod
-    def new_build_prohibit(func: Callable) -> Callable:
+    def new_build_prohibit(func: Callable[..., Any]) -> Callable[..., Any]:
         """A decorator checking if a method can be used
 
         If used, this decorator only allows a method to be used if a project_id is specified
@@ -86,7 +98,7 @@ class ProjectBuilder:
         """
 
         @wraps(func)
-        def wrapper(self, *args, **kwargs):
+        def wrapper(self: "ProjectBuilder", *args: Any, **kwargs: Any) -> Any:
             """Wraps around the page function.
 
             Args:
@@ -380,14 +392,14 @@ class ProjectBuilder:
             placeholders (dict[str,str]): dictionary of placeholders. Key is name
                                           of placeholder and value is the value.
         """
-        placeholders_extra: dict = {"extra": placeholders}
-        file: TextIO
+        placeholders_extra: dict[str, dict[str, str]] = {"extra": placeholders}
+        file: Optional[TextIO] = None
 
         with open(self.placeholders_yaml, "w") as file:
             yaml.dump(placeholders_extra, file)
         return
 
-    def save_placeholders_from_form(self, form: dict[str, str]) -> None:
+    def save_placeholders_from_form(self, form: PlaceholdersForm) -> None:
         """Saves placeholders to yaml
 
         Saves the placeholders, as supplied via a web form.
@@ -416,7 +428,7 @@ class ProjectBuilder:
             FileNotFoundError: if placeholder yaml is not a valid file.
             ValueError: if error reading content of yaml file.
         """
-        placeholders_extra: dict = {}
+        placeholders_extra: dict[str, dict[str, str]] = {}
         return_dict: dict[str, str] = {}
         file: TextIO
 
@@ -477,7 +489,7 @@ class ProjectBuilder:
             list[dict[str, Any]]: a list of fields. Fields contents are described
                                   in dictionary form.
         """
-        lines: list = []
+        lines: list[str] = []
         content_list: list[dict[str, Any]] = []
         heading: str = ""
         headed: bool = False
@@ -487,11 +499,10 @@ class ProjectBuilder:
         MAX_LOOP: int = 100
         entry_file_path: str = ""
         text_list: str = ""
-        choices_list: list = []
-        choices_dict_split: dict = {}
+        choices_list: list[Any] = []
+        choices_dict_split: dict[str, str] = {}
         potential_number: str = ""
         heading_numbered: str = ""
-        code_line_numbered: str = ""
 
         if non_template_path == "":
             entry_file_path = f"{ self.entries_templates_dir }{ entry_type }{ c.ENTRY_TEMPLATE_SUFFIX }"
@@ -787,12 +798,13 @@ class ProjectBuilder:
         """
         entries_directory: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/{ entry_type }s/{ entry_type }s/"
         files_to_check: list[str] = []
-        entry_file: TextIO
-        pattern: Pattern
+        entry_file: Optional[TextIO] = None
+        pattern: Pattern[str] = re.compile(r"\s*\[\d+\]$")
         results: dict[str, Any] = {}
         id_int: int = 0
         to_write: str = ""
         numbers: list[int] = []
+        entry_name: str = ""
 
         if not Path(entries_directory).is_dir():
             Path(entries_directory).mkdir(parents=True, exist_ok=True)
@@ -832,7 +844,7 @@ class ProjectBuilder:
             return results
 
         # Used to remove number in square brackets (eg "[2]") at end of keys
-        pattern = re.compile(r"\s*\[\d+\]$")
+        # pattern = re.compile(r"\s*\[\d+\]$")
 
         entry_file = open(
             f"{ entries_directory }{ entry_type }-{ id_int }.md",
@@ -858,10 +870,15 @@ class ProjectBuilder:
         project.last_modified = timezone.now()
         project.save()
 
+        for key, value in form_data.items():
+            if "name" in key:
+                entry_name = value
+                break
+
         results = {
             "pass": True,
             "id": id_int,
-            "name": next(iter(form_data.values())),
+            "name": entry_name,
             "entries_url": f"{ entry_type }s/{ entry_type }s/{ entry_type }-{ id_int }.html",
         }
 
@@ -909,7 +926,7 @@ class ProjectBuilder:
         return entry_form
 
     @new_build_prohibit
-    def entry_template_names(self) -> list:
+    def entry_template_names(self) -> list[str]:
         """ """
         templates: Generator[Path, None, None] = Path(
             self.entries_templates_dir
@@ -952,7 +969,9 @@ class ProjectBuilder:
         return False
 
     @new_build_prohibit
-    def entries_all_get(self, entry_type: str) -> list[str]:
+    def entries_all_get(
+        self, entry_type: str
+    ) -> list[str | list[dict[str, Any]]]:
         """Get all of the hazards for the project
 
         Returns:
@@ -961,9 +980,12 @@ class ProjectBuilder:
         entry_dir: str = f"{ self.safety_dir }docs/{ entry_type }s/"
         entry_entry_dir: str = f"{ entry_dir }{ entry_type }s/"
         entry_file_contents: list[str] = []
-        entries_list: list = []
-        entry_with_attributes: list = []
+        entries_list: list[str | list[dict[str, Any]]] = []
+        fields: list[dict[str, Any]] = []
+        name: str = ""
+        entry_with_attributes: list[dict[str, Any]] = []
         entry_number: str | None = ""
+        # element
 
         for path, _, files in os.walk(entry_entry_dir):
             for name in files:
@@ -974,6 +996,7 @@ class ProjectBuilder:
 
         for file in entry_file_contents:
             pattern = r"-([0-9]+)\.md"
+            name = ""
 
             matches = re.search(pattern, file)
 
@@ -985,22 +1008,30 @@ class ProjectBuilder:
             else:
                 entry_number = None
 
+            fields = self.entry_file_read(entry_type, file)
+
+            for element in fields:
+                if "name" in element["heading"]:
+                    name = element["text"]
+                    break
+
             entry_with_attributes = [
                 {
                     "file": file,
                     "number": entry_number,
+                    "name": name,
                 }
             ]
-            entry_with_attributes.extend(
-                self.entry_file_read(entry_type, file)
-            )
+            entry_with_attributes.extend(fields)
             entries_list.append(entry_with_attributes)
 
             # print(entries_list)
         return entries_list
 
     @new_build_prohibit
-    def form_initial(self, entry_type: str, id: int) -> dict:
+    def form_initial(
+        self, entry_type: str, id: int
+    ) -> dict[str, str | list[str]]:
         """Return data for initialising a django form
 
         Args:
@@ -1013,7 +1044,8 @@ class ProjectBuilder:
         """
         file_path: str = ""
         data: list[dict[str, str]] = []
-        data_initial: dict = {}
+        data_initial: dict[str, str | list[str]] = {}
+        selected_options: list[str] = []
 
         file_path = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/{ entry_type }s/{ entry_type }s/{ entry_type }-{ id }.md"
         template = self.entry_file_read(entry_type)
@@ -1096,7 +1128,7 @@ class ProjectBuilder:
         docs_location = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
         excluded_directory: list[str] = self._entry_templates_exclude()
         exclude: bool = False
-        md_files: list = []
+        md_files: list[str] = []
 
         if not os.path.isdir(docs_location):
             raise FileNotFoundError(
