@@ -55,7 +55,7 @@ services:
   #  depends_on:
   #    - nginx
   #  networks: 
-  #    - cross-site
+  #    - cross-site 
 
 volumes:
   postgres_data:
