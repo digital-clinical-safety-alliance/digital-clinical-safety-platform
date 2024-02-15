@@ -33,7 +33,7 @@ import app.functions.constants as c
 
 sys.path.append(c.FUNCTIONS_APP)
 import app.functions.projects_builder as projects_builder
-from app.functions.general_fuctions import (
+from app.functions.general_functions import (
     valid_linux_path,
     list_to_string,
 )
@@ -676,7 +676,9 @@ class DocumentUpdateForm(forms.Form):
         super(DocumentUpdateForm, self).__init__(*args, **kwargs)
         self.project_id: int = project_id
         document_name: str = ""
-        docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        docs_dir: str = (
+            f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        )
         initial_data: Mapping[str, str] = self.initial or {}
         document_markdown: str = ""
 

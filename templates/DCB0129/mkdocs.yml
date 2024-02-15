@@ -55,8 +55,8 @@ copyright: Clinicians-who-code
 
 # these lines configure the 'GitHub repo' widget on the top right
 # uncomment to enable
-repo_url: https://github.com/clinicians-who-code/clinical-safety-hazard-documentation
-repo_name: clinical-safety-hazard-documentation
+# repo_url: https://github.com/digital-clinical-safety-alliance/digital-clinical-safety-platform
+# repo_name: clinical-safety-hazard-documentation
 
 
 # Navigation structure

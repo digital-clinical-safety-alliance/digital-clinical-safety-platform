@@ -10,12 +10,8 @@ services:
     #restart: unless-stopped
     volumes:
       - ./:/dcsp
-      # TODO #36 - These will need to be converted into a volume at some point
-      - ../projects:/projects
-      - ../documentation-pages:/documentation-pages
-      #- ../mkdocstrings:/usr/local/lib/python3.10/dist-packages/mkdocstrings
-      #- ../mkdocstrings_handlers:/usr/local/lib/python3.10/dist-packages/mkdocstrings_handlers
-      #- ../griffe:/usr/local/lib/python3.10/dist-packages/griffe
+      - projects:/projects
+      - documentation-pages:/documentation-pages
     env_file:
       - .env
     working_dir: /dcsp/app
@@ -48,7 +44,7 @@ services:
     volumes:
       - ./app/dcsp/static/:/static/:ro
       - ./nginx/dev/:/etc/nginx/:ro
-      - ../documentation-pages:/documentation-pages
+      - documentation-pages:/documentation-pages
       - ./logs/nginx/:/var/log/nginx/
     depends_on:
       - dcsp-docs-builder
@@ -57,6 +53,8 @@ services:
 
 volumes:
   postgres_data:
+  projects:
+  documentation-pages:
 
 networks:
   cross-site:

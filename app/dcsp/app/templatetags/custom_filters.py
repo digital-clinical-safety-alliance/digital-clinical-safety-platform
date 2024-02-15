@@ -3,7 +3,7 @@ from typing import Mapping, Any
 
 register = template.Library()
 
-from app.functions.general_fuctions import (
+from app.functions.general_functions import (
     kebab_to_title,
 )
 

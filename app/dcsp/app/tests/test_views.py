@@ -22,7 +22,7 @@ sys.path.append(c.FUNCTIONS_APP)
 import app.views as views
 from app.models import Project, UserProjectAttribute
 import app.tests.data_views as d
-from app.functions.general_fuctions import snake_to_title
+from app.functions.general_functions import snake_to_title
 
 
 def log_in(self):
@@ -1483,7 +1483,9 @@ class DocumentUpdateTest(TestCase):
     ):
         project_id = 1
         setup_step = 2
-        docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        docs_dir: str = (
+            f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        )
         updated_form_data = {
             "document_name": "another_name.md",
             "document_markdown": "Some safety information",
@@ -1545,7 +1547,9 @@ class DocumentUpdateTest(TestCase):
         setup_step = 2
         document_name = "same_name.md"
         new_text = "new text"
-        docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        docs_dir: str = (
+            f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        )
         updated_form_data = {
             "document_name": document_name,
             "document_markdown": "new text",

@@ -39,7 +39,8 @@ services:
       - "80:80"
     volumes:
       - ./app/dcsp/static/:/static/:ro
-      - ./nginx/prod/:/etc/nginx/:ro
+      - ./nginx/dev/:/etc/nginx/:ro
+      - documentation-pages:/documentation-pages
       - ./logs/nginx/:/var/log/nginx/
     depends_on:
       - dcsp-docs-builder-prod
@@ -58,8 +59,9 @@ services:
 
 volumes:
   postgres_data:
-  users_docs:
-
+  projects:
+  documentation-pages:
+  
 networks:
   cross-site:
     driver: bridge
