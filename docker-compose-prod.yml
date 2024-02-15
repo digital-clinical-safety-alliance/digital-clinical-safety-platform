@@ -7,7 +7,8 @@ services:
     restart: "always"
     volumes:
       - ./:/dcsp
-      - users_docs:/users_docs
+      - projects:/projects
+      - documentation-pages:/documentation-pages
     env_file:
       - .env
     working_dir: /dcsp/app
@@ -36,7 +37,6 @@ services:
     ports:
       - "443:443"
       - "80:80"
-      - "9000:9000"
     volumes:
       - ./app/dcsp/static/:/static/:ro
       - ./nginx/prod/:/etc/nginx/:ro

@@ -7,11 +7,32 @@ services:
     restart: "no"
     volumes:
       - ./:/dcsp
-      - users_docs:/users_docs
+      - projects:/projects
+      - documentation-pages:/documentation-pages
     env_file:
       - .env
     working_dir: /dcsp/cicd
+    networks: 
+      - cross-site-cicd
     entrypoint: bash PID_1_cicd.sh
 
+  dcsp-postgres-cicd:
+    image: postgres:latest
+    container_name: dcsp-postgres-cicd
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    networks: 
+      - cross-site-cicd
+
 volumes:
-  users_docs:
+  postgres_data:
+  projects:
+  documentation-pages:
+
+networks:
+  cross-site-cicd:
+    driver: bridge  
