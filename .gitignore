@@ -2,6 +2,8 @@
 .DS_Store
 /dcsp/app/dcsp/app/tests/test_docs/mkdocs/docs/*
 /dcsp/app/dcsp/app/tests/test_docs/mkdocs_empty_folders/docs/*
+.env_dev
+.env_cicd
 .env_prod
 #mkdocs/docs/
 

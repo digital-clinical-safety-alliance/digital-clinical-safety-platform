@@ -13,7 +13,7 @@ services:
       - projects:/projects
       - documentation-pages:/documentation-pages
     env_file:
-      - .env
+      - .env_dev
     working_dir: /dcsp/app
     depends_on:
       - dcsp-postgres
@@ -26,10 +26,12 @@ services:
     container_name: dcsp-postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+    env_file:
+      - .env_dev
+    #environment:
+    #  POSTGRES_USER: ${POSTGRES_USER}
+    #  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    #  POSTGRES_DB: ${POSTGRES_DB}
     networks: 
       - cross-site
 
@@ -44,7 +46,7 @@ services:
     volumes:
       - ./app/dcsp/static/:/static/:ro
       - ./nginx/dev/:/etc/nginx/:ro
-      - documentation-pages:/documentation-pages
+      - documentation-pages:/documentation-pages:ro
       - ./logs/nginx/:/var/log/nginx/
     depends_on:
       - dcsp-docs-builder

@@ -50,7 +50,7 @@ jobs:
           envkey_POSTGRES_HOST: 'dcsp-postgres-cicd'
           envkey_POSTGRES_PORT: '5432'
           envkey_ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
-          file_name: .env
+          file_name: .env_cicd
 
       - name: Testing inside Docker container
         run: >
@@ -107,11 +107,12 @@ jobs:
         run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-prod.yml up -d'
       
       - name: Migrate Django
-        run: ssh deploy 'docker exec dcsp-docs-builder-prod python3 dcsp/manage.py makemigrations && docker exec dcsp-docs-builder-prod python3 dcsp/manage.py migrate'
+        run: ssh deploy 'docker exec dcsp-docs-builder-prod python3 sh mmr.sh'
+        #run: ssh deploy 'docker exec dcsp-docs-builder-prod python3 dcsp/manage.py makemigrations && docker exec dcsp-docs-builder-prod python3 dcsp/manage.py migrate'
   
         # TODO #37 - should look at just restarting Gunivicorn / Django rather than whole app
-      - name: Restart docker services
-        run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-prod.yml restart'
+      #- name: Restart docker services
+      #  run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-prod.yml restart'
 
 
   mkdocs-documents:

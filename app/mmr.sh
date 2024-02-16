@@ -8,6 +8,12 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+python3 manage.py makemigrations app
+
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+
 echo "--- Migrate ---"
 python3 manage.py migrate
 
