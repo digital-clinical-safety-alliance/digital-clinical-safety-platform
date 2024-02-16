@@ -12,6 +12,8 @@ ARG TEST_FOLDER=/test_folder
 ARG UID=1001
 ARG GID=1001
 
+RUN mkdir -p /test_1
+
 #TODO: may need to remove update as this will have different updates over time
 #TODO: do we need upgrade as well for security?
 RUN apt-get -y update
@@ -49,6 +51,8 @@ RUN mkdir -p /test_folder
 # VOLUME $FOLDER_DOCUMENTATION_PAGES
 RUN chown -R $UNAME /test_folder
 RUN chmod -R g+rw /test_folder
+
+RUN mkdir -p /test_2
 
 # run 'pip freeze' without node, as node adds 3 files which 'pip install' 
 # cannot install
