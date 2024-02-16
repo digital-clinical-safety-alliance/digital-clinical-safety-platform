@@ -16,10 +16,10 @@ DATABASES = {
             "POSTGRES_ENGINE",
             "django.db.backends.sqlite3",
         ),
-        "NAME": "dcsp-postgres-cicd",  # os.environ.get("POSTGRES_DB", BASE_DIR / "db.sqlite3"),
+        "NAME": os.environ.get("POSTGRES_DB", "dcsp-postgres-cicd"),
         "USER": os.environ.get("POSTGRES_USER", "user"),
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "password"),
-        "HOST": "dcsp-postgres-cicd",  # os.environ.get("POSTGRES_HOST", "dcsp-postgres"),
+        "HOST": os.environ.get("POSTGRES_HOST", "dcsp-postgres-cicd"),
         "PORT": os.environ.get("POSTGRES_PORT", "5432"),
     }
 }

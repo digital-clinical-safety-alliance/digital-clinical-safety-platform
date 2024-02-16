@@ -1,12 +1,12 @@
 version: "3.9"
 
 services:
-  dcsp-docs-builder:
+  dcsp-docs-builder-dev:
     build: 
       context: ./dockerfiles/app
       dockerfile: Dockerfile
       target: dev
-    container_name: dcsp-docs-builder
+    container_name: dcsp-docs-builder-dev
     #restart: unless-stopped
     volumes:
       - ./:/dcsp
@@ -16,14 +16,14 @@ services:
       - .env_dev
     working_dir: /dcsp/app
     depends_on:
-      - dcsp-postgres
+      - dcsp-postgres-dev
     networks: 
       - cross-site
     entrypoint: bash PID_1.sh
 
-  dcsp-postgres:
+  dcsp-postgres-dev:
     image: postgres:latest
-    container_name: dcsp-postgres
+    container_name: dcsp-postgres-dev
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
@@ -35,9 +35,9 @@ services:
     networks: 
       - cross-site
 
-  dcsp-nginx:
+  dcsp-nginx-dev:
     image: nginx:alpine
-    container_name: dcsp-nginx
+    container_name: dcsp-nginx-dev
     #restart: unless-stopped
     ports:
       - "443:443"
@@ -49,7 +49,7 @@ services:
       - documentation-pages:/documentation-pages:ro
       - ./logs/nginx/:/var/log/nginx/
     depends_on:
-      - dcsp-docs-builder
+      - dcsp-docs-builder-dev
     networks: 
       - cross-site
 

@@ -19,10 +19,6 @@ echo Running Black linter
 echo "-------------------"
 cd /dcsp/cicd/black_linter
 
-if [ "$FORMAT" = "True" ]; then
-    python3 -m black --config pyproject.toml /dcsp/    
-fi
-
 python3 -m black --config pyproject.toml /dcsp/ --check
 
 # Check the exit code of the linter
