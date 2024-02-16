@@ -1483,9 +1483,7 @@ class DocumentUpdateTest(TestCase):
     ):
         project_id = 1
         setup_step = 2
-        docs_dir: str = (
-            f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
-        )
+        docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
         updated_form_data = {
             "document_name": "another_name.md",
             "document_markdown": "Some safety information",
@@ -1547,9 +1545,7 @@ class DocumentUpdateTest(TestCase):
         setup_step = 2
         document_name = "same_name.md"
         new_text = "new text"
-        docs_dir: str = (
-            f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
-        )
+        docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
         updated_form_data = {
             "document_name": document_name,
             "document_markdown": "new text",
