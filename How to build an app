@@ -87,4 +87,4 @@ curl -X GET https://hub.docker.com/v2/repositories/cotswoldsmaker/dcsp/tags
 
 Fast get into cicd folder
 
->> docker exec -it --workdir=/dcsp/cicd dcsp-docs-builder bash 
+>> docker exec -it --workdir=/dcsp/cicd dcsp-docs-builder bash
