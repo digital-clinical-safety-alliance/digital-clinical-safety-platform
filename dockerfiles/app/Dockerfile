@@ -56,20 +56,9 @@ FROM base as dev
 FROM dev as cicd
 #RUN pip install -r requirements-dev-cicd.txt
 #RUN apt-get -y install nodejs npm
-#USER $UNAME
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+USER $UNAME
 
 FROM base as prod
-
-RUN mkdir -p /test1
-RUN mkdir -p /test2
-# VOLUME $FOLDER_DOCUMENTATION_PAGES
-RUN chown -R $UNAME /test1
-RUN chmod -R g+rw /test1
 USER $UNAME
-#COPY entrypoint.sh /entrypoint.sh
-#RUN chmod +x /entrypoint.sh
-#ENTRYPOINT ["/entrypoint.sh"]
+
 
