@@ -64,7 +64,10 @@ from app.functions.projects_builder import ProjectBuilder
 from app.functions.env_manipulation import ENVManipulator
 from app.functions.mkdocs_control import MkdocsControl
 from app.functions.git_control import GitController
-from app.functions.general_functions import snake_to_title, kebab_to_title
+from app.functions.general_functions import (
+    snake_to_sentense,
+    kebab_to_sentense,
+)
 
 
 from .forms import (
@@ -194,9 +197,9 @@ def start_new_project(  # type: ignore[return]
             if form.is_valid():
                 setup_step = 2
                 request.session["project_setup_step"] = setup_step
-                request.session[
-                    "project_setup_1_form_data"
-                ] = form.cleaned_data
+                request.session["project_setup_1_form_data"] = (
+                    form.cleaned_data
+                )
                 setup_choice = form.cleaned_data["setup_choice"]
 
                 if setup_choice == "import":
@@ -218,7 +221,7 @@ def start_new_project(  # type: ignore[return]
                 # start_anew just jumps straight to the next step
                 context = {
                     "page_title": "Setup a new project",
-                    "setup_choice": snake_to_title(setup_choice),
+                    "setup_choice": snake_to_sentense(setup_choice),
                     "form": ProjectSetupStepTwoForm(),
                     "setup_step": setup_step,
                 }
@@ -256,9 +259,9 @@ def start_new_project(  # type: ignore[return]
 
                 setup_step = 3
                 request.session["project_setup_step"] = setup_step
-                request.session[
-                    "project_setup_2_form_data"
-                ] = form.cleaned_data
+                request.session["project_setup_2_form_data"] = (
+                    form.cleaned_data
+                )
 
                 inputs = request.session["project_setup_1_form_data"].copy()
                 inputs.update(request.session["project_setup_2_form_data"])
@@ -270,7 +273,7 @@ def start_new_project(  # type: ignore[return]
 
                 context = {
                     "page_title": "Setup a new project",
-                    "setup_choice": snake_to_title(setup_choice),
+                    "setup_choice": snake_to_sentense(setup_choice),
                     "inputs_GUI": start_new_project_step_2_input_GUI(inputs),
                     "setup_step": setup_step,
                     "CLINICAL_SAFETY_FOLDER": c.CLINICAL_SAFETY_FOLDER,
@@ -777,7 +780,9 @@ def document_update(  # type: ignore[return]
     document_markdown: str = ""
     document_markdown_file_read: str = ""
     form_data: dict[str, str] = {}
-    docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+    docs_dir: str = (
+        f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+    )
     file: TextIO
     context: dict[str, Any] = {}
 
@@ -949,7 +954,7 @@ def entry_update(  # type: ignore[return]
     if request.method == "GET":
         if id_new == "new":
             context = {
-                "page_title": f"Create new { kebab_to_title(entry_type) }",
+                "page_title": f"Create new { kebab_to_sentense(entry_type) }",
                 "project_id": project_id,
                 "form": EntryUpdateForm(project_id, entry_type),
                 "entry_type": entry_type,
@@ -965,7 +970,7 @@ def entry_update(  # type: ignore[return]
         else:
             form_initial = project.form_initial(entry_type, int(id_new))
             context = {
-                "page_title": f"Update { kebab_to_title(entry_type) }",
+                "page_title": f"Update { kebab_to_sentense(entry_type) }",
                 "project_id": project_id,
                 "form": EntryUpdateForm(
                     project_id,
@@ -994,7 +999,7 @@ def entry_update(  # type: ignore[return]
             )
 
             context = {
-                "page_title": f"{ kebab_to_title(entry_type) } saved",
+                "page_title": f"{ kebab_to_sentense(entry_type) } saved",
                 "project_id": project_id,
                 "entry_update_outcome": entry_update_outcome,
                 "entry_type": entry_type,
@@ -1009,9 +1014,9 @@ def entry_update(  # type: ignore[return]
 
         else:
             if id_new == "new":
-                page_title = f"Create new { kebab_to_title(entry_type) }"
+                page_title = f"Create new { kebab_to_sentense(entry_type) }"
             else:
-                page_title = f"Update { kebab_to_title(entry_type) }"
+                page_title = f"Update { kebab_to_sentense(entry_type) }"
 
             context = {
                 "page_title": page_title,
@@ -1064,7 +1069,7 @@ def entry_select(
     entries = project.entries_all_get(entry_type)
 
     context = {
-        "page_title": f"Select { kebab_to_title(entry_type) } to edit",
+        "page_title": f"Select { kebab_to_sentense(entry_type) } to edit",
         "project_id": project_id,
         "entries": entries,
         "entry_type": entry_type,
@@ -1230,10 +1235,10 @@ def start_new_project_step_2_input_GUI(
     for key, value in inputs.items():
         key = key.replace("import", "")
         key = key.replace("start_anew", "")
-        key = snake_to_title(key)
+        key = snake_to_sentense(key)
 
         if key == "Setup choice":
-            inputs_GUI[key] = snake_to_title(value)
+            inputs_GUI[key] = snake_to_sentense(value)
 
         elif key == "Groups":
             groups_list = [

@@ -3,12 +3,12 @@
 This module contains functions for manipulating text.
 
 functions:
-    snake_to_title(snake_text: str) -> str: snake to title conversion
-    kebab_to_title(kebab_text: str) -> str: kebab to title conversion
+    snake_to_sentense(snake_text: str) -> str: snake to title conversion
+    kebab_to_sentense(kebab_text: str) -> str: kebab to title conversion
 """
 
 
-def snake_to_title(snake_text: str) -> str:
+def snake_to_sentense(snake_text: str) -> str:
     """Convert snake case text to title case text.
 
     Convert snake case text to title case text. The first letter of the first
@@ -30,7 +30,7 @@ def snake_to_title(snake_text: str) -> str:
     return title_text
 
 
-def kebab_to_title(kebab_text: str) -> str:
+def kebab_to_sentense(kebab_text: str) -> str:
     """Convert kebab case text to title case text.
 
     Convert kebab case text to title case text. The first letter of the first

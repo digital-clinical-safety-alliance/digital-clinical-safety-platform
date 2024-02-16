@@ -14,12 +14,12 @@
 
  
             {% if entries %}
-                <div class="mb-3">Please select {{ entry_type|a_an }} {{ entry_type|kebab_to_title }} from below to edit.</div>
+                <div class="mb-3">Please select {{ entry_type|a_an }} {{ entry_type|kebab_to_sentense }} from below to edit.</div>
                 {% for entry in entries %}
                     <p>
                         <a class="link-dcsp"
                            href="{% url 'entry_update' project_id entry_type entry.0.number %}">
-                            <strong>{{ entry_type|kebab_to_title }} {{ entry.0.number }}</strong> -
+                            <strong>{{ entry_type|kebab_to_sentense }} {{ entry.0.number }}</strong> -
                             {{ entry.0.name }}
                         </a>
                         <!-- - {{ entry.2.text }}</a>-->
@@ -28,7 +28,7 @@
                 {% endfor %}
 	
             {% else %}
-                There are currently no {{ entry_type|kebab_to_title }} entries.
+                There are currently no {{ entry_type|kebab_to_sentense }} entries.
             {% endif %}
         </div>
 

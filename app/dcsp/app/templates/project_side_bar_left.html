@@ -22,7 +22,7 @@
     </div>
     {% for entry in entry_templates %}
         <div class="pb-2">
-            {{ entry|kebab_to_title }}:
+            {{ entry|kebab_to_sentense }}:
             <a class="link-dcsp"
                href="{% url 'entry_update' project_id entry 'new' %}">New</a>
             <a class="link-dcsp" href="{% url 'entry_select' project_id entry %}">Edit</a>

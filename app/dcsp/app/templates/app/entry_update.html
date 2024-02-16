@@ -47,9 +47,9 @@
                     {% endif %}
                 {% endfor %}
                 {% if id_new == "new" %}
-                    <button class="btn btn-secondary right" type="submit">Create {{ entry_type|kebab_to_title }}</button>
+                    <button class="btn btn-secondary right" type="submit">Create {{ entry_type|kebab_to_sentense }}</button>
                 {% else %}
-                    <button class="btn btn-secondary right" type="submit">Update {{ entry_type|kebab_to_title }}</button>
+                    <button class="btn btn-secondary right" type="submit">Update {{ entry_type|kebab_to_sentense }}</button>
                 {% endif %}
             </form>
         </div>

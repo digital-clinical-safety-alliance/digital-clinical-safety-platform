@@ -5,7 +5,7 @@ import re
 from typing import Tuple
 
 
-def snake_to_title(snake_text: str) -> str:
+def snake_to_sentense(snake_text: str) -> str:
     """ """
     words: list[str] = snake_text.split("_")
     title_text: str = " ".join(words).capitalize()
@@ -13,7 +13,7 @@ def snake_to_title(snake_text: str) -> str:
     return title_text
 
 
-def kebab_to_title(kebab_text: str) -> str:
+def kebab_to_sentense(kebab_text: str) -> str:
     """ """
     words: list[str] = kebab_text.split("-")
     title_text: str = " ".join(words).capitalize()

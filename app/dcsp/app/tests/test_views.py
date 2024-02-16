@@ -22,7 +22,7 @@ sys.path.append(c.FUNCTIONS_APP)
 import app.views as views
 from app.models import Project, UserProjectAttribute
 import app.tests.data_views as d
-from app.functions.general_functions import snake_to_title
+from app.functions.general_functions import snake_to_sentense
 
 
 def log_in(self):
@@ -1483,7 +1483,9 @@ class DocumentUpdateTest(TestCase):
     ):
         project_id = 1
         setup_step = 2
-        docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        docs_dir: str = (
+            f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        )
         updated_form_data = {
             "document_name": "another_name.md",
             "document_markdown": "Some safety information",
@@ -1545,7 +1547,9 @@ class DocumentUpdateTest(TestCase):
         setup_step = 2
         document_name = "same_name.md"
         new_text = "new text"
-        docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        docs_dir: str = (
+            f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        )
         updated_form_data = {
             "document_name": document_name,
             "document_markdown": "new text",
@@ -1799,14 +1803,14 @@ class EntryUpdateTest(TestCase):
 
     @patch("app.decorators._project_access")
     @patch("app.views.ProjectBuilder")
-    @patch("app.views.kebab_to_title")
+    @patch("app.views.kebab_to_sentense")
     @patch("app.views.EntryUpdateForm")
     @patch("app.views.std_context")
     def test_get_new(
         self,
         mock_std_context,
         mock_form,
-        mock_kebab_to_title,
+        mock_kebab_to_sentense,
         mock_project_builder,
         mock_project_access,
     ):
@@ -1823,7 +1827,7 @@ class EntryUpdateTest(TestCase):
         )
         # mock_project_builder - used here
         mock_project_builder.return_value.entry_type_exists.return_value = True
-        # mock_kebab_to_title - used here
+        # mock_kebab_to_sentense - used here
         # mock_form - used here
         mock_std_context.return_value = {"test": "test"}
 
@@ -1840,20 +1844,20 @@ class EntryUpdateTest(TestCase):
         mock_project_builder.return_value.entry_type_exists.assert_called_once_with(
             entry_type
         )
-        mock_kebab_to_title.assert_called_once_with(entry_type)
+        mock_kebab_to_sentense.assert_called_once_with(entry_type)
         mock_form.assert_called_once_with(project_id, entry_type)
         mock_std_context.assert_called_once_with(project_id)
 
     @patch("app.decorators._project_access")
     @patch("app.views.ProjectBuilder")
-    @patch("app.views.kebab_to_title")
+    @patch("app.views.kebab_to_sentense")
     @patch("app.views.EntryUpdateForm")
     @patch("app.views.std_context")
     def test_get_entry_1(
         self,
         mock_std_context,
         mock_form,
-        mock_kebab_to_title,
+        mock_kebab_to_sentense,
         mock_project_builder,
         mock_project_access,
     ):
@@ -1875,7 +1879,7 @@ class EntryUpdateTest(TestCase):
         mock_project_builder.return_value.form_initial.return_value = (
             form_initial
         )
-        # mock_kebab_to_title - used here
+        # mock_kebab_to_sentense - used here
         # mock_form - used here
         mock_std_context.return_value = {"test": "test"}
 
@@ -1898,7 +1902,7 @@ class EntryUpdateTest(TestCase):
         mock_project_builder.return_value.form_initial.assert_called_once_with(
             entry_type, entry_number
         )
-        mock_kebab_to_title.assert_called_once_with(entry_type)
+        mock_kebab_to_sentense.assert_called_once_with(entry_type)
         mock_form.assert_called_once_with(
             project_id, entry_type, initial=form_initial
         )
@@ -1908,12 +1912,12 @@ class EntryUpdateTest(TestCase):
     @patch("app.views.ProjectBuilder")
     @patch("app.views.EntryUpdateForm")
     @patch("app.views.project_timestamp")
-    @patch("app.views.kebab_to_title")
+    @patch("app.views.kebab_to_sentense")
     @patch("app.views.std_context")
     def test_get_post(
         self,
         mock_std_context,
-        mock_kebab_to_title,
+        mock_kebab_to_sentense,
         mock_project_timestamp,
         mock_form,
         mock_project_builder,
@@ -1941,7 +1945,7 @@ class EntryUpdateTest(TestCase):
             "test": "test"
         }
         mock_form.return_value.cleaned_data = form_initial
-        # mock_kebab_to_title - used here
+        # mock_kebab_to_sentense - used here
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.post(
@@ -1968,18 +1972,18 @@ class EntryUpdateTest(TestCase):
         mock_project_builder.return_value.entry_update.assert_called_once_with(
             form_initial, entry_type, str(entry_number)
         )
-        mock_kebab_to_title.assert_called_once_with(entry_type)
+        mock_kebab_to_sentense.assert_called_once_with(entry_type)
         mock_std_context.assert_called_once_with(project_id)
 
     @patch("app.decorators._project_access")
     @patch("app.views.ProjectBuilder")
     @patch("app.views.EntryUpdateForm")
-    @patch("app.views.kebab_to_title")
+    @patch("app.views.kebab_to_sentense")
     @patch("app.views.std_context")
     def test_get_post_invalid_entry_number_1(
         self,
         mock_std_context,
-        mock_kebab_to_title,
+        mock_kebab_to_sentense,
         mock_form,
         mock_project_builder,
         mock_project_access,
@@ -2001,7 +2005,7 @@ class EntryUpdateTest(TestCase):
         mock_project_builder.return_value.entry_type_exists.return_value = True
         # mock_form - used here
         mock_form.return_value.is_valid.return_value = False
-        # mock_kebab_to_title - used here
+        # mock_kebab_to_sentense - used here
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.post(
@@ -2024,18 +2028,18 @@ class EntryUpdateTest(TestCase):
 
         mock_form.assert_any_call(project_id, entry_type, request.POST)
         mock_form.return_value.is_valid.assert_called_once_with()
-        mock_kebab_to_title.assert_called_once_with(entry_type)
+        mock_kebab_to_sentense.assert_called_once_with(entry_type)
         mock_std_context.assert_called_once_with(project_id)
 
     @patch("app.decorators._project_access")
     @patch("app.views.ProjectBuilder")
     @patch("app.views.EntryUpdateForm")
-    @patch("app.views.kebab_to_title")
+    @patch("app.views.kebab_to_sentense")
     @patch("app.views.std_context")
     def test_get_post_invalid_entry_new(
         self,
         mock_std_context,
-        mock_kebab_to_title,
+        mock_kebab_to_sentense,
         mock_form,
         mock_project_builder,
         mock_project_access,
@@ -2056,7 +2060,7 @@ class EntryUpdateTest(TestCase):
         mock_project_builder.return_value.entry_type_exists.return_value = True
         # mock_form - used here
         mock_form.return_value.is_valid.return_value = False
-        # mock_kebab_to_title - used here
+        # mock_kebab_to_sentense - used here
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.post(
@@ -2077,7 +2081,7 @@ class EntryUpdateTest(TestCase):
 
         mock_form.assert_any_call(project_id, entry_type, request.POST)
         mock_form.return_value.is_valid.assert_called_once_with()
-        mock_kebab_to_title.assert_called_once_with(entry_type)
+        mock_kebab_to_sentense.assert_called_once_with(entry_type)
         mock_std_context.assert_called_once_with(project_id)
 
 
@@ -2181,12 +2185,12 @@ class EntrySelectTest(TestCase):
 
     @patch("app.decorators._project_access")
     @patch("app.views.ProjectBuilder")
-    @patch("app.views.kebab_to_title")
+    @patch("app.views.kebab_to_sentense")
     @patch("app.views.std_context")
     def test_get(
         self,
         mock_std_context,
-        mock_kebab_to_title,
+        mock_kebab_to_sentense,
         mock_project_builder,
         mock_project_access,
     ):
@@ -2203,7 +2207,7 @@ class EntrySelectTest(TestCase):
         # mock_project_builder - used here
         mock_project_builder.return_value.entry_type_exists.return_value = True
         # mock_project_builder.return_value.entries_all_get.return_value - used here
-        # mock_kebab_to_title - used here
+        # mock_kebab_to_sentense - used here
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.get(
@@ -2222,7 +2226,7 @@ class EntrySelectTest(TestCase):
         mock_project_builder.return_value.entries_all_get.assert_called_once_with(
             entry_type
         )
-        mock_kebab_to_title.assert_called_once_with(entry_type)
+        mock_kebab_to_sentense.assert_called_once_with(entry_type)
         mock_std_context.assert_called_once_with(project_id)
 
 

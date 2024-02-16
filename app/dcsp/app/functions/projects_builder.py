@@ -42,7 +42,7 @@ from app.functions.git_control import (
     GitHubController,
 )
 from app.functions.text_manipulation import (
-    kebab_to_title,
+    kebab_to_sentense,
 )
 from app.functions.general_functions import (
     list_to_string,
@@ -261,7 +261,9 @@ class ProjectBuilder:
     @new_build_prohibit
     def configuration_get(self) -> dict[str, Any]:
         """ """
-        configration_file: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }setup.ini"
+        configration_file: str = (
+            f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }setup.ini"
+        )
         config: ENVManipulator = ENVManipulator(configration_file)
         setup_step: None | str = None
 
@@ -280,7 +282,9 @@ class ProjectBuilder:
     @new_build_prohibit
     def configuration_set(self, key: str, value: str) -> None:
         """ """
-        configration_file: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }setup.ini"
+        configration_file: str = (
+            f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }setup.ini"
+        )
         config: ENVManipulator = ENVManipulator(configration_file)
 
         config.add(key, str(value))
@@ -459,7 +463,9 @@ class ProjectBuilder:
         Returns:
             bool: true if the entry of certain type exists.
         """
-        directory_to_check: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/{ entry_type }s/{ entry_type }s/"
+        directory_to_check: str = (
+            f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/{ entry_type }s/{ entry_type }s/"
+        )
         file_to_find: str = f"{ entry_type }-{ id }.md"
 
         if not id.isdigit():
@@ -687,9 +693,9 @@ class ProjectBuilder:
 
                 for choice in choices_list:
                     choice_split = choice.split("[")
-                    choices_dict_split[
-                        choice_split[0]
-                    ] = f"[{ choice_split[1] }"
+                    choices_dict_split[choice_split[0]] = (
+                        f"[{ choice_split[1] }"
+                    )
 
                 content_list[index]["choices"] = choices_dict_split
 
@@ -771,7 +777,7 @@ class ProjectBuilder:
 
         string = string.replace("#", "")
         string = string.strip()
-        string = kebab_to_title(string)
+        string = kebab_to_sentense(string)
         return string
 
     @new_build_prohibit
@@ -796,7 +802,9 @@ class ProjectBuilder:
         Returns:
             dict[str, Any]: returns a dictionary of method outcomes.
         """
-        entries_directory: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/{ entry_type }s/{ entry_type }s/"
+        entries_directory: str = (
+            f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/{ entry_type }s/{ entry_type }s/"
+        )
         files_to_check: list[str] = []
         entry_file: Optional[TextIO] = None
         pattern: Pattern[str] = re.compile(r"\s*\[\d+\]$")
@@ -905,9 +913,9 @@ class ProjectBuilder:
 
             elif element["field_type"] == "code":
                 # print("code")
-                entry_form[
-                    element["heading"]
-                ] = f"<!-- [code] -->\n{ code_html }\n<!-- [codeend] -->"
+                entry_form[element["heading"]] = (
+                    f"<!-- [code] -->\n{ code_html }\n<!-- [codeend] -->"
+                )
 
             elif element["field_type"] == "horizontal_line":
                 entry_form[element["heading"]] = ""

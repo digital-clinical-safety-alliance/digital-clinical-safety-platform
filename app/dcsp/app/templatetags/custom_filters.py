@@ -4,7 +4,7 @@ from typing import Mapping, Any
 register = template.Library()
 
 from app.functions.general_functions import (
-    kebab_to_title,
+    kebab_to_sentense,
 )
 
 
@@ -48,9 +48,9 @@ def remove_first_element(mapping: str) -> str:
     return mapping[1:]
 
 
-@register.filter(name="kebab_to_title")
-def kebab_to_title_filter(value: str) -> str:
-    value = kebab_to_title(value)
+@register.filter(name="kebab_to_sentense")
+def kebab_to_sentense_filter(value: str) -> str:
+    value = kebab_to_sentense(value)
     return value
 
 
