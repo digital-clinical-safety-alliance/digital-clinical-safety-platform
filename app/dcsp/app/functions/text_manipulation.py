@@ -42,6 +42,11 @@ def kebab_to_title(kebab_text: str) -> str:
     Returns:
         str: The title case text.
     """
+    if kebab_text.startswith("-"):
+        kebab_text = kebab_text[1:]
+
+    kebab_text = kebab_text.replace("--", "-")
+
     words = kebab_text.split("-")
     title_text = " ".join(words).capitalize()
     title_text = title_text.strip()

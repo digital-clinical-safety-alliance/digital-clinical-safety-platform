@@ -37,9 +37,9 @@ if "type_checking_functions" in RUN:
         outcome["Functions hint typing"] = "Pass"
     else:
         print(f" -Errors, exit code of: { process1.returncode}")
-        outcome[" Functions hint typing"] = (
-            f"Fail - return code: { process1.returncode }"
-        )
+        outcome[
+            " Functions hint typing"
+        ] = f"Fail - return code: { process1.returncode }"
 
 if "type_checking_django" in RUN:
     print("------------------------------")
@@ -52,9 +52,9 @@ if "type_checking_django" in RUN:
         outcome["Django hint typing"] = "pass"
     else:
         print(f" -Errors, exit code of: { process2.returncode}")
-        outcome["Django hint typing"] = (
-            f"Fail - return code: { process2.returncode }"
-        )
+        outcome[
+            "Django hint typing"
+        ] = f"Fail - return code: { process2.returncode }"
 
 if "unit_testing_all_but_git" in RUN:
     print("--------------------------")
@@ -78,9 +78,9 @@ if "unit_testing_all_but_git" in RUN:
         outcome["Unit testing all but git"] = "pass"
     else:
         print(f" -Errors, exit code of: { process3.returncode}")
-        outcome["Unit testing all but git"] = (
-            f"Fail - return code: { process3.returncode }"
-        )
+        outcome[
+            "Unit testing all but git"
+        ] = f"Fail - return code: { process3.returncode }"
 
 
 if "unit_testing_git_only" in RUN:
@@ -104,9 +104,9 @@ if "unit_testing_git_only" in RUN:
         outcome["Unit testing git and GitHub only"] = "pass"
     else:
         print(f" -Errors, exit code of: { process4.returncode}")
-        outcome["Unit testing git and GitHub only"] = (
-            f"Fail - return code: { process4.returncode }"
-        )
+        outcome[
+            "Unit testing git and GitHub only"
+        ] = f"Fail - return code: { process4.returncode }"
 
 if "single" in RUN:
     print("----------------------------------")
@@ -130,9 +130,9 @@ if "single" in RUN:
         outcome[f"Single file test { single_file }"] = "pass"
     else:
         print(f" -Errors, exit code of: { process5.returncode}")
-        outcome[f"Single file test { single_file }"] = (
-            f"Fail - return code: { process5.returncode }"
-        )
+        outcome[
+            f"Single file test { single_file }"
+        ] = f"Fail - return code: { process5.returncode }"
 
 
 print(f"{''.ljust(WIDTH_FINAL_RESULTS, '-') }")
