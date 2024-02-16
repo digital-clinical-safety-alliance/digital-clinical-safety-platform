@@ -107,7 +107,7 @@ jobs:
         run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-prod.yml up -d'
       
       - name: Migrate Django
-        run: ssh deploy 'docker exec dcsp-docs-builder-prod python3 sh mmr.sh'
+        run: ssh deploy 'docker exec dcsp-docs-builder-prod sh mmr.sh'
         #run: ssh deploy 'docker exec dcsp-docs-builder-prod python3 dcsp/manage.py makemigrations && docker exec dcsp-docs-builder-prod python3 dcsp/manage.py migrate'
   
         # TODO #37 - should look at just restarting Gunivicorn / Django rather than whole app
