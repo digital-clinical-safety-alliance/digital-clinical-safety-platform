@@ -89,13 +89,12 @@ jobs:
           SSH_USER: ${{ secrets.DEPLOY_SSH_USER }}
           SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
-          # ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 
       - name: Login to Docker
         run: ssh deploy 'docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}'
 
       - name: Pull image from Dockerhub
-        run: ssh deploy 'docker pull cotswoldsmaker/dcsp:prod'
+        run: ssh deploy 'docker pull cotswoldsmaker/dcsp-doc-builder-prod:latest'
 
       - name: Git pull
         run: ssh deploy 'cd /src/digital-clinical-safety-platform && git pull'
