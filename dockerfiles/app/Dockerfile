@@ -45,10 +45,10 @@ RUN mkdir -p $FOLDER_DOCUMENTATION_PAGES
 RUN chown -R $UNAME $FOLDER_DOCUMENTATION_PAGES
 RUN chmod -R g+rw $FOLDER_DOCUMENTATION_PAGES
 
-RUN mkdir -p $FOLDER_DOCUMENTATION_PAGES
+RUN mkdir -p $TEST_FOLDER
 # VOLUME $FOLDER_DOCUMENTATION_PAGES
-RUN chown -R $UNAME $FOLDER_DOCUMENTATION_PAGES
-RUN chmod -R g+rw $FOLDER_DOCUMENTATION_PAGES
+RUN chown -R $UNAME $TEST_FOLDER
+RUN chmod -R g+rw $TEST_FOLDER
 
 # run 'pip freeze' without node, as node adds 3 files which 'pip install' 
 # cannot install
