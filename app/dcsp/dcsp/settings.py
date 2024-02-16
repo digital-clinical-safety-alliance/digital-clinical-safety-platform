@@ -43,7 +43,7 @@ ALLOWED_HOSTS = os.environ.get("ALLOW_HOSTS").split(" ")  # type: ignore
 
 CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS").split(" ")
 
-CSRF_FAILURE_VIEW = 'app.views.custom_403_csrf'
+CSRF_FAILURE_VIEW = "app.views.custom_403_csrf"
 
 # Application definition
 
