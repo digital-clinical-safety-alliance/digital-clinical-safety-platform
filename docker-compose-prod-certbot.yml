@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
+    command: certonly --standalone --noninteractive --agree-tos --email mark.allan.bailey@gmail.com -d www.dcsalliance.org --http-01-port=80
+    ports:
+      - 80:80
+      - 443:443

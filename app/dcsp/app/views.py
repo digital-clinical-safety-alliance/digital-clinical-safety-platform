@@ -1324,10 +1324,40 @@ def project_timestamp(project_id: int) -> bool:
     return True
 
 
-def custom_404(request: HttpRequest, exception: Exception) -> HttpResponse:
-    """Title
+def custom_403(request: HttpRequest, exception: Exception) -> HttpResponse:
+    """Custom 403 - access forbidden page
 
-    Description
+    Custom 403 page for access forbidden
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
+
+    return render(request, "403.html", context=std_context(), status=403)
+
+
+def custom_403_csrf(request: HttpRequest, reason: Any = None) -> HttpResponse:
+    """Custom 403 - CSRF page
+
+    Custom 403 access forbidden when CRSF triggered.
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
+
+    return render(request, "403.html", context=std_context(), status=403)
+
+
+def custom_404(request: HttpRequest, exception: Exception) -> HttpResponse:
+    """Custom 404 page - page not found
+
+    Custom page not found.
 
     Args:
         request (HttpRequest): request from user

@@ -37,24 +37,26 @@ services:
       - "443:443"
       - "80:80"
     volumes:
-      - ./app/dcsp/static/:/static/:ro
-      - ./nginx/prod/:/etc/nginx/:ro
+      - ./app/dcsp/static:/static:ro
       - documentation-pages:/documentation-pages:ro
-      - ./logs/nginx/:/var/log/nginx/
+      - ./logs/nginx:/var/log/nginx
+
+      - ./nginx/prod:/etc/nginx:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/nginx/ssl:ro
+      
     depends_on:
       - dcsp-docs-builder-prod
     networks: 
       - cross-site
 
-  #dcsp-certbot:
-  #  image: certbot/certbot:latest
-  #  volumes:
-  #    - /var/certbot/conf:/etc/letsencrypt/:rw
-  #    - /var/certbot/www/:/var/www/certbot/:rw
-  #  depends_on:
-  #    - nginx
-  #  networks: 
-  #    - cross-site 
+  certbot-prod:
+    image: certbot/certbot
+    container_name: certbot-prod
+    restart: no
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
 
 volumes:
   postgres_data:

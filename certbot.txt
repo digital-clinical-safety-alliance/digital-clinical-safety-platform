@@ -1,0 +1,10 @@
+docker compose -f docker-compose-prod.yml run --rm certbot-prod certonly --webroot --webroot-path /var/www/certbot/ --dry-run -d www.dcsalliance.org
+
+docker compose -f docker-compose-prod.yml run --rm certbot-prod certonly --webroot --webroot-path /var/www/certbot/ --noninteractive --agree-tos --email mark.allan.bailey@gmail.com -d www.dcsalliance.org
+
+docker compose -f docker-compose-prod.yml run --rm certbot-prod certonly --webroot --webroot-path /var/www/certbot/ --noninteractive --agree-tos --email mark.allan.bailey@gmail.com -d www.dcsalliance.org --force-renewal
+
+
+0 0,12 * * * cd /src/digital-clinical-safety-platform && /usr/bin/docker compose -f docker-compose-prod-certbot.yml up -d >> /src/digital-clinical-safety-platform/logs/certbot/cerbot.log 2>&1
+
+0 0,12 * * * cd /src/digital-clinical-safety-platform && /usr/bin/docker compose -f docker-compose-prod.yml run --rm certbot-prod certonly --webroot --webroot-path /var/www/certbot/ --noninteractive --agree-tos --email mark.allan.bailey@gmail.com -d www.dcsalliance.org --force-renewal >> /src/digital-clinical-safety-platform/logs/certbot/cerbot.log 2>&1

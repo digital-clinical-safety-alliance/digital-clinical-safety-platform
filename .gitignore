@@ -5,6 +5,8 @@
 .env_dev
 .env_cicd
 .env_prod
+etc/
+certbot/
 #mkdocs/docs/
 
 # Byte-compiled / optimized / DLL files

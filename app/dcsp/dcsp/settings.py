@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # print(os.environ)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-if os.getenv("DEBUG") == "True":
+if os.getenv("DEBUG", "False") == "True":
     DEBUG = True
 else:
     DEBUG = False
@@ -40,6 +40,10 @@ TESTING = False
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 ALLOWED_HOSTS = os.environ.get("ALLOW_HOSTS").split(" ")  # type: ignore
+
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS").split(" ")
+
+CSRF_FAILURE_VIEW = 'app.views.custom_403_csrf'
 
 # Application definition
 
