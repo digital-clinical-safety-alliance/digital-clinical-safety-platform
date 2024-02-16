@@ -106,7 +106,7 @@ jobs:
       - name: Restart docker-compose
         run: ssh deploy 'cd /src/digital-clinical-safety-platform && docker compose -f docker-compose-prod.yml up -d'
       
-      - name: Makemigrations and migrate Django and restart Gunicorn
+      - name: Makemigrations and migrate Django and restart Gunvicorn
         run: ssh deploy 'docker exec dcsp-docs-builder-prod sh mmr.sh'
 
 
