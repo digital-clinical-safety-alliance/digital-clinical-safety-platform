@@ -1,4 +1,4 @@
-#TODO: need to pin down ubuntu version
+# TODO: need to pin down ubuntu version
 FROM ubuntu:latest as base
 WORKDIR /dcsp
 
@@ -11,8 +11,6 @@ ARG FOLDER_DOCUMENTATION_PAGES=/documentation-pages
 ARG UID=1001
 ARG GID=1001
 
-#TODO: may need to remove update as this will have different updates over time
-#TODO: do we need upgrade as well for security?
 RUN apt-get -y update
 RUN apt-get -y upgrade
 COPY packages.txt /dcsp
@@ -21,7 +19,7 @@ RUN xargs apt-get -y install <packages.txt
 COPY requirements-base.txt /dcsp
 RUN pip install -r requirements-base.txt
 
-#COPY requirements-dev-cicd.txt /dcsp
+# COPY requirements-dev-cicd.txt /dcsp
 
 # Copy modified files across to utilise "Hazard" headings in docstrings
 COPY mkdocs_overwrite.py /dcsp
@@ -48,17 +46,15 @@ RUN chmod -R g+rw $FOLDER_DOCUMENTATION_PAGES
 # cannot install
 
 FROM base as dev
-#RUN pip install -r requirements-dev-cicd.txt
-#WORKDIR /dcsp/cicd/node
-#RUN apt-get -y install nodejs npm
+# RUN pip install -r requirements-dev-cicd.txt
+# WORKDIR /dcsp/cicd/node
+# RUN apt-get -y install nodejs npm
 # RUN npm install --save-dev jest jsdom
 
 FROM dev as cicd
-#RUN pip install -r requirements-dev-cicd.txt
-#RUN apt-get -y install nodejs npm
+# RUN pip install -r requirements-dev-cicd.txt
+# RUN apt-get -y install nodejs npm
 USER $UNAME
 
 FROM base as prod
 USER $UNAME
-
-
