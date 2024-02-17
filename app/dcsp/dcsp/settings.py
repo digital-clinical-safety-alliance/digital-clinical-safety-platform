@@ -44,7 +44,7 @@ ALLOWED_HOSTS = os.environ.get(
 ).split(" ")
 
 CSRF_TRUSTED_ORIGINS = os.environ.get(
-    "www.dcsalliance.org https://www.dcsalliance.org"
+    "CSRF_TRUSTED_ORIGINS", "www.dcsalliance.org https://www.dcsalliance.org"
 ).split(" ")
 
 CSRF_FAILURE_VIEW = "app.views.custom_403_csrf"
