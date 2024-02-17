@@ -39,7 +39,9 @@ TESTING = False
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
-ALLOWED_HOSTS = os.environ.get("ALLOW_HOSTS", "example.org www.example.org").split(" ")  # type: ignore
+ALLOWED_HOSTS = os.environ.get(
+    "ALLOW_HOSTS", "example.org www.example.org"
+).split(" ")
 
 CSRF_TRUSTED_ORIGINS = os.environ.get(
     "CSRF_TRUSTED_ORIGINS", "example.org www.example.org"
