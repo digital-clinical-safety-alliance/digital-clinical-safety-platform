@@ -40,11 +40,12 @@ TESTING = False
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 ALLOWED_HOSTS = os.environ.get(
-    "ALLOW_HOSTS", "www.dcsalliance.org https://www.dcsalliance.org"
+    "ALLOW_HOSTS", "dcsalliance.org www.dcsalliance.org"
 ).split(" ")
 
 CSRF_TRUSTED_ORIGINS = os.environ.get(
-    "CSRF_TRUSTED_ORIGINS", "www.dcsalliance.org https://www.dcsalliance.org"
+    "CSRF_TRUSTED_ORIGINS",
+    "https://dcsalliance.org https://www.dcsalliance.org",
 ).split(" ")
 
 CSRF_FAILURE_VIEW = "app.views.custom_403_csrf"
