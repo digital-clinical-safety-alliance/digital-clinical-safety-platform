@@ -74,6 +74,8 @@ jobs:
       
       - name: Push to main branch
         run: |
+          git config --global user.email "dcsp.information@gmail.com"
+          git config --global user.name "dcsalliance"
           git checkout main
           git merge --no-ff "${GITHUB_REF#refs/heads/}"
           git push origin main
