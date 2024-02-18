@@ -15,8 +15,9 @@ if [ $? -ne 0 ]; then
 fi
 
 # Black linter
-echo Running Black linter
-echo "-------------------"
+echo "----------------------"
+echo " Running Black linter "
+echo "----------------------"
 cd /dcsp/cicd/black_linter
 
 python3 -m black --config pyproject.toml /dcsp/ --check
@@ -28,8 +29,9 @@ if [ $? -ne 0 ]; then
 fi
 
 # Check for security issues with Bandit
-echo "Checking for security issues"
-echo "----------------------------"
+echo "------------------------------"
+echo " Checking for security issues "
+echo "------------------------------"
 cd /dcsp/cicd/
 bandit -c bandit.yml -r /dcsp/app/ 
 
@@ -40,8 +42,9 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run type checking using mypy
-echo "Running type checking"
-echo "---------------------"
+echo "-----------------------"
+echo " Running type checking "
+echo "-----------------------"
 cd /dcsp/cicd
 mypy /dcsp/app/dcsp/app/
 
@@ -52,8 +55,9 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run unit tests using pytest
-echo "Running unit tests"
-echo "------------------"
+echo "--------------------"
+echo " Running unit tests "
+echo "--------------------"
 cd /dcsp/app/dcsp
 coverage run --rcfile=/dcsp/cicd/coverage.ini manage.py test --settings=dcsp.settings_tests --exclude-tag=git
 
@@ -63,8 +67,9 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-echo "Coverage Report"
-echo "---------------"
+echo "-----------------"
+echo " Coverage Report "
+echo "-----------------"
 COVERAGE_PERCENTAGE=$(coverage report -m | grep "TOTAL" | awk '{print $4}' | tr -d %)
 echo "Coverage Percentage: $COVERAGE_PERCENTAGE%"
 echo ""
@@ -77,9 +82,9 @@ coverage report -m
 #    exit 1
 #fi
 
-
-echo "HTML template linting with djLint"
-echo "---------------"
+echo "-----------------------------------"
+echo " HTML template linting with djLint "
+echo "-----------------------------------"
 cd /dcsp/cicd/djlint
 djlint /dcsp/app/dcsp/app/templates --lint
 
@@ -89,5 +94,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # If all tests pass, the exit with 0
-echo "Tests passed successfully!"
+echo "----------------------------"
+echo " Tests passed successfully! "
+echo "----------------------------"
 exit 0
