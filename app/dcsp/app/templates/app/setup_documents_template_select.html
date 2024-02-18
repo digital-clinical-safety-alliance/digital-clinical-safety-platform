@@ -10,7 +10,7 @@
 
             {% include "error_summary.html" %}
 
-            <form action="/setup_documents/{{ project_id }}" method="post">
+            <form action="{% url 'setup_documents' project_id %}" method="post">
                 {% csrf_token %}
                 {% for field in form %}
                     {% if field.errors %}{% endif %}

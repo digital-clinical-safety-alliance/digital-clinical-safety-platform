@@ -22,8 +22,10 @@ Functions:
     placeholders: gets placeholders (used in document_update to convert
                   placeholders to their values).
     build_documents: builds the static webpages via mkdocs.
+    custom_400: custom 400 (bad request) page.
+    custom_403: custom 403 (forbidden) page.
     custom_404: custom 404 (not found) page.
-    custom_405: custom 405 (method not allowed) page.
+    custom_500: custom 500 (internal server error) page.
 """
 
 from fnmatch import fnmatch
@@ -99,7 +101,7 @@ def index(request: HttpRequest) -> HttpResponse:
     }
 
     if request.method != "GET":
-        return render(request, "405.html", std_context(), status=405)
+        return custom_405(request)
 
     if request.user.is_authenticated:
         return redirect("/member")
@@ -125,7 +127,7 @@ def member_landing_page(request: HttpRequest) -> HttpResponse:
     context: dict[str, Any] = {}
 
     if request.method != "GET":
-        return render(request, "405.html", std_context(), status=405)
+        return custom_405(request)
 
     projects = user_accessible_projects(request)
 
@@ -170,7 +172,7 @@ def start_new_project(  # type: ignore[return]
     project_id: str = ""
 
     if not (request.method == "POST" or request.method == "GET"):
-        return render(request, "405.html", std_context(), status=405)
+        return custom_405(request)
 
     if request.method == "GET":
         setup_step = 1
@@ -197,9 +199,9 @@ def start_new_project(  # type: ignore[return]
             if form.is_valid():
                 setup_step = 2
                 request.session["project_setup_step"] = setup_step
-                request.session[
-                    "project_setup_1_form_data"
-                ] = form.cleaned_data
+                request.session["project_setup_1_form_data"] = (
+                    form.cleaned_data
+                )
                 setup_choice = form.cleaned_data["setup_choice"]
 
                 if setup_choice == "import":
@@ -253,15 +255,13 @@ def start_new_project(  # type: ignore[return]
                     "setup_choice"
                 ]
                 if setup_choice != "start_anew" and setup_choice != "import":
-                    return render(
-                        request, "500.html", std_context(), status=500
-                    )
+                    return custom_500(request)
 
                 setup_step = 3
                 request.session["project_setup_step"] = setup_step
-                request.session[
-                    "project_setup_2_form_data"
-                ] = form.cleaned_data
+                request.session["project_setup_2_form_data"] = (
+                    form.cleaned_data
+                )
 
                 inputs = request.session["project_setup_1_form_data"].copy()
                 inputs.update(request.session["project_setup_2_form_data"])
@@ -554,7 +554,7 @@ def project_documents(
     context: dict[str, Any] = {}
 
     if request.method != "GET":
-        return render(request, "405.html", std_context(), status=405)
+        return custom_405(request)
 
     project = Project.objects.get(id=project_id)
     members = project.member.all()
@@ -614,11 +614,11 @@ def view_docs(
     if project_id.isdigit():
         project_id_int = int(project_id)
     else:
-        return render(request, "404.html", std_context(), status=404)
+        return custom_404(request)
 
     if not Project.objects.filter(id=project_id_int).exists():
         messages.error(request, f"'Project { project_id }' does not exist")
-        return render(request, "404.html", std_context(), status=404)
+        return custom_404(request)
 
     project = Project.objects.get(id=project_id)
 
@@ -629,7 +629,7 @@ def view_docs(
                 f"You do not have access to 'project { project_id }'. "
                 "This is a members only project.",
             )
-            return render(request, "403.html", std_context(), status=403)
+            return custom_403(request)
 
     elif project.access == c.StaticSiteView.PRIVATE.value:
         accessible_projects = user_accessible_projects(request)
@@ -639,7 +639,7 @@ def view_docs(
             messages.error(
                 request, f"You do not have access to 'project { project_id }'."
             )
-            return render(request, "403.html", std_context(), status=403)
+            return custom_403(request)
 
     internal_path = str(
         Path(c.DOCUMENTATION_PAGES) / f"project_{project_id}" / doc_path
@@ -653,7 +653,7 @@ def view_docs(
 
     if not Path(internal_path).is_file():
         messages.error(request, f"File '{ doc_path }' does not exist.")
-        return render(request, "404.html", context=std_context(), status=404)
+        return custom_404(request)
 
     if file_extension == "html":
         file = open(internal_path, "r")
@@ -780,7 +780,9 @@ def document_update(  # type: ignore[return]
     document_markdown: str = ""
     document_markdown_file_read: str = ""
     form_data: dict[str, str] = {}
-    docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+    docs_dir: str = (
+        f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+    )
     file: TextIO
     context: dict[str, Any] = {}
 
@@ -944,10 +946,10 @@ def entry_update(  # type: ignore[return]
 
     if id_new != "new":
         if not project.entry_exists(entry_type, id_new):
-            return render(request, "404.html", std_context(), status=404)
+            return custom_404(request)
 
     if not project.entry_type_exists(entry_type):
-        return render(request, "404.html", std_context(), status=404)
+        return custom_404(request)
 
     if request.method == "GET":
         if id_new == "new":
@@ -1059,10 +1061,10 @@ def entry_select(
         return redirect(f"/setup_documents/{ project_id }")
 
     if request.method != "GET":
-        return render(request, "405.html", std_context(), status=405)
+        return custom_405(request)
 
     if not project.entry_type_exists(entry_type):
-        return render(request, "404.html", std_context(), status=404)
+        return custom_404(request)
 
     entries = project.entries_all_get(entry_type)
 
@@ -1076,6 +1078,29 @@ def entry_select(
     return render(
         request, "entry_select.html", context | std_context(project_id)
     )
+
+
+def under_construction(
+    request: HttpRequest,
+    message: str,
+) -> HttpResponse:
+    """Under construction page
+
+    This page is displayed when a page is under construction.
+
+    Args:
+        request (HttpRequest): request from user.
+        message (str): message to display.
+
+    Returns:
+        HttpResponse: for loading the correct webpage.
+    """
+    context: dict[str, Any] = {
+        "page_title": " Under contruction",
+        "message": message,
+    }
+
+    return render(request, "under_construction.html", context | std_context())
 
 
 # ----- Helper functions -----
@@ -1324,7 +1349,30 @@ def project_timestamp(project_id: int) -> bool:
     return True
 
 
-def custom_403(request: HttpRequest, exception: Exception) -> HttpResponse:
+def custom_400(
+    request: HttpRequest, exception: Optional[Exception] = None
+) -> HttpResponse:
+    """Custom 400 - bad request page
+
+    Custom 403 page for bad request.
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
+
+    context: dict[str, Any] = {"page_title": "400 - Bad request"}
+
+    return render(
+        request, "error_handler.html", context | std_context(), status=400
+    )
+
+
+def custom_403(
+    request: HttpRequest, exception: Optional[Exception] = None
+) -> HttpResponse:
     """Custom 403 - access forbidden page
 
     Custom 403 page for access forbidden
@@ -1336,7 +1384,11 @@ def custom_403(request: HttpRequest, exception: Exception) -> HttpResponse:
         HttpResponse: for loading the correct webpage
     """
 
-    return render(request, "403.html", context=std_context(), status=403)
+    context: dict[str, Any] = {"page_title": "403 - Forbidden access"}
+
+    return render(
+        request, "error_handler.html", context | std_context(), status=403
+    )
 
 
 def custom_403_csrf(request: HttpRequest, reason: Any = None) -> HttpResponse:
@@ -1350,11 +1402,12 @@ def custom_403_csrf(request: HttpRequest, reason: Any = None) -> HttpResponse:
     Returns:
         HttpResponse: for loading the correct webpage
     """
+    return custom_403(request)
 
-    return render(request, "403.html", context=std_context(), status=403)
 
-
-def custom_404(request: HttpRequest, exception: Exception) -> HttpResponse:
+def custom_404(
+    request: HttpRequest, exception: Optional[Exception] = None
+) -> HttpResponse:
     """Custom 404 page - page not found
 
     Custom page not found.
@@ -1365,12 +1418,37 @@ def custom_404(request: HttpRequest, exception: Exception) -> HttpResponse:
     Returns:
         HttpResponse: for loading the correct webpage
     """
+    context: dict[str, Any] = {"page_title": "404 - Page not found!"}
 
-    return render(request, "404.html", context=std_context(), status=404)
+    return render(
+        request, "error_handler.html", context | std_context(), status=404
+    )
 
 
-def custom_405(request: HttpRequest, exception: Exception) -> HttpResponse:
-    """Title
+def custom_405(
+    request: HttpRequest, exception: Optional[Exception] = None
+) -> HttpResponse:
+    """Custom 405 page - method not allowed
+
+    Custom page method not allowed
+
+    Args:
+        request (HttpRequest): request from user
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
+    context: dict[str, Any] = {"page_title": "405 - method not allowed!"}
+
+    return render(
+        request, "error_handler.html", context | std_context(), status=405
+    )
+
+
+def custom_500(
+    request: HttpRequest, exception: Optional[Exception] = None
+) -> HttpResponse:
+    """Custom 500 page - internal server error
 
     Description
 
@@ -1380,10 +1458,11 @@ def custom_405(request: HttpRequest, exception: Exception) -> HttpResponse:
     Returns:
         HttpResponse: for loading the correct webpage
     """
+    context: dict[str, Any] = {"page_title": "500 - Internal Server!"}
 
     return render(
         request,
-        "405.html",
-        context=std_context(),
-        status=405,
+        "error_handler.html",
+        context | std_context(),
+        status=500,
     )

@@ -9,7 +9,6 @@
 
       {% include "message_error.html" %}
 
- 
       <div class="mb-1">
         <div class="p-2 mb-2 field-color-dcsp font-dcsp border border-info rounded-1">
           <strong>Description</strong>
@@ -72,7 +71,11 @@
         </div>
       </div>
 
-      <div class="link-dcsp right px-3">Edit</div>
+      <div class="right px-3">
+        <a class="link-dcsp"
+           href="{% url 'under_construction' 'Edit a project' %}">Edit</a>
+      </div>
+
 	
     </div>
 

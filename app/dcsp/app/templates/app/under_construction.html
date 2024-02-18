@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main %}
+    {% include "message_error.html" %}
+
+    <div class="row">
+        <div class="col d-none d-md-block"></div>
+        <div class="col-12 col-md-6">
+            <p>
+                The page for <strong>{{ message }}</strong> is currently under construction
+                construction. Please check back later.
+            </p>
+
+            <img src="{% static 'media/under-construction.jpg' %}"
+                 class="img-fluid"
+                 alt="Cranes under a sunset sky"
+                 width="1280"
+                 height="960">
+        </div>
+        <div class="col d-none d-md-block"></div>
+    </div>
+{% endblock main %}

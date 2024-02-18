@@ -2,8 +2,9 @@
 
 COVERAGE_THRESHOLD=90
 
-echo "Environmental variables check"
-echo "-----------------------------"
+echo "-------------------------------"
+echo " Environmental variables check "
+echo "-------------------------------"
 
 cd /dcsp/app
 python3 env_startup_check.py
@@ -17,8 +18,8 @@ fi
 echo "----------------------"
 echo " Running Black linter "
 echo "----------------------"
-cd /dcsp/cicd/black_linter
 
+cd /dcsp/cicd/black_linter
 python3 -m black --config pyproject.toml /dcsp/ --check
 
 # Check the exit code of the linter

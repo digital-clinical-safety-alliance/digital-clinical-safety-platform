@@ -40,7 +40,7 @@ def _project_access(
     if not (request.method == "POST" or request.method == "GET"):
         return (
             False,
-            render(request, "405.html", views.std_context(), status=405),
+            views.custom_405(request),
             0,
             0,
         )
@@ -48,7 +48,7 @@ def _project_access(
     if not project_id.isdigit():
         return (
             False,
-            render(request, "404.html", views.std_context(), status=404),
+            views.custom_404(request),
             0,
             0,
         )
@@ -59,7 +59,7 @@ def _project_access(
         messages.error(request, f"'Project { project_id }' does not exist")
         return (
             False,
-            render(request, "404.html", views.std_context(), status=404),
+            views.custom_404(request),
             0,
             0,
         )
@@ -70,9 +70,7 @@ def _project_access(
         messages.error(request, "You do not have access to this project!")
         return (
             False,
-            render(
-                request, "403.html", context | views.std_context(), status=403
-            ),
+            views.custom_403(request),
             0,
             0,
         )
@@ -94,12 +92,7 @@ def _project_access(
             )
             return (
                 False,
-                render(
-                    request,
-                    "500.html",
-                    views.std_context(),
-                    status=500,
-                ),
+                views.custom_500(request),
                 0,
                 0,
             )

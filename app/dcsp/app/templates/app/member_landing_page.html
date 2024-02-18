@@ -12,12 +12,16 @@
                    aria-controls="collapseGroup">Groups</a>
             </div>
             <div class="collapse" id="collapseGroup">
-                &nbsp;&nbsp;<a class="link-dcsp" href="/">Group 1</a>
+                &nbsp;&nbsp;<a class="link-dcsp" href="{% url 'under_construction' 'Group view' %}">Group 1</a>
                 <br>
-                &nbsp;&nbsp;<a class="link-dcsp" href="/">Group 2</a>
+                &nbsp;&nbsp;<a class="link-dcsp" href="{% url 'under_construction' 'Group view' %}">Group 2</a>
                 <br>
-                &nbsp;&nbsp;<a class="link-dcsp" href="/">Group 3</a>
+                &nbsp;&nbsp;<a class="link-dcsp" href="{% url 'under_construction' 'Group view' %}">Group 3</a>
                 <br>
+            </div>
+
+            <div class="pt-2 pb-2">
+                <a class="link-dcsp" href="{% url 'under_construction' 'New group' %}">New group</a>
             </div>
 
             {% if available_projects %}
