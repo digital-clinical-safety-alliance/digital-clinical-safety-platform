@@ -3,109 +3,36 @@
 {% load static %}
 
 {% block main %}
-  <div class="row">
-    <div class="col d-none d-md-block">
-      <img src="{% static 'media/lady-and-computer-from-behind.jpg' %}"
-           class="img-fluid"
-           alt="Picture of lady from behind and computer"
-           width="4000"
-           height="6000">
-    </div>
-    <div class="col-12 col-md-6">
- 
-      {% include "message_error.html" %}
-      Hello, just testing this out !!!
-      <p>Clinical Safety Documentations - Automated!</p>
-      {% if NON_EXISTENT_VARIABLE %}
-        <p>
-          Introducing the Digital Clinical Safety Platform: Pioneering Clinical
-          Safety Management
-          for Digital Health Apps!
-        </p>
+    <div class="row">
+        <div class="col d-none d-md-block">
+            <img src="{% static 'media/lady-and-computer-from-behind.jpg' %}"
+                 class="img-fluid"
+                 alt="Picture of lady from behind and computer"
+                 width="4000"
+                 height="6000">
+        </div>
+        <div class="col-12 col-md-6">
+            Welcome to the Digital Clinical Safety Platform (DCSP). This DCSP is
+            an application that is currently in the develpment stage. The app is
+            being built by the Digital Clinical Safety Alliance.
 
-        <p>
-          In the dynamic landscape of digital health, prioritizing the safety and
-          reliability of
-          healthcare applications is crucial. The Digital Clinical Safety Platform
-          steps into the
-          forefront, offering a cutting-edge solution for managing clinical safety
-          with precision
-          and excellence. Tailored for healthcare professionals and developers alike,
-          our web app
-          provides an extensive suite of tools to navigate the intricate world of
-          digital health
-          applications with confidence.
-        </p>
- 
-        <p>
-          <h3>Unmatched Safety Oversight:</h3>
-          Recognizing the high stakes in healthcare technology, the Digital Clinical
-          Safety
-          Platform offers unmatched safety oversight. Navigate risks associated with
-          digital health apps seamlessly, from initial development to post-market
-          surveillance. Empower yourself to stay ahead in the ever-changing realm of
-          clinical safety.
-        </p>
- 
-        <p>
-          <h3>Efficient Risk Assessment:</h3>
-          Efficiency is paramount in the fast-paced world of healthcare. With the
-          Digital Clinical Safety Platform, streamline your risk assessment processes
-          effortlessly. Our intuitive interface and robust analytics tools provide a
-          clear picture of potential risks, enabling you to make informed decisions
-          promptly. Prioritize safety measures, identify areas of improvement, and
-          optimize your digital health apps with ease.
-        </p>
- 
-        <p>
-          <h3>Fostering Collaboration:</h3>
-          The Digital Clinical Safety Platform encourages a collaborative approach
-          to clinical safety. Bring together interdisciplinary teams seamlessly,
-          share insights, and work collectively towards the common goal of enhancing
-          patient safety. Our platform facilitates open communication and knowledge
-          sharing, ensuring that every stakeholder plays a vital role in maintaining
-          the highest standards of clinical safety.
-        </p>
- 
-        <p>
-          <h3>Real-Time Monitoring and Alerts:</h3>
-          Stay ahead of potential issues with the Digital Clinical Safety Platform's
-          real-time monitoring and alert system. Receive instant notifications about
-          merging safety concerns, enabling you to respond promptly and mitigate risks
-          effectively. Our advanced tracking mechanisms keep you informed, allowing
-          you to take proactive measures to safeguard the integrity of your digital
-          health applications.
-        </p>
- 
-        <p>
-          <h3>Simplified Compliance:</h3>
-          Navigating the regulatory landscape can be challenging, but the Digital
-          Clinical Safety Platform simplifies compliance. Aligned with industry
-          standards and regulatory requirements, our platform ensures that your
-          digital health apps meet the necessary criteria. Stay compliant
-          effortlessly, so you can focus on delivering innovative and secure
-          \healthcare solutions.
-        </p>
- 
-        <p>
-          Embark on a journey of enhanced clinical safety with the Digital
-          Clinical Safety Platform. Join us in redefining the future of digital
-          health applications, where safety and innovation go hand in hand.
-          Welcome to a new era of healthcare excellence!
-        </p>
+            The ultimate aim of the DCSP is to streamline and automate the
+            process of clinical safety documentation of digital systems used in
+            healthcare. It is also designed to engrain and also simplify the
+            documentation and thought processes around improved clinical safety
+            from the code up to upper management.
 
-        <p>
-          <strong>Placeholder text created by ChatGPT</strong>
-        </p>
-      {% endif %}
+            If you want to know more about the DCSP, or see a live demo, then
+            please email [dcsp](mailto:dcsp.information@gmail.com).
+	
+        </div>
+        <div class="col d-none d-md-block">
+            <img src="{% static 'media/MRI head.jpg' %}"
+                 class="img-fluid"
+                 alt="MRI head"
+                 width="3442"
+                 height="5163">
+        </div>
     </div>
-    <div class="col d-none d-md-block">
-      <img src="{% static 'media/MRI head.jpg' %}"
-           class="img-fluid"
-           alt="MRI head"
-           width="3442"
-           height="5163">
-    </div>
-  </div>
  
 {% endblock main %}
