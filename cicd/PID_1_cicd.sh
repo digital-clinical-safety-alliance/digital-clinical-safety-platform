@@ -1,7 +1,5 @@
 #!/bin/bash
 
-exit 0
-
 COVERAGE_THRESHOLD=90
 
 echo "Environmental variables check"
