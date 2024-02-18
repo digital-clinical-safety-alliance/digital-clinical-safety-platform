@@ -4,13 +4,6 @@ on:
   repository_dispatch:
     types: [trigger-main]
 
-
-#on:
-#  push:
-#    branches:
-#      - master
-#      - main
-
 permissions:
   contents: write
 
