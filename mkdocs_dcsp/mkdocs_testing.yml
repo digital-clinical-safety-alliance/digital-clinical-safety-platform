@@ -1,9 +1,0 @@
-site_name: Digital Clinical Safety Platform
-site_description: Hazard logging system
-site_author: Mark Bailey
-
-plugins:
-  - mkdocstrings:
-      handlers:
-        python:
-          paths: [src, ../app/dcsp/app, /dcsp/app/dcsp/app]
