@@ -59,4 +59,9 @@ urlpatterns = [
         views.project_documents,
         name="project_documents",
     ),
+    path(
+        "under_construction/<message>",
+        views.under_construction,
+        name="under_construction",
+    ),
 ]

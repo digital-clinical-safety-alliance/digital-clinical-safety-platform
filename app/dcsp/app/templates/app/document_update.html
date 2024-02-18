@@ -15,7 +15,9 @@
 
         {% include "error_summary.html" %}
 
-        <form id="id_form" action="/document_update/{{ project_id }}" method="post">
+        <form id="id_form"
+              action="{% url 'document_update' project_id %}"
+              method="post">
             {% csrf_token %}
 
             {{ form.document_name_initial }}

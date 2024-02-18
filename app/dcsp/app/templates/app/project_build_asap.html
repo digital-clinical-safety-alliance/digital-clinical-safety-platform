@@ -17,7 +17,7 @@
             {% if build_output %}
                 <div class="row">
                     <form id="id_form"
-                          action="/project_build_asap/{{ project_id }}"
+                          action="{% url 'project_build_asap' project_id %}"
                           method="post">
                         {% csrf_token %}
 
@@ -37,7 +37,7 @@
             {% endif %}
 
             <form id="id_form"
-                  action="/project_build_asap/{{ project_id }}"
+                  action="{% url 'project_build_asap' project_id %}"
                   method="post">
                 {% csrf_token %}
 
@@ -53,4 +53,4 @@
         {% include "project_side_bar_right.html" %}
  
     </div>
-{% endblock %}
+{% endblock main %}

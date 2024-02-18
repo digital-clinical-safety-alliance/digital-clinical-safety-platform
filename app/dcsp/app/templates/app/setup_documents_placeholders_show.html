@@ -14,7 +14,9 @@
 
             {% include "error_summary.html" %}
 
-            <form id="id_form" action="/setup_documents/{{ project_id }}" method="post">
+            <form id="id_form"
+                  action="{% url 'setup_documents' project_id %}"
+                  method="post">
                 {% csrf_token %}
 
                 {% for field in form %}

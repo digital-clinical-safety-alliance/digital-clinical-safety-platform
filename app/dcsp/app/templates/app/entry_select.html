@@ -7,11 +7,9 @@
 
         {% include "project_side_bar_left.html" %}
 
- 
         <div class="col-12 col-lg-6">
 
             {% include "message_error.html" %}
-
  
             {% if entries %}
                 <div class="mb-3">Please select {{ entry_type|a_an }} {{ entry_type|kebab_to_sentense }} from below to edit.</div>
@@ -22,11 +20,9 @@
                             <strong>{{ entry_type|kebab_to_sentense }} {{ entry.0.number }}</strong> -
                             {{ entry.0.name }}
                         </a>
-                        <!-- - {{ entry.2.text }}</a>-->
                         <br>
                     </p>
                 {% endfor %}
-	
             {% else %}
                 There are currently no {{ entry_type|kebab_to_sentense }} entries.
             {% endif %}

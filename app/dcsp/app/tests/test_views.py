@@ -237,7 +237,7 @@ class indexTest(TestCase):
 
         response = self.client.delete("/")
         self.assertEqual(response.status_code, 405)
-        self.assertTemplateUsed(response, "405.html")
+        self.assertTemplateUsed(response, "error_handler.html")
 
         mock_std_context.assert_called_once_with()
 
@@ -273,7 +273,7 @@ class MemberLandingPageTest(TestCase):
 
         response = self.client.delete("/member")
         self.assertEqual(response.status_code, 405)
-        self.assertTemplateUsed(response, "405.html")
+        self.assertTemplateUsed(response, "error_handler.html")
 
         mock_std_context.assert_called_once_with()
 
@@ -304,7 +304,7 @@ class StartNewProjectTest(TestCase):
 
         response = self.client.delete("/start_new_project")
         self.assertEqual(response.status_code, 405)
-        self.assertTemplateUsed(response, "405.html")
+        self.assertTemplateUsed(response, "error_handler.html")
 
         mock_std_context.assert_called_once_with()
 
@@ -452,7 +452,7 @@ class StartNewProjectTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 500)
-        self.assertTemplateUsed(response, "500.html")
+        self.assertTemplateUsed(response, "error_handler.html")
 
         request = response.wsgi_request
         mock_form.assert_called_once_with(request.POST)
@@ -1027,7 +1027,7 @@ class ProjectDocumentsTest(TestCase):
         response = self.client.delete(f"/project_documents/{ project_id}")
 
         self.assertEqual(response.status_code, 405)
-        self.assertTemplateUsed(response, "405.html")
+        self.assertTemplateUsed(response, "error_handler.html")
 
         request = response.wsgi_request
         mock_project_access.assert_called_once_with(request, str(project_id))
@@ -1065,7 +1065,7 @@ class ViewDocsTest(TestCase):
         response = self.client.get("/view_docs/a/test_page.html")
 
         self.assertEqual(response.status_code, 404)
-        self.assertTemplateUsed(response, "404.html")
+        self.assertTemplateUsed(response, "error_handler.html")
 
         mock_std_context.assert_called_once_with()
 
@@ -1077,7 +1077,7 @@ class ViewDocsTest(TestCase):
         response = self.client.get(f"/view_docs/{ project_id }/test_page.html")
 
         self.assertEqual(response.status_code, 404)
-        self.assertTemplateUsed(response, "404.html")
+        self.assertTemplateUsed(response, "error_handler.html")
 
         request = response.wsgi_request
         messages = list(get_messages(request))
@@ -1105,7 +1105,7 @@ class ViewDocsTest(TestCase):
         response = self.client.get(f"/view_docs/{ project_id }/test_page.html")
 
         self.assertEqual(response.status_code, 403)
-        self.assertTemplateUsed(response, "403.html")
+        self.assertTemplateUsed(response, "error_handler.html")
 
         request = response.wsgi_request
         messages = list(get_messages(request))
@@ -1141,7 +1141,7 @@ class ViewDocsTest(TestCase):
         response = self.client.get(f"/view_docs/{ project_id }/test_page.html")
 
         self.assertEqual(response.status_code, 403)
-        self.assertTemplateUsed(response, "403.html")
+        self.assertTemplateUsed(response, "error_handler.html")
 
         request = response.wsgi_request
         messages = list(get_messages(request))
@@ -1180,7 +1180,7 @@ class ViewDocsTest(TestCase):
         response = self.client.get(f"/view_docs/{ project_id }/{ test_page }")
 
         self.assertEqual(response.status_code, 404)
-        self.assertTemplateUsed(response, "404.html")
+        self.assertTemplateUsed(response, "error_handler.html")
 
         request = response.wsgi_request
         messages = list(get_messages(request))
@@ -1745,7 +1745,7 @@ class EntryUpdateTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 404)
-        self.assertTemplateUsed(response, "404.html")
+        self.assertTemplateUsed(response, "error_handler.html")
 
         request = response.wsgi_request
         mock_project_access.assert_called_once_with(request, str(project_id))
@@ -1784,7 +1784,7 @@ class EntryUpdateTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 404)
-        self.assertTemplateUsed(response, "404.html")
+        self.assertTemplateUsed(response, "error_handler.html")
 
         request = response.wsgi_request
         mock_project_access.assert_called_once_with(request, str(project_id))
@@ -2136,7 +2136,7 @@ class EntrySelectTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 405)
-        self.assertTemplateUsed(response, "405.html")
+        self.assertTemplateUsed(response, "error_handler.html")
 
         request = response.wsgi_request
         mock_project_access.assert_called_once_with(request, str(project_id))
@@ -2169,7 +2169,7 @@ class EntrySelectTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 404)
-        self.assertTemplateUsed(response, "404.html")
+        self.assertTemplateUsed(response, "error_handler.html")
 
         request = response.wsgi_request
         mock_project_access.assert_called_once_with(request, str(project_id))
@@ -2643,16 +2643,5 @@ class custom_404(TestCase):
 
         response = views.custom_404(HttpRequest(), Exception())
         self.assertEqual(response.status_code, 404)
-
-        mock_std_context.assert_called_once_with()
-
-
-class custom_405(TestCase):
-    @patch("app.views.std_context")
-    def test_405(self, mock_std_context):
-        mock_std_context.return_value = {"test": "test"}
-
-        response = views.custom_405(HttpRequest(), Exception())
-        self.assertEqual(response.status_code, 405)
 
         mock_std_context.assert_called_once_with()
