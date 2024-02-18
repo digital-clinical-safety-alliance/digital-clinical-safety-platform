@@ -79,3 +79,5 @@ jobs:
           git checkout main
           git merge --no-ff "${GITHUB_REF#refs/heads/}"
           git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
