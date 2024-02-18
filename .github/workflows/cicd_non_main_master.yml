@@ -1,4 +1,4 @@
-name: cicd
+name: cicd_non_main_master
 
 on:
   push:
