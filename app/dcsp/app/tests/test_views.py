@@ -22,7 +22,7 @@ sys.path.append(c.FUNCTIONS_APP)
 import app.views as views
 from app.models import Project, UserProjectAttribute
 import app.tests.data_views as d
-from app.functions.general_functions import snake_to_sentense
+from app.functions.text_manipulation import snake_to_sentense
 
 
 def log_in(self):
@@ -2226,6 +2226,15 @@ class EntrySelectTest(TestCase):
         mock_std_context.assert_called_once_with(project_id)
 
 
+class UnderConstructionViewTest(TestCase):
+    def test_valid(self):
+        response = self.client.get("/under_construction/test_page")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "test_page")
+        self.assertContains(response, "Under contruction")
+
+
 class StdContextTest(TestCase):
     @patch("app.views.ProjectBuilder")
     def test_std_context(self, mock_project_builder):
@@ -2636,12 +2645,85 @@ class ProjectTimestampTest(TestCase):
         self.assertNotEqual(timestamp_before, timestamp_after)
 
 
-class custom_404(TestCase):
+@tag("run")
+class Custom400Test(TestCase):
     @patch("app.views.std_context")
-    def test_404(self, mock_std_context):
+    def test_valid(self, mock_std_context):
+        mock_std_context.return_value = {"test": "test"}
+
+        response = views.custom_400(HttpRequest(), Exception())
+
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue("400 - Bad request" in str(response.content))
+
+        mock_std_context.assert_called_once_with()
+
+
+@tag("run")
+class Custom403Test(TestCase):
+    @patch("app.views.std_context")
+    def test_valid(self, mock_std_context):
+        mock_std_context.return_value = {"test": "test"}
+
+        response = views.custom_403(HttpRequest(), Exception())
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue("403 - Forbidden access" in str(response.content))
+
+        mock_std_context.assert_called_once_with()
+
+
+@tag("run")
+class Custom403CRSFTest(TestCase):
+    @patch("app.views.std_context")
+    def test_valid(self, mock_std_context):
+        mock_std_context.return_value = {"test": "test"}
+
+        response = views.custom_403_csrf(HttpRequest(), Exception())
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue("403 - Forbidden access" in str(response.content))
+
+        mock_std_context.assert_called_once_with()
+
+
+@tag("run")
+class Custom404Test(TestCase):
+    @patch("app.views.std_context")
+    def test_valid(self, mock_std_context):
         mock_std_context.return_value = {"test": "test"}
 
         response = views.custom_404(HttpRequest(), Exception())
+
         self.assertEqual(response.status_code, 404)
+        self.assertTrue("404 - Page not found" in str(response.content))
+
+        mock_std_context.assert_called_once_with()
+
+
+@tag("run")
+class Custom405Test(TestCase):
+    @patch("app.views.std_context")
+    def test_valid(self, mock_std_context):
+        mock_std_context.return_value = {"test": "test"}
+
+        response = views.custom_405(HttpRequest(), Exception())
+
+        self.assertEqual(response.status_code, 405)
+        self.assertTrue("405 - method not allowed" in str(response.content))
+
+        mock_std_context.assert_called_once_with()
+
+
+@tag("run")
+class Custom500Test(TestCase):
+    @patch("app.views.std_context")
+    def test_valid(self, mock_std_context):
+        mock_std_context.return_value = {"test": "test"}
+
+        response = views.custom_500(HttpRequest(), Exception())
+
+        self.assertEqual(response.status_code, 500)
+        self.assertTrue("500 - Internal Server Error" in str(response.content))
 
         mock_std_context.assert_called_once_with()

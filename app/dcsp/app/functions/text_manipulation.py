@@ -5,6 +5,7 @@ This module contains functions for manipulating text.
 functions:
     snake_to_sentense(snake_text: str) -> str: snake to title conversion
     kebab_to_sentense(kebab_text: str) -> str: kebab to title conversion
+    list_to_string(list_to_convert: list[str]) -> str: list to string conversion
 """
 
 
@@ -51,3 +52,22 @@ def kebab_to_sentense(kebab_text: str) -> str:
     title_text = " ".join(words).capitalize()
     title_text = title_text.strip()
     return title_text
+
+
+def list_to_string(list_to_convert: list[str]) -> str:
+    """Convert a list to a string
+
+    Take a list of strings and convert it to a string.
+
+    Args:
+        list_to_convert (list[str]): The list to convert to a string.
+
+    Returns:
+        str: String of the list items.
+    """
+    if len(list_to_convert) == 0:
+        return ""
+    elif len(list_to_convert) == 1:
+        return list_to_convert[0]
+    else:
+        return ", ".join(list_to_convert[:-1]) + " and " + list_to_convert[-1]

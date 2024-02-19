@@ -1,9 +1,11 @@
 from django import template
+from django.contrib import messages
+
 from typing import Mapping, Any
 
 register = template.Library()
 
-from app.functions.general_functions import (
+from app.functions.text_manipulation import (
     kebab_to_sentense,
 )
 
@@ -12,12 +14,23 @@ from app.functions.general_functions import (
 def has_tag(messages: list[Any], tag: str) -> bool:
     if not messages:
         return False
+
+    if not isinstance(messages, list):
+        return False
+
+    if tag == "":
+        return False
+
+    for message in messages:
+        if not hasattr(message, "tags"):
+            return False
+
     return any(message.tags == tag for message in messages)
 
 
 @register.filter(name="starts_with")
-def starts_with(messages: str, tag: str) -> bool:
-    return messages.startswith(tag)
+def starts_with(test_str: str, tag: str) -> bool:
+    return test_str.startswith(tag)
 
 
 @register.filter(name="get")
@@ -35,11 +48,24 @@ def split(value: str, index: int) -> str:
     """
     elements: list[str] = []
 
-    if value:
-        elements = value.split("|")
-        if 0 <= index < len(elements):
-            return elements[index]
-    return ""
+    if not value:
+        return ""
+
+    if not "|" in value:
+        return ""
+
+    if not isinstance(index, int):
+        return ""
+
+    if index < 0:
+        return ""
+
+    elements = value.split("|")
+
+    if 0 <= index < len(elements):
+        return elements[index]
+    else:
+        return ""
 
 
 @register.filter(name="remove_first_element")
@@ -56,5 +82,7 @@ def kebab_to_sentense_filter(value: str) -> str:
 
 @register.filter(name="a_an")
 def choose_a_an(word: str) -> str:
+    if word == "":
+        return ""
     vowels = "aeiouAEIOU"
     return "an" if word and word[0] in vowels else "a"

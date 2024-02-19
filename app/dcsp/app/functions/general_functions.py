@@ -1,30 +1,36 @@
 """Some useful general functions
+
+A collection of general functions.
+
+functions:
+    valid_partial_linux_path: Check if a path is valid in linux syntax
 """
 
 import re
 from typing import Tuple
 
 
-def snake_to_sentense(snake_text: str) -> str:
-    """ """
-    words: list[str] = snake_text.split("_")
-    title_text: str = " ".join(words).capitalize()
-    title_text = title_text.strip()
-    return title_text
+def valid_partial_linux_path(
+    path: str, extension: str = "md"
+) -> Tuple[bool, list[str]]:
+    """Check if a path is valid in linux syntax
 
+    Confirms if a path is valid in linux syntax.
 
-def kebab_to_sentense(kebab_text: str) -> str:
-    """ """
-    words: list[str] = kebab_text.split("-")
-    title_text: str = " ".join(words).capitalize()
-    title_text = title_text.strip()
-    return title_text
+    Args:
+        path (str): The path to check.
 
-
-def valid_linux_path(path: str) -> Tuple[bool, list[str]]:
-    """Check if a path is valid in linux syntax"""
+    Returns:
+        Tuple[bool, list[str]]: Returns if a path is valid and a list of strings
+                                indicating why it is not valid (if any).
+    """
     valid: bool = True
     failure_reasons: list[str] = []
+
+    if not path:
+        valid = False
+        failure_reasons.append("empty string")
+        return valid, failure_reasons
 
     # Check if the string contains any backslash '\'
     if "\\" in path:
@@ -36,10 +42,10 @@ def valid_linux_path(path: str) -> Tuple[bool, list[str]]:
         valid = False
         failure_reasons.append("2 or more forwards slashes in a row (eg'//')")
 
-    # Check if the string does not end in '.md'
-    if not path.endswith(".md"):
+    # Check if the string does not end in 'extension'
+    if not path.endswith(f".{ extension }"):
         valid = False
-        failure_reasons.append("did not end in '.md'")
+        failure_reasons.append(f"did not end in '.{ extension }'")
 
     if path.startswith("."):
         valid = False
@@ -50,18 +56,3 @@ def valid_linux_path(path: str) -> Tuple[bool, list[str]]:
         failure_reasons.append("started with forward slash (eg '/')")
 
     return valid, failure_reasons
-
-
-def list_to_string(list_to_convert: list[str]) -> str:
-    """ """
-    return_string: str = ""
-
-    if len(list_to_convert) == 0:
-        return_string = ""
-    elif len(list_to_convert) == 1:
-        return_string = list_to_convert[0]
-    else:
-        return_string = (
-            ", ".join(list_to_convert[:-1]) + ", and " + list_to_convert[-1]
-        )
-    return return_string

@@ -7,14 +7,7 @@ Classes:
     EmailFunctions: placeholder
 """
 
-import os
-from dotenv import load_dotenv
 import re
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-
-load_dotenv()
 
 
 class EmailFunctions:
@@ -47,33 +40,3 @@ class EmailFunctions:
 
         else:
             return False
-
-
-def email_gmail() -> None:
-    message = MIMEMultipart()
-    message["To"] = os.getenv("Mark 1")
-    message["From"] = os.getenv("Mark 2")
-    message["Subject"] = "Subject line here."
-
-    title = "<b> Title line here. </b>"
-    messageText = MIMEText("""Message body goes here.""", "html")
-    message.attach(messageText)
-
-    email: str = os.getenv("EMAIL_HOST_USER") or ""
-    password: str = os.getenv("EMAIL_HOST_PASSWORD") or ""
-
-    server = smtplib.SMTP("smtp.gmail.com:587")
-    server.ehlo("Gmail")
-    server.starttls()
-    server.login(email, password)
-    fromaddr: str = os.getenv("EMAIL_HOST_USER") or ""
-    toaddrs = os.getenv("EMAIL_HOST_USER") or ""
-    server.sendmail(fromaddr, toaddrs, message.as_string())
-
-    server.quit()
-
-    return
-
-
-if __name__ == "__main__":
-    email_gmail()

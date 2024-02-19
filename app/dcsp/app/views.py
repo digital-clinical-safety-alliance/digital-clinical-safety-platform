@@ -66,7 +66,7 @@ from app.functions.projects_builder import ProjectBuilder
 from app.functions.env_manipulation import ENVManipulator
 from app.functions.mkdocs_control import MkdocsControl
 from app.functions.git_control import GitController
-from app.functions.general_functions import (
+from app.functions.text_manipulation import (
     snake_to_sentense,
     kebab_to_sentense,
 )
@@ -199,9 +199,9 @@ def start_new_project(  # type: ignore[return]
             if form.is_valid():
                 setup_step = 2
                 request.session["project_setup_step"] = setup_step
-                request.session[
-                    "project_setup_1_form_data"
-                ] = form.cleaned_data
+                request.session["project_setup_1_form_data"] = (
+                    form.cleaned_data
+                )
                 setup_choice = form.cleaned_data["setup_choice"]
 
                 if setup_choice == "import":
@@ -259,9 +259,9 @@ def start_new_project(  # type: ignore[return]
 
                 setup_step = 3
                 request.session["project_setup_step"] = setup_step
-                request.session[
-                    "project_setup_2_form_data"
-                ] = form.cleaned_data
+                request.session["project_setup_2_form_data"] = (
+                    form.cleaned_data
+                )
 
                 inputs = request.session["project_setup_1_form_data"].copy()
                 inputs.update(request.session["project_setup_2_form_data"])
@@ -780,7 +780,9 @@ def document_update(  # type: ignore[return]
     document_markdown: str = ""
     document_markdown_file_read: str = ""
     form_data: dict[str, str] = {}
-    docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+    docs_dir: str = (
+        f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+    )
     file: TextIO
     context: dict[str, Any] = {}
 
@@ -1352,7 +1354,7 @@ def custom_400(
 ) -> HttpResponse:
     """Custom 400 - bad request page
 
-    Custom 403 page for bad request.
+    Custom 400 page for bad request.
 
     Args:
         request (HttpRequest): request from user
@@ -1416,7 +1418,7 @@ def custom_404(
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    context: dict[str, Any] = {"page_title": "404 - Page not found!"}
+    context: dict[str, Any] = {"page_title": "404 - Page not found"}
 
     return render(
         request, "error_handler.html", context | std_context(), status=404
@@ -1436,7 +1438,7 @@ def custom_405(
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    context: dict[str, Any] = {"page_title": "405 - method not allowed!"}
+    context: dict[str, Any] = {"page_title": "405 - method not allowed"}
 
     return render(
         request, "error_handler.html", context | std_context(), status=405
@@ -1456,7 +1458,7 @@ def custom_500(
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    context: dict[str, Any] = {"page_title": "500 - Internal Server!"}
+    context: dict[str, Any] = {"page_title": "500 - Internal Server Error"}
 
     return render(
         request,
