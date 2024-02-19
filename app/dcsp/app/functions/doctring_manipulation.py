@@ -1,11 +1,12 @@
-""" """
+"""Extracts docstrings from Python files
 
-import os
+class:
+    DocstringManipulation: Extracts docstrings from Python files.
+"""
+
 import ast
 import re
-import fnmatch
 from pathlib import Path
-import yaml
 from typing import Any, Tuple
 
 import app.functions.constants as c
@@ -13,13 +14,14 @@ import app.functions.constants as c
 
 class DocstringManipulation:
     def __init__(self, project_id: int) -> None:
-        """ """
         self.project_id: int = project_id
         return
 
     def docstring_all(self) -> list[dict[str, Any]]:
         """ """
-        docs_folder: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        docs_folder: str = (
+            f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        )
         markdown_files: list[Path] = list(Path(docs_folder).rglob("*.md"))
         project_folder: str = (
             f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/"
@@ -62,8 +64,6 @@ class DocstringManipulation:
             item for item in hazard_docs_attributes if "hazards" in item
         ]
 
-        # print(hazard_docs_attributes)
-
         return hazard_docs_attributes
 
     def extract_docstrings(self, filename: str) -> list[Tuple[str, str, Any]]:
@@ -96,20 +96,13 @@ class DocstringManipulation:
                             node.body[0].value.s,
                         )
                     )
-                    # print(node.body[0].value.s)
-
         return docstrings
 
     def extract_hazard(self, filename: str) -> list[dict[str, Any]]:
         """ """
         docstrings = self.extract_docstrings(filename)
-        # print(docstrings)
         section_content: list[dict[str, Any]] = []
 
-        """for value in docstrings:
-            print(value)"""
-
-        # print(docstrings)
         for (
             module_name,
             name,
@@ -139,9 +132,6 @@ class DocstringManipulation:
 
                             if not str(hazard_number).isdigit():
                                 hazard_number = None
-                            """print(module_name)
-                            print(line.lstrip())
-                            print(hazard_number)"""
                             section_content.append(
                                 {
                                     "module_name": module_name,
@@ -149,11 +139,7 @@ class DocstringManipulation:
                                     "hazard_number": hazard_number,
                                 }
                             )
-                            # print(section_content)
                     elif line.strip() == f"{section_name}":
                         section_found = True
-
-        # print("--")
-        # print(section_content)
 
         return section_content
