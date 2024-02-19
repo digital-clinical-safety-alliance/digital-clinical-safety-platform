@@ -14,10 +14,18 @@ from app.functions.email_functions import (
 
 
 class EmailFunctionsTest(TestCase):
-    def test_valid_email(self):
+    def test_valid(self):
         email_function = EmailFunctions()
         self.assertTrue(email_function.valid_syntax("abc.def@hig.com"))
 
-    def test_invalid_email(self):
+    def test_invalid(self):
         email_function = EmailFunctions()
         self.assertFalse(email_function.valid_syntax("123"))
+
+    def test_empty(self):
+        email_function = EmailFunctions()
+        self.assertFalse(email_function.valid_syntax(""))
+
+    def test_spaces(self):
+        email_function = EmailFunctions()
+        self.assertFalse(email_function.valid_syntax("abc. def@hig.com"))

@@ -1,12 +1,13 @@
 import unittest
-import sys
 
-from app.functions.text_manipulation import snake_to_sentense
-import unittest
-from app.functions.text_manipulation import kebab_to_sentense
+from app.functions.text_manipulation import (
+    snake_to_sentense,
+    kebab_to_sentense,
+    list_to_string,
+)
 
 
-class SnakeTOTitleTest(unittest.TestCase):
+class SnakeTOSentenceTest(unittest.TestCase):
     def test_simple(self):
         snake_text = "hello_world"
         expected_title_text = "Hello world"
@@ -43,9 +44,8 @@ class SnakeTOTitleTest(unittest.TestCase):
         self.assertEqual(snake_to_sentense(snake_text), expected_title_text)
 
 
-class KebabToTitleTest(unittest.TestCase):
+class KebabToSentenceTest(unittest.TestCase):
     def test_simple(self):
-        # Test with a simple kebab case text
         kebab_text = "hello-world"
         expected_title_text = "Hello world"
         self.assertEqual(kebab_to_sentense(kebab_text), expected_title_text)
@@ -79,3 +79,25 @@ class KebabToTitleTest(unittest.TestCase):
         kebab_text = ""
         expected_title_text = ""
         self.assertEqual(kebab_to_sentense(kebab_text), expected_title_text)
+
+
+class ListToStringTest(unittest.TestCase):
+    def test_empty(self):
+        input_list = []
+        expected_output = ""
+        self.assertEqual(list_to_string(input_list), expected_output)
+
+    def test_single_item(self):
+        input_list = ["apple"]
+        expected_output = "apple"
+        self.assertEqual(list_to_string(input_list), expected_output)
+
+    def test_two_items(self):
+        input_list = ["apple", "banana"]
+        expected_output = "apple and banana"
+        self.assertEqual(list_to_string(input_list), expected_output)
+
+    def test_multiple_items(self):
+        input_list = ["apple", "banana", "cherry"]
+        expected_output = "apple, banana and cherry"
+        self.assertEqual(list_to_string(input_list), expected_output)

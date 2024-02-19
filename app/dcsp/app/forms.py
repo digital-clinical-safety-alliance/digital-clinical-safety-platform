@@ -33,10 +33,8 @@ import app.functions.constants as c
 
 sys.path.append(c.FUNCTIONS_APP)
 import app.functions.projects_builder as projects_builder
-from app.functions.general_functions import (
-    valid_linux_path,
-    list_to_string,
-)
+from app.functions.general_functions import valid_partial_linux_path
+from app.functions.text_manipulation import list_to_string
 
 
 def validated_response(  # type: ignore[no-untyped-def]
@@ -636,7 +634,7 @@ class DocumentNewForm(forms.Form):
         (
             valid_1,
             error_messages_1,
-        ) = valid_linux_path(document_name)
+        ) = valid_partial_linux_path(document_name)
 
         project = projects_builder.ProjectBuilder(self.project_id)
         (

@@ -41,12 +41,8 @@ from app.functions.env_manipulation import (
 from app.functions.git_control import (
     GitHubController,
 )
-from app.functions.text_manipulation import (
-    kebab_to_sentense,
-)
-from app.functions.general_functions import (
-    list_to_string,
-)
+from app.functions.text_manipulation import kebab_to_sentense, list_to_string
+
 
 from ..models import (
     Project,

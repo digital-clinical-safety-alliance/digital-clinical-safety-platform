@@ -66,7 +66,7 @@ from app.functions.projects_builder import ProjectBuilder
 from app.functions.env_manipulation import ENVManipulator
 from app.functions.mkdocs_control import MkdocsControl
 from app.functions.git_control import GitController
-from app.functions.general_functions import (
+from app.functions.text_manipulation import (
     snake_to_sentense,
     kebab_to_sentense,
 )
@@ -1352,7 +1352,7 @@ def custom_400(
 ) -> HttpResponse:
     """Custom 400 - bad request page
 
-    Custom 403 page for bad request.
+    Custom 400 page for bad request.
 
     Args:
         request (HttpRequest): request from user
@@ -1416,7 +1416,7 @@ def custom_404(
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    context: dict[str, Any] = {"page_title": "404 - Page not found!"}
+    context: dict[str, Any] = {"page_title": "404 - Page not found"}
 
     return render(
         request, "error_handler.html", context | std_context(), status=404
@@ -1436,7 +1436,7 @@ def custom_405(
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    context: dict[str, Any] = {"page_title": "405 - method not allowed!"}
+    context: dict[str, Any] = {"page_title": "405 - method not allowed"}
 
     return render(
         request, "error_handler.html", context | std_context(), status=405
@@ -1456,7 +1456,7 @@ def custom_500(
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    context: dict[str, Any] = {"page_title": "500 - Internal Server!"}
+    context: dict[str, Any] = {"page_title": "500 - Internal Server Error"}
 
     return render(
         request,
