@@ -19,9 +19,7 @@ class DocstringManipulation:
 
     def docstring_all(self) -> list[dict[str, Any]]:
         """ """
-        docs_folder: str = (
-            f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
-        )
+        docs_folder: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
         markdown_files: list[Path] = list(Path(docs_folder).rglob("*.md"))
         project_folder: str = (
             f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/"
