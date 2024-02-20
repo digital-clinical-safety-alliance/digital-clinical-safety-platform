@@ -1,0 +1,84 @@
+{{ log.debug("Rendering " + module.path) }}
+
+<div class="doc doc-object doc-module">
+    <script>
+        // TODO - somehow this needs to be tested
+        // JavaScript code to get the current URL
+        var currentUrl = window.location.href;
+        var match = currentUrl.match(/(.*\/\d+\/)/);
+        var result = match ? match[1] : null;
+        console.log(result);
+  
+        function setHref(element, annotation) {
+            element.href = result + "hazards/hazards/hazard-" + annotation + ".html";
+            element.click();
+        }
+    </script>
+    {% with obj = module, html_id = module.path %}
+
+        {% if root %}
+            {% set show_full_path = config.show_root_full_path %}
+            {% set root_members = True %}
+        {% elif root_members %}
+            {% set show_full_path = config.show_root_members_full_path or config.show_object_full_path %}
+            {% set root_members = False %}
+        {% else %}
+            {% set show_full_path = config.show_object_full_path %}
+        {% endif %}
+
+        {% set module_name = module.path if show_full_path else module.name %}
+
+        {% if not root or config.show_root_heading %}
+
+            {% filter heading(heading_level,
+                role="module",
+                id=html_id,
+                class="doc doc-heading",
+                toc_label=module.name) %}
+
+                {% block heading scoped %}
+                    {% if config.separate_signature %}
+                        <span class="doc doc-object-name doc-module-name">{{ module_name }}</span>
+                    {% else %}
+                        <code>{{ module_name }}</code>
+                    {% endif %}
+                {% endblock heading %}
+
+                {% block labels scoped %}
+                    {% with labels = module.labels %}
+                        {% include "labels.html" with context %}
+                    {% endwith %}
+                {% endblock labels %}
+
+            {% endfilter %}
+
+        {% else %}
+            {% if config.show_root_toc_entry %}
+                {% filter heading(heading_level,
+                    role="module",
+                    id=html_id,
+                    toc_label=module.name,
+                    hidden=True) %}
+                {% endfilter %}
+            {% endif %}
+            {% set heading_level = heading_level - 1 %}
+        {% endif %}
+
+        <div class="doc doc-contents {% if root %}first{% endif %}">
+            {% block contents scoped %}
+                {% block docstring scoped %}
+                    {% with docstring_sections = module.docstring.parsed %}
+                        {% include "docstring.html" with context %}
+                    {% endwith %}
+                {% endblock docstring %}
+
+                {% block children scoped %}
+                    {% set root = False %}
+                    {% set heading_level = heading_level + 1 %}
+                    {% include "children.html" with context %}
+                {% endblock children %}
+            {% endblock contents %}
+        </div>
+
+    {% endwith %}
+</div>

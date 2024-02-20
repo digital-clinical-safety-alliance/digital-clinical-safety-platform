@@ -15,6 +15,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Black linter
+echo ""
 echo "----------------------"
 echo " Running Black linter "
 echo "----------------------"
@@ -29,6 +30,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Check for security issues with Bandit
+echo ""
 echo "------------------------------"
 echo " Checking for security issues "
 echo "------------------------------"
@@ -42,6 +44,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run type checking using mypy
+echo ""
 echo "-----------------------"
 echo " Running type checking "
 echo "-----------------------"
@@ -55,6 +58,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run unit tests using pytest
+echo ""
 echo "--------------------"
 echo " Running unit tests "
 echo "--------------------"
@@ -67,6 +71,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+echo ""
 echo "-----------------"
 echo " Coverage Report "
 echo "-----------------"
@@ -82,6 +87,7 @@ coverage report -m
 #    exit 1
 #fi
 
+echo ""
 echo "-----------------------------------"
 echo " HTML template linting with djLint "
 echo "-----------------------------------"
@@ -94,6 +100,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # If all tests pass, the exit with 0
+echo ""
 echo "----------------------------"
 echo " Tests passed successfully! "
 echo "----------------------------"

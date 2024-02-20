@@ -28,7 +28,7 @@ import app.functions.constants as c
 from app.functions.projects_builder import (
     ProjectBuilder,
 )
-from app.functions.doctring_manipulation import (
+from app.functions.docstring_manipulation import (
     DocstringManipulation,
 )
 
@@ -150,9 +150,6 @@ class MkdocsControl:
         docstring = DocstringManipulation(self.project_id)
         referenced_hazards = docstring.docstring_all()
 
-        """for h in referenced_hazards:
-            print(h)"""
-
         for file in files_to_check:
             icon_html = ""
             function_hazards = []
@@ -172,7 +169,7 @@ class MkdocsControl:
             for function_info in referenced_hazards:
                 for hazard in function_info["hazards"]:
                     if hazard["hazard_number"] == entry_number:
-                        function_hazards.append(function_info["doc_file_path"])
+                        function_hazards.append(function_info["mk_file_path"])
 
                         # print(entry_number)
                         # print(function_hazards)
@@ -199,9 +196,9 @@ class MkdocsControl:
                         for hazard in function["hazards"]:
                             if hazard["hazard_number"] == entry_number:
                                 code_html += (
-                                    f"[{ function['function_name'].replace('.py', '') }"
-                                    f".{ hazard['module_name']}](../../{ function['doc_file_path'] }"
-                                    f"#{ hazard['module_name']}_hazard)\n\n"
+                                    f"[{ function['code_file'].replace('.py', '') }"
+                                    f".{ hazard['sub_routine']}](../../{ function['mk_file_path'] }"
+                                    f"#{ hazard['sub_routine']}_hazard)\n\n"
                                 )
 
                     code_html = code_html.rstrip("\n\n")

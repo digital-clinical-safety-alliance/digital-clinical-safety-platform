@@ -1,3 +1,3 @@
 # Docstring Manipulation
 
-::: functions.doctring_manipulation
+::: functions.docstring_manipulation
