@@ -66,6 +66,7 @@ class DocstringManipulation:
             return []
 
         markdown_files = Path(docs_folder).rglob("*.md")
+
         # list used here as Path is a Generator, and cannot be called twice
         # in later code.
         function_paths = list(Path(project_folder).rglob("*.py"))

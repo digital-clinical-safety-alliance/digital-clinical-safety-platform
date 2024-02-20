@@ -1,6 +1,6 @@
 from django.test import TestCase, tag
 import app.templatetags.custom_filters as custom_filters
-from unittest.mock import Mock
+from unittest.mock import Mock, MagicMock
 
 
 class HasTagTest(TestCase):
@@ -10,7 +10,7 @@ class HasTagTest(TestCase):
         self.mock_list = [mock_message]
 
     def test_no_tags(self):
-        mock_message = Mock()
+        mock_message = MagicMock(spec=[])
         mock_list = [mock_message]
         self.assertFalse(custom_filters.has_tag(mock_list, "tag1"))
 
@@ -66,7 +66,7 @@ class SplitTest(TestCase):
 
     def test_index_is_str(self):
         self.assertEqual(
-            custom_filters.split("apple:banana:cherry", "a string"), ""
+            custom_filters.split("apple|banana|cherry", "a string"), ""
         )
 
     def test_negative_index(self):

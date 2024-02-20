@@ -7,7 +7,7 @@ import app.functions.constants as c
 import app.tests.data_docstring_manipulation as d
 
 
-class DocstringManipulationTest(TestCase):
+class DocstringAllTest(TestCase):
     @patch("app.functions.docstring_manipulation.Path")
     def test_invalid_docs_folder_path(self, mock_path):
         project_id = 1
@@ -29,10 +29,6 @@ class DocstringManipulationTest(TestCase):
     @patch("app.functions.docstring_manipulation.Path")
     def test_invalid_project_folder_path(self, mock_path):
         project_id = 1
-        docs_folder = (
-            f"{ c.PROJECTS_FOLDER }project_{ project_id }"
-            f"/{ c.CLINICAL_SAFETY_FOLDER }docs/"
-        )
 
         mock_path.return_value.exists.side_effect = [True, False]
 
@@ -106,8 +102,9 @@ class DocstringManipulationTest(TestCase):
         self.assertEqual(mock_path.call_count, 4)
         self.assertEqual(mock_path.return_value.exists.call_count, 2)
         self.assertEqual(mock_path.return_value.rglob.call_count, 2)
-        mock_file_1.__str__.assert_called()
-        mock_file_2.__str__.assert_called()
+        self.assertEqual(mock_file_1.__str__.call_count, 2)
+        self.assertEqual(mock_file_2.__str__.call_count, 2)
+        mock_path.return_value.rglob.calls = [call("*.md"), call("*.py")]
         self.assertEqual(
             mock_open.return_value.__enter__().readlines.call_count, 2
         )
@@ -193,8 +190,9 @@ class DocstringManipulationTest(TestCase):
         self.assertEqual(mock_path.call_count, 4)
         self.assertEqual(mock_path.return_value.exists.call_count, 2)
         self.assertEqual(mock_path.return_value.rglob.call_count, 2)
-        mock_file_1.__str__.assert_called()
-        mock_file_2.__str__.assert_called()
+        self.assertEqual(mock_file_1.__str__.call_count, 2)
+        self.assertEqual(mock_file_2.__str__.call_count, 2)
+        self.assertEqual(mock_file_3.__str__.call_count, 2)
         self.assertEqual(
             mock_open.return_value.__enter__().readlines.call_count, 2
         )
@@ -233,7 +231,12 @@ class DocstringManipulationTest(TestCase):
         ]
 
         mock_open.return_value.__enter__().readlines.side_effect = [
-            ["# Title 1", "## Subtitle 1", "Some text 1", "no functions"],
+            [
+                "# Title 1",
+                "## Subtitle 1",
+                "Some text 1",
+                "no functions",
+            ],
             [
                 "# Title 2",
                 "## Subtitle 2",
@@ -321,8 +324,8 @@ class DocstringManipulationTest(TestCase):
         self.assertEqual(mock_path.call_count, 4)
         self.assertEqual(mock_path.return_value.exists.call_count, 2)
         self.assertEqual(mock_path.return_value.rglob.call_count, 2)
-        mock_file_1.__str__.assert_called()
-        mock_file_2.__str__.assert_called()
+        self.assertEqual(mock_file_1.__str__.call_count, 2)
+        self.assertEqual(mock_file_2.__str__.call_count, 2)
         self.assertEqual(
             mock_open.return_value.__enter__().readlines.call_count, 2
         )
@@ -431,7 +434,7 @@ class ExtractHazardsTest(TestCase):
     @patch(
         "app.functions.docstring_manipulation.DocstringManipulation.extract_docstrings"
     )
-    def test_no_docstrings(self, mock_extract_docstrings, mock_path):
+    def test_no_hazards(self, mock_extract_docstrings, mock_path):
         project_id = 1
         file_name = "file.py"
 

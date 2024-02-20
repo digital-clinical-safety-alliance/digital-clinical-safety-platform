@@ -120,7 +120,7 @@ if "single" in RUN:
             "test",
             single_file,
             "--settings=dcsp.settings_tests",
-            # "--tag=run",
+            "--tag=run",
         ],
         cwd="/dcsp/app/dcsp",
     )
