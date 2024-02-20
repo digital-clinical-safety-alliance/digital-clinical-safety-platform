@@ -299,7 +299,7 @@ class InstallationForm(forms.Form):
                                 under. If left blank then username is used as
                                 the space to store repositories.
         github_repo_SA: The name of the repository on GitHub.
-        github_token_SA: GitHub token.
+        default_external_repository_token_SA: GitHub token.
         code_location_I: Location of code. This is used when DCSP is integrated
                          into another code base.
     
@@ -367,7 +367,7 @@ class InstallationForm(forms.Form):
         ),
     )
 
-    github_token_SA = forms.CharField(
+    default_external_repository_token_SA = forms.CharField(
         label="Github token (<a href='https://github.com/settings/tokens/new' target='_blank'>get Github token</a>)",
         required=False,
         widget=forms.PasswordInput(
@@ -413,7 +413,7 @@ class InstallationForm(forms.Form):
         email: str = cleaned_data["email_SA"]
         github_organisation: str = cleaned_data["github_organisation_SA"]
         github_repo: str = cleaned_data["github_repo_SA"]
-        github_token: str = cleaned_data["github_token_SA"]
+        default_external_repository_token: str = cleaned_data["default_external_repository_token_SA"]
         code_location: str = cleaned_data["code_location_I"]
         credentials_check_results: dict[str, str | bool | None] = {}
 
@@ -450,7 +450,7 @@ class InstallationForm(forms.Form):
                     email=email,
                     github_organisation=github_organisation,
                     github_repo=github_repo,
-                    github_token=github_token,
+                    default_external_repository_token=default_external_repository_token,
                 )
 
                 credentials_check_results = gc.check_github_credentials()
@@ -674,7 +674,9 @@ class DocumentUpdateForm(forms.Form):
         super(DocumentUpdateForm, self).__init__(*args, **kwargs)
         self.project_id: int = project_id
         document_name: str = ""
-        docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        docs_dir: str = (
+            f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+        )
         initial_data: Mapping[str, str] = self.initial or {}
         document_markdown: str = ""
 

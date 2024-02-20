@@ -4,7 +4,7 @@ INSTALLATION_FORM_STAND_ALONE_DATA_GOOD = {
     "installation_type": "SA",
     "github_repo_SA": "aaaf",
     "github_username_SA": "a",
-    "github_token_SA": "x",
+    "default_external_repository_token_SA": "x",
     "code_location_I": "",
 }
 
@@ -12,7 +12,7 @@ INSTALLATION_FORM_INTEGRATED_DATA_GOOD = {
     "installation_type": "I",
     "github_repo_SA": "aaaf",
     "github_username_SA": "a",
-    "github_token_SA": "x",
+    "default_external_repository_token_SA": "x",
     "code_location_I": "/a_directory/valid",
 }
 
@@ -20,7 +20,7 @@ INSTALLATION_FORM_STAND_ALONE_DATA_BAD = {
     "installation_type": "SA",
     "github_repo_SA": "aaaf l",
     "github_username_SA": "a s",
-    "github_token_SA": "x s",
+    "default_external_repository_token_SA": "x s",
     "code_location_I": "",
 }
 
@@ -28,7 +28,7 @@ INSTALLATION_FORM_INTEGRATED_DATA_BAD = {
     "installation_type": "I",
     "github_repo_SA": "",
     "github_username_SA": "",
-    "github_token_SA": "",
+    "default_external_repository_token_SA": "",
     "code_location_I": "a_web_site[space] .com",
 }
 

@@ -273,10 +273,10 @@ SELECT_STYLE: str = (
 )
 
 
-class StaticSiteView(Enum):
+"""class StaticSiteView(Enum):
     PRIVATE = "private"
     MEMBERS = "members"
-    PUBLIC = "public"
+    PUBLIC = "public"""
 
 
 DOCUMENTATION_PAGES: str = "/documentation-pages"

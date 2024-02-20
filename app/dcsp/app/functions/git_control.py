@@ -85,7 +85,7 @@ class GitController:
         email: str = "",
         github_organisation: str = "",
         github_repo: str = c.REPO_NAME,
-        github_token: str = "",
+        default_external_repository_token: str = "",
         repo_path_local: str = c.REPO_PATH_LOCAL,
         env_location: str = c.ENV_PATH_PLACEHOLDERS,
     ) -> None:
@@ -101,7 +101,7 @@ class GitController:
                                        empty string is supplied then username is
                                        used as storage location for repositories.
             github_repo (str): Name of the GitHub repository.
-            github_token (str): GitHub token.
+            default_external_repository_token (str): GitHub token.
             repo_path_local (str): Local name of repository.
             env_location (str): Location of .env file. Mainly changed for unit
                                 testing purposes.
@@ -116,7 +116,7 @@ class GitController:
             ValueError: if invalid syntax of email (does not check to see if a
                         current and working email address).
             ValueError: if github_repo is set to an empty string.
-            ValueError: if no github_token is supplied as an argument or in
+            ValueError: if no default_external_repository_token is supplied as an argument or in
                         the .env file.
             ValueError: if repo_path_local is set to an empty string.
             FileNotFoundError: if repo_path_local points to a invalid or non-
@@ -125,7 +125,7 @@ class GitController:
         self.github_username: str = ""
         self.email: str = ""
         self.github_organisation: str = ""
-        self.github_token: str = ""
+        self.default_external_repository_token: str = ""
 
         if env_location == "":
             raise ValueError(f".env location is set to empty string")
@@ -175,17 +175,21 @@ class GitController:
         else:
             self.github_repo = github_repo
 
-        if github_token == "":  # nosec B105, B107
-            self.github_token = str(dot_values.get("GITHUB_TOKEN") or "")
+        if default_external_repository_token == "":  # nosec B105, B107
+            self.default_external_repository_token = str(
+                dot_values.get("GITHUB_TOKEN") or ""
+            )
             if (
-                self.github_token == None
-                or self.github_token == ""  # nosec B105
+                self.default_external_repository_token == None
+                or self.default_external_repository_token == ""  # nosec B105
             ):  # nosec B105, B107
                 raise ValueError(
                     f"'{ c.EnvKeysPH.GITHUB_TOKEN.value }' has not been set as an argument or in .env"
                 )
         else:
-            self.github_token = github_token
+            self.default_external_repository_token = (
+                default_external_repository_token
+            )
 
         if repo_path_local == "":
             raise ValueError(f"'repo_path_local' has not been set")
@@ -227,7 +231,7 @@ class GitController:
                 f"https://api.github.com/users/{ self.github_username }",
                 auth=(
                     self.github_username,
-                    self.github_token,
+                    self.default_external_repository_token,
                 ),
                 timeout=10,
             )
@@ -258,7 +262,7 @@ class GitController:
                 f"https://api.github.com/repos/{ self.repo_domain_name() }/{ self.github_repo }",
                 auth=(
                     self.github_organisation,
-                    self.github_token,
+                    self.default_external_repository_token,
                 ),
                 timeout=10,
             )
@@ -277,7 +281,7 @@ class GitController:
             # patch
             g = Github(
                 self.github_username,
-                self.github_token,
+                self.default_external_repository_token,
             )
             repo = g.get_repo(
                 f"{ self.repo_domain_name() }/{ self.github_repo }"
@@ -328,7 +332,7 @@ class GitController:
                 f"https://api.github.com/users/{ organisation }",
                 auth=(
                     self.github_organisation,
-                    self.github_token,
+                    self.default_external_repository_token,
                 ),
                 timeout=10,
             )
@@ -375,7 +379,7 @@ class GitController:
 
         g = Github(
             self.github_username,
-            self.github_token,
+            self.default_external_repository_token,
         )
 
         try:
@@ -450,7 +454,7 @@ class GitController:
 
         g = Github(
             self.github_username,
-            self.github_token,
+            self.default_external_repository_token,
         )
         github_get = g.get_organization(github_use_org)
         github_get.create_repo(github_repo)
@@ -482,7 +486,7 @@ class GitController:
 
         g = Github(
             self.github_username,
-            self.github_token,
+            self.default_external_repository_token,
         )
         github_get = g.get_organization(github_use_org)
         repo = github_get.get_repo(github_repo)
@@ -559,7 +563,7 @@ class GitController:
         child.expect(
             f"Password for 'https://{ self.github_username }@github.com': "
         )
-        child.sendline(self.github_token)
+        child.sendline(self.default_external_repository_token)
 
         if verbose:
             output = child.readline()
@@ -605,7 +609,7 @@ class GitController:
 
         g = Github(
             self.github_username,
-            self.github_token,
+            self.default_external_repository_token,
         )
 
         try:
@@ -678,9 +682,9 @@ class GitController:
         Returns:
             bool: True if a valid label, False if not.
         """
-        issues_yml: list[dict[str, str]] | list[
-            str
-        ] = self.available_hazard_labels("name_only")
+        issues_yml: list[dict[str, str]] | list[str] = (
+            self.available_hazard_labels("name_only")
+        )
         label_name: str | dict[str, str] = ""
 
         for label_name in issues_yml:
@@ -716,7 +720,7 @@ class GitController:
 
         g = Github(
             self.github_username,
-            self.github_token,
+            self.default_external_repository_token,
         )
 
         try:
@@ -794,7 +798,7 @@ class GitController:
 
         g = Github(
             self.github_username,
-            self.github_token,
+            self.default_external_repository_token,
         )
 
         try:
