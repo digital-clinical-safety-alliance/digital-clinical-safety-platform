@@ -55,7 +55,10 @@ class Migration(migrations.Migration):
             model_name="project",
             name="build_output",
             field=models.TextField(
-                blank=True, max_length=5000, null=True, verbose_name="Build output"
+                blank=True,
+                max_length=5000,
+                null=True,
+                verbose_name="Build output",
             ),
         ),
         migrations.AlterField(
@@ -96,7 +99,10 @@ class Migration(migrations.Migration):
             model_name="project",
             name="name",
             field=models.CharField(
-                blank=True, max_length=256, null=True, verbose_name="Project name"
+                blank=True,
+                max_length=256,
+                null=True,
+                verbose_name="Project name",
             ),
         ),
         migrations.AlterField(

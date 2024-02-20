@@ -682,9 +682,9 @@ class GitController:
         Returns:
             bool: True if a valid label, False if not.
         """
-        issues_yml: list[dict[str, str]] | list[str] = (
-            self.available_hazard_labels("name_only")
-        )
+        issues_yml: list[dict[str, str]] | list[
+            str
+        ] = self.available_hazard_labels("name_only")
         label_name: str | dict[str, str] = ""
 
         for label_name in issues_yml:

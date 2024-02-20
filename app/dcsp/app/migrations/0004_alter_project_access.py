@@ -5,7 +5,10 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("app", "0003_alter_project_options_alter_userprofile_options_and_more"),
+        (
+            "app",
+            "0003_alter_project_options_alter_userprofile_options_and_more",
+        ),
     ]
 
     operations = [
@@ -13,7 +16,11 @@ class Migration(migrations.Migration):
             model_name="project",
             name="access",
             field=models.CharField(
-                choices=[("PR", "private"), ("ME", "members"), ("PU", "public")],
+                choices=[
+                    ("PR", "private"),
+                    ("ME", "members"),
+                    ("PU", "public"),
+                ],
                 default="PU",
                 max_length=10,
                 verbose_name="View access",
