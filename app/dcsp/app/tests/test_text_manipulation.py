@@ -1,4 +1,4 @@
-import unittest
+from unittest import TestCase
 
 from app.functions.text_manipulation import (
     snake_to_sentense,
@@ -7,7 +7,7 @@ from app.functions.text_manipulation import (
 )
 
 
-class SnakeTOSentenceTest(unittest.TestCase):
+class SnakeTOSentenceTest(TestCase):
     def test_simple(self):
         snake_text = "hello_world"
         expected_title_text = "Hello world"
@@ -44,7 +44,7 @@ class SnakeTOSentenceTest(unittest.TestCase):
         self.assertEqual(snake_to_sentense(snake_text), expected_title_text)
 
 
-class KebabToSentenceTest(unittest.TestCase):
+class KebabToSentenceTest(TestCase):
     def test_simple(self):
         kebab_text = "hello-world"
         expected_title_text = "Hello world"
@@ -81,7 +81,7 @@ class KebabToSentenceTest(unittest.TestCase):
         self.assertEqual(kebab_to_sentense(kebab_text), expected_title_text)
 
 
-class ListToStringTest(unittest.TestCase):
+class ListToStringTest(TestCase):
     def test_empty(self):
         input_list = []
         expected_output = ""

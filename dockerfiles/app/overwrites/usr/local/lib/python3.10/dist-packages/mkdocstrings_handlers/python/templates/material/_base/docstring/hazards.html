@@ -4,21 +4,8 @@
 
 {% if config.docstring_section_style == "table" %}
   {% block table_style %}
-
-    <script>
-      // TODO #57 - is this to keep?
-      // JavaScript code to get the current URL
-      var currentUrl = window.location.href;
-
-      var match = currentUrl.match(/(.*\/\d+\/)/);
-
-      // Extract the result if a match is found
-      var result = match ? match[1] : null;
-      console.log(result)
-    </script>
- 
     <p>
-      <strong id="{{ function.path.split('.')[-1] }}_hazard">{{ section.title or lang.t("Hazards:") }}</strong>
+      <strong id="{{ function.path.split(".")[-1] }}_hazard">{{ section.title or lang.t("Hazards:") }}</strong>
     </p>
 
     <table>
@@ -37,13 +24,9 @@
             </td>
             <td>
               {% if parameter.annotation %}
-                <a id="hazard_link_{{ parameter.annotation }}" href="">hazard-{{ parameter.annotation }}</a>
-
-                <!-- TODO need to find a more "python" way to get the "home" url -->
-                <script>
-                  var hazard_link_{{ parameter.annotation }} = document.getElementById('hazard_link_{{ parameter.annotation }}');
-                  hazard_link_{{ parameter.annotation }}.setAttribute('href',result+ "hazards/hazards/hazard-{{ parameter.annotation }}.html"); 
-                </script>
+                <a id="hazard_link_{{ parameter.annotation }}"
+                   href="#"
+                   onclick="setHref(this, '{{ parameter.annotation }}');">hazard-{{ parameter.annotation }}</a>
               {% endif %}
             </td>
             <td>

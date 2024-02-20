@@ -8,7 +8,7 @@ permissions:
   contents: write
 
 jobs:
-  deploy:
+  deploy-to-production:
     runs-on: ubuntu-latest
     steps:
       - name: Configure SSH
@@ -47,7 +47,7 @@ jobs:
         run: ssh deploy 'docker exec dcsp-docs-builder-prod sh mmr.sh'
 
 
-  mkdocs-documents:
+  create-documentation-and-publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
