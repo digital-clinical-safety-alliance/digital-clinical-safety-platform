@@ -31,12 +31,12 @@
                        href="#collapseDocuments"
                        role="button"
                        aria-expanded="false"
-                       aria-controls="collapseDocuments">Documents</a>
+                       aria-controls="collapseDocuments">Projects</a>
                 </div>
                 <div class="collapse" id="collapseDocuments">
 	
                     {% for doc in available_projects %}
-                        <a class="link-dcsp" href="{% url 'project_documents' doc.doc_id %}">{{ doc.doc_name }}</a>
+                        <a class="link-dcsp" href="{% url 'project_documents' doc.doc_id %}">{{ doc.project_name }}</a>
 	
                         <br>
 	
@@ -70,7 +70,7 @@
                 {% for doc in available_projects %}
                     {% if doc.doc_last_accessed != None %}
                         <p>
-                            <a class="link-dcsp" href="{% url 'project_documents' doc.doc_id %}">{{ doc.doc_name }}</a>
+                            <a class="link-dcsp" href="{% url 'project_documents' doc.doc_id %}">{{ doc.project_name }}</a>
                         </p>
                     {% endif %}
                 {% endfor %}

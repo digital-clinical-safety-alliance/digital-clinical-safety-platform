@@ -140,7 +140,7 @@
     font-family: Roboto, -apple-system;
 }
 
-.font-dcsp, .link-dcsp, .field-color-dcsp:focus {
+.font-dcsp, .link-dcsp, .field-color-dcsp:focus, .accordian-dcsp {
     color: #e2e4e9d1;
     -webkit-font-smoothing: antialiased;
 }
@@ -198,3 +198,42 @@
 .form-control::-ms-input-placeholder { /* Microsoft Edge */
     color: #e2e4e9d1;
 }
+
+.accordian-dcsp {
+    background-color: #1e2129;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+    transition: 0.4s;
+}
+
+.accordion-collapse:focus {
+    background-color: #1e2129;
+}
+
+.accordion {
+    --bs-accordion-btn-bg: #1e2129;
+    --bs-accordion-btn-color: #e2e4e9d1;
+    --bs-accordion-active-bg: #1e2129;
+    --bs-accordion-active-color: #e2e4e9d1;
+    --bs-accordion-color: #e2e4e9d1;
+    --bs-accordion-bg: #1e2129;
+    --bs-accordion-button-active-color: #1e2129;    
+}
+
+.accordion-button:after {
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'><path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/></svg>") !important;
+}
+
+.btn-light, .btn-light:focus, .btn-light:hover .btn-light:focus-visible {
+    --bs-bg: #1e2129;
+    --bs-btn-bg:#424a48d1;
+    --bs-btn-color: #e2e4e9d1;
+    border-color:rgba(var(--bs-info-rgb), var(--bs-border-opacity))
+}
+
+

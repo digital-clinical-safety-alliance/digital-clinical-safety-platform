@@ -200,7 +200,7 @@ def start_new_project(  # type: ignore[return]
 
                 if setup_choice == "import":
                     external_repo_url = form.cleaned_data[
-                        "external_repo_url_import"
+                        "external_repository_url_import"
                     ]
 
                     if "github.com/" in external_repo_url:
@@ -1152,20 +1152,20 @@ def user_accessible_projects(
 
     documents_owner = Project.objects.values(
         doc_id=F("id"),
-        doc_name=F("name"),
+        project_name=F("name"),
         doc_last_accessed=F("userprojectattribute__last_accessed"),
     ).filter(owner=user_id)
 
     documents_member = Project.objects.values(
         doc_id=F("id"),
-        doc_name=F("name"),
+        project_name=F("name"),
         doc_last_accessed=F("userprojectattribute__last_accessed"),
     ).filter(member=user_id)
 
     project_group = (
         ProjectGroup.objects.values(
             doc_id=F("project_access__id"),
-            doc_name=F("project_access__name"),
+            project_name=F("project_access__name"),
             doc_last_accessed=F(
                 "project_access__userprojectattribute__last_accessed"
             ),
@@ -1215,7 +1215,7 @@ def user_accessible_projects(
         if item
         != {
             "doc_id": None,
-            "doc_name": None,
+            "project_name": None,
             "doc_last_accessed": None,
         }
     ]

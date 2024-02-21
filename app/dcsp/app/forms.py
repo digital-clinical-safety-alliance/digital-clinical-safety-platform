@@ -117,36 +117,36 @@ class ProjectSetupInitialForm(forms.Form):
         ),
     )
 
-    external_repo_url_import = forms.CharField(
+    external_repository_url_import = forms.CharField(
         label="Respository URL",
         required=False,
         widget=forms.TextInput(
             attrs={
                 "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
-                "autocomplete": "github-username",
+                "autocomplete": "url",
             }
         ),
     )
 
-    external_repo_username_import = forms.CharField(
+    external_repository_username_import = forms.CharField(
         label="Respository username",
         required=False,
         widget=forms.TextInput(
             attrs={
                 "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
-                "autocomplete": "github-username",
+                "autocomplete": "username",
             }
         ),
     )
 
-    external_repo_password_token_import = forms.CharField(
+    external_repository_password_token_import = forms.CharField(
         label="Repository token",
         help_text="You can get your Github <a class='link-dcsp' href='https://github.com/settings/tokens/new' target='_blank'> token here</a>",
         required=False,
         widget=forms.PasswordInput(
             attrs={
                 "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
-                "autocomplete": "github-token",
+                "autocomplete": "current-password",
             }
         ),
     )
@@ -155,19 +155,19 @@ class ProjectSetupInitialForm(forms.Form):
         """ """
         cleaned_data: dict[str, str] = self.cleaned_data
         setup_choice: str = cleaned_data["setup_choice"]
-        external_repo_url_import: str = cleaned_data[
-            "external_repo_url_import"
+        external_repository_url_import: str = cleaned_data[
+            "external_repository_url_import"
         ]
 
         if setup_choice == "start_anew":
-            cleaned_data.pop("external_repo_url_import", None)
-            cleaned_data.pop("external_repo_username_import", None)
-            cleaned_data.pop("external_repo_password_token_import", None)
+            cleaned_data.pop("external_repository_url_import", None)
+            cleaned_data.pop("external_repository_username_import", None)
+            cleaned_data.pop("external_repository_password_token_import", None)
         else:
             validated_response(
                 self,
-                "external_repo_url_import",
-                not " " in external_repo_url_import,
+                "external_repository_url_import",
+                not " " in external_repository_url_import,
                 "Spaces are not allowed in a url",
             )
 
@@ -194,7 +194,7 @@ class ProjectSetupStepTwoForm(forms.Form):
             widget=forms.TextInput(
                 attrs={
                     "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
-                    "autocomplete": "github-username",
+                    "autocomplete": "off",
                 }
             ),
         )
@@ -205,7 +205,7 @@ class ProjectSetupStepTwoForm(forms.Form):
                 attrs={
                     "class": f"form-control field-color-dcsp font-dcsp border-info { c.FORM_ELEMENTS_MAX_WIDTH }",
                     "rows": 3,
-                    "autocomplete": "description",
+                    "autocomplete": "off",
                 }
             ),
         )
@@ -850,7 +850,7 @@ class EntryUpdateForm(forms.Form):
                     help_text=f"{index}|{help_text}",
                     widget=forms.SelectMultiple(
                         attrs={
-                            "class": "selectpicker field-color-dcsp font-dcsp border-info",
+                            "class": "selectpicker font-dcsp border-info",
                             "multiple": "true",
                         }
                     ),

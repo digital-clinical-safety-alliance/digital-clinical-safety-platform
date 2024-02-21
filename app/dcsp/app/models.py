@@ -91,14 +91,6 @@ class Project(Model):
         blank=True,
     )
 
-    user_interaction: ManyToManyField = ManyToManyField(
-        User,
-        verbose_name=_("User interaction"),
-        related_name="last_updated_by_user_many_to_many",
-        through="UserProjectAttribute",
-        blank=True,
-    )
-
     access = CharField(
         verbose_name=_("View access"),
         max_length=10,
@@ -139,15 +131,34 @@ class Project(Model):
 
 
 class UserProjectAttribute(Model):
-    user: ForeignKey = ForeignKey(User, on_delete=CASCADE)
+    user: ForeignKey = ForeignKey(
+        User, verbose_name=_("User"), on_delete=CASCADE
+    )
 
-    project: ForeignKey = ForeignKey(Project, on_delete=CASCADE)
+    project: ForeignKey = ForeignKey(
+        Project, verbose_name=_("Project"), on_delete=CASCADE
+    )
 
-    last_accessed: DateTimeField = DateTimeField(auto_now=True)
+    last_accessed: DateTimeField = DateTimeField(
+        verbose_name=_("Last accessed"), auto_now=True
+    )
 
-    repo_username: CharField = CharField(max_length=256, blank=True, null=True)
+    repository_username: CharField = CharField(
+        verbose_name=_("Respository username"),
+        max_length=256,
+        blank=True,
+        null=True,
+    )
 
-    repo_password_token = CharField(max_length=256, blank=True, null=True)
+    repository_password_token = CharField(
+        verbose_name=_("Respository password or token"),
+        max_length=256,
+        blank=True,
+        null=True,
+    )
+
+    def __str__(self) -> str:
+        return f"{ self.user } - { self.project }"
 
     class Meta:
         unique_together = ("user", "project")
@@ -156,11 +167,17 @@ class UserProjectAttribute(Model):
 
 
 class ProjectGroup(Model):
-    name: CharField = CharField(max_length=256, blank=True, null=True)
+    name: CharField = CharField(
+        verbose_name=_("Name"), max_length=256, blank=True, null=True
+    )
 
-    member: ManyToManyField = ManyToManyField(User, blank=True)
+    member: ManyToManyField = ManyToManyField(
+        User, verbose_name=_("Member"), blank=True
+    )
 
-    project_access: ManyToManyField = ManyToManyField(Project, blank=True)
+    project_access: ManyToManyField = ManyToManyField(
+        Project, verbose_name=_("Project(s) with access to"), blank=True
+    )
 
     def __str__(self) -> str:
         return f"{ self.name }"

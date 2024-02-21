@@ -4,7 +4,7 @@ This module carries out all of the functionality needed to create and manipulate
 markdown and yaml files for use in mkdocs, a static web site generator.
 
 Classes:
-    Builder: builds up the documents
+    ProjectBuilder: a class to create and manipulate files for mkdocs
 """
 
 import os
@@ -54,7 +54,41 @@ from ..forms import PlaceholdersForm
 
 
 class ProjectBuilder:
-    # TODO - will need to change the template directory to not inclue the name mkdocs
+    """A class to create and manipulate files for mkdocs
+
+    This class carries out all of the functionality needed to create and manipulate
+    markdown and yaml files for use in mkdocs, a static web site generator.
+
+    functions:
+        new_build_prohibit: a decorator to stop certain methods being used for a new
+                            build project.
+        new_build: creates a new project and associated files.
+        document_templates_get: gets the different types of document templates available.
+        configuration_get: gets the configuration settings for the project.
+        configuration_set: sets the configuration settings for the project.
+        copy_templates: copies a project template to the clinical safety folder.
+        get_placeholders: gets the placeholders found in markdown files.
+        save_placeholders: saves placeholders to yaml.
+        save_placeholders_from_form: saves placeholders to yaml from a form.
+        read_placeholders: reads placeholders from yaml file.
+        entry_exists: checks if an entry of certain type exists.
+        entry_file_read: reads the contents of either an entry template or entry instance.
+        entry_read_with_field_types: read an instance of a entry with field typing.
+        _heading_numbering: creates a numbered heading.
+        _create_gui_label: creates a user readable label.
+        entry_update: creates or updates entries (eg Hazards and incidents).
+        entry_file_read_to_form: reads the contents of either an entry template or entry instance.
+        entry_template_names: gets the names of the entry templates.
+        entry_type_exists: checks if an entry type exists.
+        entries_all_get: gets all of the hazards for the project.
+        form_initial: returns data for initialising a django form.
+        document_create_check: checks and creates a new document.
+        document_create: creates a new document.
+        document_list: Returns documents for the project.
+        _entry_templates_list: returns a list of entry templates.
+        _entry_templates_exclude: directories to exclude.
+    """
+
     def __init__(
         self,
         project_id: int = 0,
@@ -137,14 +171,16 @@ class ProjectBuilder:
         if "repository_type" in inputs:
             if inputs["repository_type"] == "github":
                 ghc = GitHubController(
-                    inputs["external_repo_username_import"],
-                    inputs["external_repo_password_token_import"],
+                    inputs["external_repository_username_import"],
+                    inputs["external_repository_password_token_import"],
                 )
-                if "external_repo_url_import" in inputs:
-                    if not ghc.exists(inputs["external_repo_url_import"]):
+                if "external_repository_url_import" in inputs:
+                    if not ghc.exists(
+                        inputs["external_repository_url_import"]
+                    ):
                         return (
                             False,
-                            f"The external repository '{ inputs['external_repo_url_import'] }' does not exist or is not accessible with your credentials",
+                            f"The external repository '{ inputs['external_repository_url_import'] }' does not exist or is not accessible with your credentials",
                         )
             else:
                 # TODO #44
@@ -167,13 +203,13 @@ class ProjectBuilder:
 
         if inputs["setup_choice"] == "import":
             new_project.external_repository_url = inputs[
-                "external_repo_url_import"
+                "external_repository_url_import"
             ]
-        """new_project.external_repo_username = inputs[
-                "external_repo_username_import"
+        """new_project.external_repository_username = inputs[
+                "external_repository_username_import"
             ]
-            new_project.external_repo_password_token = inputs[
-                "external_repo_password_token_import"
+            new_project.external_repository_password_token = inputs[
+                "external_repository_password_token_import"
             ]"""
 
         new_project.save()
@@ -185,11 +221,11 @@ class ProjectBuilder:
         new_user_project_attribute.project = new_project
 
         if inputs["setup_choice"] == "import":
-            new_user_project_attribute.repo_username = inputs[
-                "external_repo_username_import"
+            new_user_project_attribute.repository_username = inputs[
+                "external_repository_username_import"
             ]
-            new_user_project_attribute.repo_password_token = inputs[
-                "external_repo_password_token_import"
+            new_user_project_attribute.repository_password_token = inputs[
+                "external_repository_password_token_import"
             ]
 
         new_user_project_attribute.save()
@@ -212,7 +248,7 @@ class ProjectBuilder:
 
         if inputs["setup_choice"] == "import":
             repo = Repo.clone_from(
-                f"{ inputs['external_repo_url_import'] }.git",
+                f"{ inputs['external_repository_url_import'] }.git",
                 project_directory,
             )
 
