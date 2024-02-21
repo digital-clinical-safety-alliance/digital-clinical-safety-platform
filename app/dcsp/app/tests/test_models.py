@@ -21,7 +21,7 @@ class UserProfileTest(TestCase):
             password="testpassword",
             first_name="John",
             last_name="Doe",
-        )
+        )  # nosec B106
 
         UserProfile.objects.create(
             id=1,
@@ -29,7 +29,7 @@ class UserProfileTest(TestCase):
             default_external_repository_username="testusername",
             default_external_repository_host="testhost",
             default_external_repository_token="testtoken",
-        )
+        )  # nosec B106
 
     def test_user_profile_creation(self):
         user = User.objects.get(id=1)

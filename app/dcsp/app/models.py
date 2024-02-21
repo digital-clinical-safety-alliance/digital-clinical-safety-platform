@@ -52,7 +52,7 @@ class UserProfile(Model):
         null=True,
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.user.last_name}, {self.user.first_name}"
 
     class Meta:

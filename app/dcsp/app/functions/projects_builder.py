@@ -166,7 +166,9 @@ class ProjectBuilder:
         new_project.owner = User.objects.get(id=id_from_request)
 
         if inputs["setup_choice"] == "import":
-            new_project.external_repo_url = inputs["external_repo_url_import"]
+            new_project.external_repository_url = inputs[
+                "external_repo_url_import"
+            ]
         """new_project.external_repo_username = inputs[
                 "external_repo_username_import"
             ]

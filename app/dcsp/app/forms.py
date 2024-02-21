@@ -20,9 +20,7 @@ from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
 
-from .models import (
-    ProjectGroup,
-)
+from .models import ProjectGroup, ViewAccess
 
 import os
 from fnmatch import fnmatch
@@ -212,15 +210,9 @@ class ProjectSetupStepTwoForm(forms.Form):
             ),
         )
 
-        CHOICES = (
-            (c.StaticSiteView.PUBLIC.value, _("Public")),
-            (c.StaticSiteView.MEMBERS.value, _("Members")),
-            (c.StaticSiteView.PRIVATE.value, _("Private")),
-        )
-
         self.fields["access"] = forms.ChoiceField(
-            choices=CHOICES,
-            initial=c.StaticSiteView.PUBLIC.value,
+            choices=ViewAccess.choices,
+            initial=ViewAccess.PUBLIC,
             widget=forms.Select(
                 attrs={
                     "class": c.SELECT_STYLE,
