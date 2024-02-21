@@ -360,9 +360,9 @@ class StartNewProjectTest(TestCase):
             s.save()
 
             setup_1_form_data = d.START_NEW_PROJECT_STEP_1_IMPORT.copy()
-            setup_1_form_data["external_repo_url_import"] = repo_type
+            setup_1_form_data["external_repository_url_import"] = repo_type
             post_data = d.START_NEW_PROJECT_STEP_1_IMPORT.copy()
-            post_data["external_repo_url_import"] = repo_type
+            post_data["external_repository_url_import"] = repo_type
 
             response = self.client.post(
                 "/start_new_project",
@@ -2347,7 +2347,7 @@ class UserAccessibleProjectsTest(TestCase):
 
         self.assertEqual(len(documents), 1)
         self.assertEqual(documents[0]["doc_id"], project_id_1)
-        self.assertEqual(documents[0]["doc_name"], project_name_1)
+        self.assertEqual(documents[0]["project_name"], project_name_1)
         current_datetime = datetime.now()
         difference = current_datetime - documents[0]["doc_last_accessed"]
         self.assertLess(difference, timedelta(minutes=5))
@@ -2384,7 +2384,7 @@ class UserAccessibleProjectsTest(TestCase):
 
         self.assertEqual(len(documents), 1)
         self.assertEqual(documents[0]["doc_id"], project_id_1)
-        self.assertEqual(documents[0]["doc_name"], project_name_1)
+        self.assertEqual(documents[0]["project_name"], project_name_1)
         current_datetime = datetime.now()
         difference = current_datetime - documents[0]["doc_last_accessed"]
         self.assertLess(difference, timedelta(minutes=5))
@@ -2423,7 +2423,7 @@ class UserAccessibleProjectsTest(TestCase):
 
         self.assertEqual(len(documents), 1)
         self.assertEqual(documents[0]["doc_id"], project_id_1)
-        self.assertEqual(documents[0]["doc_name"], project_name_1)
+        self.assertEqual(documents[0]["project_name"], project_name_1)
         current_datetime = datetime.now()
         difference = current_datetime - documents[0]["doc_last_accessed"]
         self.assertLess(difference, timedelta(minutes=5))
@@ -2440,14 +2440,15 @@ class StartNewProjectStep2InputGUITestCase(TestCase):
             id=2, username="user_2", first_name="Jane", last_name="Doe"
         )
 
+    @tag("run")
     def test_import(self):
         inputs = d.START_NEW_PROJECT_STEP_2_IMPORT_INPUTS
 
         expected_output = {
             "Setup choice": "Import",
-            "External repo url": "www.github.com/test",
-            "External repo username": "test_username",
-            "External repo password / token": "***",
+            "External repository url": "www.github.com/test",
+            "External repository username": "test_username",
+            "External repository password / token": "***",
             "Project name": "Test project",
             "Description": "A test project",
             "Groups": "Group 1",

@@ -1,4 +1,7 @@
-from django.core.exceptions import ValidationError
+from datetime import datetime, timedelta
+
+from django.utils import timezone
+from django.db import IntegrityError
 from django.test import TestCase
 from django.contrib.auth.models import User
 from app.models import (
@@ -10,6 +13,8 @@ from app.models import (
 )
 
 from app.functions import constants as c
+
+t = timezone.make_aware(datetime(2024, 1, 24))
 
 
 class UserProfileTest(TestCase):
@@ -31,7 +36,7 @@ class UserProfileTest(TestCase):
             default_external_repository_token="testtoken",
         )  # nosec B106
 
-    def test_user_profile_creation(self):
+    def test_fields(self):
         user = User.objects.get(id=1)
         user_profile = UserProfile.objects.get(id=1)
         self.assertEqual(user_profile.user, user)
@@ -45,63 +50,182 @@ class UserProfileTest(TestCase):
             user_profile.default_external_repository_token, "testtoken"
         )
 
-    def test_string_output(self):
+    def test__str__(self):
         user = User.objects.get(id=1)
         user_profile = UserProfile.objects.get(id=1)
         expected_object_name = f"{user.last_name}, {user.first_name}"
         self.assertEqual(str(user_profile), expected_object_name)
 
 
-class UserProfileMetaTest(TestCase):
+class UserProfileOrderingTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         user_b = User.objects.create(
-            username="B", first_name="User", last_name="B"
+            id=1, username="bob.bates", first_name="Bob", last_name="Bates"
         )
         UserProfile.objects.create(user=user_b)
 
         user_a = User.objects.create(
-            username="A", first_name="User", last_name="A"
+            id=2, username="anne.anchor", first_name="Anne", last_name="Anchor"
         )
         UserProfile.objects.create(user=user_a)
 
     def test_ordering(self):
         users = UserProfile.objects.all()
-        self.assertEqual(users[0].user.last_name, "A")
-        self.assertEqual(users[1].user.last_name, "B")
+        self.assertEqual(users[0].user.last_name, "Anchor")
+        self.assertEqual(users[1].user.last_name, "Bates")
 
 
 class ProjectTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        # Create a user
-        cls.user = User.objects.create(username="testuser")
+        cls.user = User.objects.create(id=1, username="testuser")
+        cls.member = User.objects.create(id=2, username="testmember")
 
-        # Create two projects
-        Project.objects.create(name="B Project", owner=cls.user)
-        Project.objects.create(name="A Project", owner=cls.user)
+        project = Project.objects.create(
+            id=1,
+            name="A Project",
+            description="a project description",
+            owner=cls.user,
+            # member added below
+            access=ViewAccess.PUBLIC,
+            last_modified=t,
+            last_built=t,
+            build_output="success",
+            external_repository_url="a-url",
+        )
 
-    def test_string_representation(self):
+        project.member.add(cls.member)
+
+    def test_fields(self):
+        project = Project.objects.get(name="A Project")
+        self.assertEqual(project.name, "A Project")
+        self.assertEqual(project.description, "a project description")
+        self.assertEqual(project.owner, self.user)
+        self.assertEqual(project.member.first(), self.member)
+        self.assertEqual(project.access, ViewAccess.PUBLIC)
+        self.assertEqual(project.last_modified, t)
+        self.assertEqual(project.last_built, t)
+        self.assertEqual(project.build_output, "success")
+        self.assertEqual(project.external_repository_url, "a-url")
+
+    def test__str__(self):
         project = Project.objects.get(name="A Project")
         self.assertEqual(str(project), "A Project - testuser")
+
+    def test_access_constraint_invalid(self):
+        Project.objects.create(
+            id=2,
+            name="Test Project 2",
+            owner=self.user,
+            access=ViewAccess.PRIVATE,
+        )
+
+        project = Project(
+            name="Test Project 2", owner=self.user, access="invalid"
+        )
+
+        with self.assertRaises(IntegrityError):
+            project.save()
+
+
+class ProjectOrderingTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create(id=1, username="testuser")
+        cls.member = User.objects.create(id=2, username="testmember")
+
+        Project.objects.create(
+            id=1,
+            name="B Project",
+            owner=cls.user,
+        )
+        project_a = Project.objects.create(
+            id=2,
+            name="A Project",
+            owner=cls.user,
+        )
+
+        project_a.member.add(cls.member)
 
     def test_ordering(self):
         projects = Project.objects.all()
         self.assertEqual(projects[0].name, "A Project")
         self.assertEqual(projects[1].name, "B Project")
 
-    def test_access_choices(self):
-        # Test that creating a project with a valid choice for 'access' works
-        Project.objects.create(
-            name="Test Project 1",
-            owner=self.user,
-            access=ViewAccess.PRIVATE,
+
+class UserProjectAttributeTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create(id=1, username="testuser")
+        cls.project = Project.objects.create(
+            id=1, name="Test Project", owner=cls.user
+        )
+        cls.attribute = UserProjectAttribute.objects.create(
+            id=1,
+            user=cls.user,
+            project=cls.project,
+            # last_accessed is auto set
+            repository_username="testusername",
+            repository_password_token="testtoken",
+        )  # nosec B106
+
+    def test_fields(self):
+        attribute = UserProjectAttribute.objects.get(id=1)
+        self.assertEqual(attribute.user, self.user)
+        self.assertEqual(attribute.project, self.project)
+        current_datetime = datetime.now()
+        difference = (
+            timezone.make_aware(current_datetime) - attribute.last_accessed
+        )
+        self.assertLess(difference, timedelta(minutes=5))
+        self.assertEqual(attribute.repository_username, "testusername")
+        self.assertEqual(attribute.repository_password_token, "testtoken")
+
+    def test__str__(self):
+        attribute = UserProjectAttribute.objects.get(id=1)
+        self.assertEqual(str(attribute), f"{self.user} - {self.project}")
+
+
+class UserProjectAttributeUniqueTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(username="testuser")
+        self.project = Project.objects.create(
+            name="testproject", owner=self.user
         )
 
-        # Test that creating a project with an invalid choice for 'access' raises a ValidationError
-        project = Project(
-            name="Test Project 2", owner=self.user, access="invalid"
+    def test_unique_together(self):
+        UserProjectAttribute.objects.create(
+            user=self.user, project=self.project
         )
 
-        with self.assertRaises(ValidationError):
-            project.full_clean()
+        with self.assertRaises(IntegrityError):
+            UserProjectAttribute.objects.create(
+                user=self.user, project=self.project
+            )
+
+
+class ProjectGroupTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create(username="testuser")
+
+        cls.project = Project.objects.create(
+            name="testproject", owner=cls.user
+        )
+
+        cls.project_group = ProjectGroup.objects.create(name="testgroup")
+        cls.project_group.member.add(cls.user)
+        cls.project_group.project_access.add(cls.project)
+
+    def test_fields(self):
+        project_group = ProjectGroup.objects.get(name="testgroup")
+        self.assertEqual(project_group.name, "testgroup")
+        self.assertEqual(list(project_group.member.all()), [self.user])
+        self.assertEqual(
+            list(project_group.project_access.all()), [self.project]
+        )
+
+    def test__str__(self):
+        project_group = ProjectGroup.objects.get(name="testgroup")
+        self.assertEqual(str(project_group), "testgroup")

@@ -15,20 +15,20 @@
             {% include "message_error.html" %}
 
             {% if setup_step == 1 %}
-                <div class="accordion max-w-600 mb-3 field-color-dcsp"
-                     id="accordionHowWorks">
+                <div class="accordion mb-3" id="id_accordion">
                     <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button field-color-dcsp"
+                        <h2 class="accordion-header" id="flush-headingOne">
+                            <button class="accordion-button collapsed"
                                     type="button"
                                     data-bs-toggle="collapse"
-                                    data-bs-target="#collapseOne"
-                                    aria-expanded="true"
-                                    aria-controls="collapseOne">How to start a new project</button>
+                                    data-bs-target="#flush-collapseOne"
+                                    aria-expanded="false"
+                                    aria-controls="flush-collapseOne">How to start a new project</button>
                         </h2>
-                        <div id="collapseOne"
-                             class="accordion-collapse collapse field-color-dcsp"
-                             data-bs-parent="#accordionHowWorks">
+                        <div id="flush-collapseOne"
+                             class="accordion-collapse collapse"
+                             aria-labelledby="flush-headingOne"
+                             data-bs-parent="#id_accordion">
                             <div class="accordion-body">
                                 <p>
                                     Welcome to the project setup page. The Digital Clinical Safety Platform (DCSP) uses git
@@ -129,12 +129,12 @@
         <div class="col d-sm-none d-md-none d-lg-block d-xl-block">Placeholder 2</div>
     </div>
 
-    <script>change_visibility();
-    
-    window.addEventListener('pageshow', function(event) {
-        change_visibility();
-    });
-    </script>
-
+    {% if setup_step == 1 %}
+        <script>change_visibility();
+            window.addEventListener('pageshow', function(event) {
+                change_visibility();
+            });
+        </script>
+    {% endif %}
 
 {% endblock main %}

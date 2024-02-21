@@ -13,6 +13,12 @@ function submitForm() {
     var submitBtn = document.getElementById('id_button');
     var loadingIcon = document.getElementById('loading-icon');
 
+    // Check if the form is valid
+    if (!form.checkValidity()) {
+        // The form is not valid, so don't submit it
+        return;
+    }
+
     save_button_pressed = true;
 
     loadingIcon.classList.add('show');
