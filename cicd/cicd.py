@@ -15,7 +15,7 @@ RUN: list = []
 # RUN.append("unit_testing_all_but_git")
 # RUN.append("unit_testing_git_only")
 RUN.append("single")
-single_file = "app.tests.test_docstring_manipulation"
+single_file = "app.tests.test_models"
 
 outcome = {}
 all_pass = True
@@ -120,7 +120,7 @@ if "single" in RUN:
             "test",
             single_file,
             "--settings=dcsp.settings_tests",
-            "--tag=run",
+            # "--tag=run",
         ],
         cwd="/dcsp/app/dcsp",
     )

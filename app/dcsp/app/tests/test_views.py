@@ -20,7 +20,7 @@ sys.path.append(c.FUNCTIONS_APP)
 
 # from app.decorators import project_access
 import app.views as views
-from app.models import Project, UserProjectAttribute
+from app.models import Project, UserProjectAttribute, ViewAccess
 import app.tests.data_views as d
 from app.functions.text_manipulation import snake_to_sentense
 
@@ -1098,7 +1098,7 @@ class ViewDocsTest(TestCase):
             id=project_id,
             owner=self.user,
             name="Test Project",
-            access=c.StaticSiteView.MEMBERS.value,
+            access=ViewAccess.MEMBERS,
         )
         mock_std_context.return_value = {"test": "test"}
 
@@ -1130,7 +1130,7 @@ class ViewDocsTest(TestCase):
             id=project_id,
             owner=self.user1,
             name="Test Project",
-            access=c.StaticSiteView.PRIVATE.value,
+            access=ViewAccess.PRIVATE,
         )
 
         self.client = Client()
@@ -1168,7 +1168,7 @@ class ViewDocsTest(TestCase):
             id=project_id,
             owner=self.user,
             name="Test Project",
-            access=c.StaticSiteView.PUBLIC.value,
+            access=ViewAccess.PUBLIC,
         )
 
         mock_mkdocs_control.return_value.build_documents.return_value = Mock()
@@ -1210,7 +1210,7 @@ class ViewDocsTest(TestCase):
             id=project_id,
             owner=self.user,
             name="Test Project",
-            access=c.StaticSiteView.PUBLIC.value,
+            access=ViewAccess.PUBLIC,
         )
 
         mock_mkdocs_control.return_value.build_documents.return_value = Mock()
@@ -1251,7 +1251,7 @@ class ViewDocsTest(TestCase):
             id=project_id,
             owner=self.user,
             name="Test Project",
-            access=c.StaticSiteView.PUBLIC.value,
+            access=ViewAccess.PUBLIC,
         )
 
         mock_is_file.return_value = True

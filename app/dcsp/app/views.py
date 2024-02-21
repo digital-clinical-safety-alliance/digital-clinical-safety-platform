@@ -53,10 +53,7 @@ from app.decorators import project_access
 # TODO - may not work in production
 from django.contrib.staticfiles.views import serve
 
-from .models import (
-    Project,
-    ProjectGroup,
-)
+from .models import Project, ProjectGroup, ViewAccess
 
 import app.functions.constants as c
 from app.functions.projects_builder import ProjectBuilder
@@ -619,7 +616,7 @@ def view_docs(
 
     project = Project.objects.get(id=project_id)
 
-    if project.access == c.StaticSiteView.MEMBERS.value:
+    if project.access == ViewAccess.MEMBERS:
         if not request.user.is_authenticated:
             messages.error(
                 request,
@@ -628,7 +625,7 @@ def view_docs(
             )
             return custom_403(request)
 
-    elif project.access == c.StaticSiteView.PRIVATE.value:
+    elif project.access == ViewAccess.PRIVATE:
         accessible_projects = user_accessible_projects(request)
         if not any(
             doc for doc in accessible_projects if doc["doc_id"] == project_id

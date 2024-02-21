@@ -167,7 +167,7 @@ git_contoller_args = {
     "email": "bob@domain.com",
     "github_organisation": "org",
     "github_repo": "a_repo",
-    "github_token": "a_token",
+    "default_external_repository_token": "a_token",
     "repo_path_local": c.REPO_PATH_LOCAL,
     "env_location": c.ENV_PATH_PLACEHOLDERS,
 }
@@ -177,7 +177,7 @@ CHECK_CREDENTIALS_GET_CALLS = [
         f"https://api.github.com/users/{ git_contoller_args['github_username'] }",
         auth=(
             git_contoller_args["github_username"],
-            git_contoller_args["github_token"],
+            git_contoller_args["default_external_repository_token"],
         ),
         timeout=10,
     ),
@@ -185,7 +185,7 @@ CHECK_CREDENTIALS_GET_CALLS = [
         f"https://api.github.com/users/{ git_contoller_args['github_organisation'] }",
         auth=(
             git_contoller_args["github_organisation"],
-            git_contoller_args["github_token"],
+            git_contoller_args["default_external_repository_token"],
         ),
         timeout=10,
     ),
@@ -193,7 +193,7 @@ CHECK_CREDENTIALS_GET_CALLS = [
         f"https://api.github.com/repos/{ git_contoller_args['github_organisation'] }/{ git_contoller_args['github_repo'] }",
         auth=(
             git_contoller_args["github_organisation"],
-            git_contoller_args["github_token"],
+            git_contoller_args["default_external_repository_token"],
         ),
         timeout=10,
     ),
@@ -213,7 +213,7 @@ CHECK_CREDENTIALS_CALLS = [
             git_contoller_args["github_organisation"]
             if "repos" in url
             else git_contoller_args["github_username"],
-            git_contoller_args["github_token"],
+            git_contoller_args["default_external_repository_token"],
         ),
     )
     for url in urls
@@ -222,7 +222,7 @@ CHECK_CREDENTIALS_CALLS = [
 
 CHECK_CREDENTIALS_GITHUB_CALL = (
     git_contoller_args["github_username"],
-    git_contoller_args["github_token"],
+    git_contoller_args["default_external_repository_token"],
 )
 
 

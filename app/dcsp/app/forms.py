@@ -20,9 +20,7 @@ from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
 
-from .models import (
-    ProjectGroup,
-)
+from .models import ProjectGroup, ViewAccess
 
 import os
 from fnmatch import fnmatch
@@ -212,15 +210,9 @@ class ProjectSetupStepTwoForm(forms.Form):
             ),
         )
 
-        CHOICES = (
-            (c.StaticSiteView.PUBLIC.value, _("Public")),
-            (c.StaticSiteView.MEMBERS.value, _("Members")),
-            (c.StaticSiteView.PRIVATE.value, _("Private")),
-        )
-
         self.fields["access"] = forms.ChoiceField(
-            choices=CHOICES,
-            initial=c.StaticSiteView.PUBLIC.value,
+            choices=ViewAccess.choices,
+            initial=ViewAccess.PUBLIC,
             widget=forms.Select(
                 attrs={
                     "class": c.SELECT_STYLE,
@@ -299,7 +291,7 @@ class InstallationForm(forms.Form):
                                 under. If left blank then username is used as
                                 the space to store repositories.
         github_repo_SA: The name of the repository on GitHub.
-        github_token_SA: GitHub token.
+        default_external_repository_token_SA: GitHub token.
         code_location_I: Location of code. This is used when DCSP is integrated
                          into another code base.
     
@@ -367,7 +359,7 @@ class InstallationForm(forms.Form):
         ),
     )
 
-    github_token_SA = forms.CharField(
+    default_external_repository_token_SA = forms.CharField(
         label="Github token (<a href='https://github.com/settings/tokens/new' target='_blank'>get Github token</a>)",
         required=False,
         widget=forms.PasswordInput(
@@ -413,7 +405,7 @@ class InstallationForm(forms.Form):
         email: str = cleaned_data["email_SA"]
         github_organisation: str = cleaned_data["github_organisation_SA"]
         github_repo: str = cleaned_data["github_repo_SA"]
-        github_token: str = cleaned_data["github_token_SA"]
+        default_external_repository_token: str = cleaned_data["default_external_repository_token_SA"]
         code_location: str = cleaned_data["code_location_I"]
         credentials_check_results: dict[str, str | bool | None] = {}
 
@@ -450,7 +442,7 @@ class InstallationForm(forms.Form):
                     email=email,
                     github_organisation=github_organisation,
                     github_repo=github_repo,
-                    github_token=github_token,
+                    default_external_repository_token=default_external_repository_token,
                 )
 
                 credentials_check_results = gc.check_github_credentials()
