@@ -130,12 +130,12 @@ class Project(Model):
 
     class Meta:
         ordering = ["name"]
-        """constraints = [
+        constraints = [
             CheckConstraint(
                 name="%(app_label)s_%(class)s_access_valid",
                 check=Q(access__in=ViewAccess.values),
             )
-        ]"""
+        ]
 
 
 class UserProjectAttribute(Model):
