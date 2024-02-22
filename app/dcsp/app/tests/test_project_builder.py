@@ -9,7 +9,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from app.functions.project_builder import ProjectBuilder
 import app.functions.constants as c
 import app.tests.data_project_builder as d
-from app.models import ProjectGroup
+from app.models import ProjectGroup, Project
 
 
 def log_in(self):
@@ -24,7 +24,7 @@ def log_in(self):
     return
 
 
-class ProjectBuilderInitialTest(TestCase):
+class InitialisationTest(TestCase):
     def test_initialise_string(self):
         project_id = "one"
         with self.assertRaises(TypeError):
@@ -76,7 +76,7 @@ class ProjectBuilderInitialTest(TestCase):
             self.fail("Raised SyntaxError unexpectedly!")
 
 
-class ProjectBuilderNewBuildTest(TestCase):
+class NewBuildTest(TestCase):
     def setUp(self):
         log_in(self)
 
@@ -84,9 +84,6 @@ class ProjectBuilderNewBuildTest(TestCase):
         self.project = ProjectBuilder(self.project_id)
 
         ProjectGroup.objects.create(id=1, name="Test Group")
-        self.project_directory = (
-            f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/"
-        )
 
     def test_id_is_string(self):
         factory = RequestFactory()
@@ -215,11 +212,14 @@ class ProjectBuilderNewBuildTest(TestCase):
             ("Code for other external repositories is not yet written."),
         )
 
+    @tag("run")
     @patch("app.functions.project_builder.GitHubController")
     @patch("app.functions.project_builder.Path")
     def test_project_directory_already_exists(
         self, mock_path, mock_github_controller
     ):
+        project_id = 1
+
         factory = RequestFactory()
 
         # url does not matter here
@@ -242,11 +242,13 @@ class ProjectBuilderNewBuildTest(TestCase):
         mock_path.return_value.is_dir.return_value = True
 
         pass_result, message = self.project.new_build(request)
-
+        project_directory = (
+            f"{ c.PROJECTS_FOLDER }project_{ request.session['project_id'] }/"
+        )
         self.assertFalse(pass_result)
         self.assertEqual(
             message,
-            f"'{ self.project_directory }' already exists",
+            f"'{ project_directory }' already exists",
         )
 
         mock_github_controller.assert_called_once_with(
@@ -258,7 +260,7 @@ class ProjectBuilderNewBuildTest(TestCase):
             inputs["external_repository_url_import"]
         )
 
-        mock_path.assert_called_once_with(self.project_directory)
+        mock_path.assert_called_once_with(project_directory)
         mock_path.return_value.is_dir.assert_called_once_with()
 
     @patch("app.functions.project_builder.GitHubController")
@@ -313,5 +315,5 @@ class ProjectBuilderNewBuildTest(TestCase):
 
 
 @tag("run")
-class ProjectBuilderDocumentTemplatesGetTest(TestCase):
+class DocumentTemplatesGetTest(TestCase):
     pass

@@ -1,5 +1,5 @@
 from django import template
-from django.contrib import messages
+from django.contrib.messages.storage.fallback import FallbackStorage
 
 from typing import Mapping, Any
 
@@ -11,12 +11,12 @@ from app.functions.text_manipulation import (
 
 
 @register.filter(name="has_tag")
-def has_tag(messages: list[Any], tag: str) -> bool:
+def has_tag(messages: FallbackStorage, tag: str) -> bool:
     if not messages:
         return False
 
-    if not isinstance(messages, list):
-        return False
+    if isinstance(messages, FallbackStorage):
+        messages = messages._queued_messages  # type: ignore
 
     if tag == "":
         return False

@@ -101,7 +101,7 @@ class ProjectBuilder:
         """
         self.new_build_flag: bool = False
         self.project_id: int = 0
-        self.document_templates_directory: str = ""
+        self.master_template_directory: str = ""
         self.project_directory: str = ""
         self.safety_directory: str = ""
         self.documents_yaml: str = ""
@@ -121,7 +121,7 @@ class ProjectBuilder:
             )
 
         self.project_id = project_id
-        self.document_templates_directory = c.DOCUMENT_TEMPLATES
+        self.master_template_directory = c.DOCUMENT_TEMPLATES
         self.project_directory = (
             f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/"
         )
@@ -199,6 +199,8 @@ class ProjectBuilder:
         group_id: int = 0
         github_controller: GitHubController
         new_user_project_attribute: UserProjectAttribute
+        new_project_directory: str = ""
+        new_safety_directory: str = ""
 
         if not isinstance(request.user.id, int):
             return (
@@ -301,31 +303,38 @@ class ProjectBuilder:
             group.project_access.add(new_project)
             group.save()
 
-        if Path(self.project_directory).is_dir():
+        new_project_directory = (
+            f"{ c.PROJECTS_FOLDER }project_{ new_project.id }/"
+        )
+        new_safety_directory = (
+            f"{ new_project_directory }{ c.CLINICAL_SAFETY_FOLDER }"
+        )
+
+        if Path(new_project_directory).is_dir():
             return (
                 False,
-                f"'{ self.project_directory }' already exists",
+                f"'{ new_project_directory }' already exists",
             )
 
-        Path(self.project_directory).mkdir(parents=True, exist_ok=True)
+        Path(new_project_directory).mkdir(parents=True, exist_ok=True)
 
         if inputs["setup_choice"] == "import":
             git_controller = GitController()
             git_controller.clone(
                 inputs["external_repository_url_import"],
-                self.project_directory,
+                new_project_directory,
             )
 
-        if not Path(self.safety_directory).is_dir():
-            Path(self.safety_directory).mkdir(parents=True, exist_ok=True)
+        if not Path(new_safety_directory).is_dir():
+            Path(new_safety_directory).mkdir(parents=True, exist_ok=True)
 
         return True, "All passed"
 
     def document_templates_get(self) -> list[str]:
         """Get the different types of document templates available
 
-        Looks in the template folder for subfolders, which it lists as
-        "templates". Technically a template is a collection of markdown files.
+        Looks in the master template folder for template subfolders. Technically
+        a template is a collection of markdown and yaml files.
 
         Returns:
             list[str]: a list of templates in alphabetical order.
@@ -336,16 +345,21 @@ class ProjectBuilder:
         """
         templates: list[str] = []
 
-        # Example of 'list comprehesion'
         templates = [
             directory
-            for directory in os.listdir(self.document_templates_directory)
-            if os.path.isdir(self.document_templates_directory + directory)
+            for directory in os.listdir(self.master_template_directory)
+            if os.path.isdir(self.master_template_directory + directory)
         ]
+        print(templates)
+        """templates = [
+            directory.name
+            for directory in Path(self.master_template_directory).iterdir()
+            if directory.is_dir()
+        ]"""
 
         if not templates:
             raise FileNotFoundError(
-                f"No templates folders found in '{ self.document_templates_directory }' template directory"
+                f"No templates folders found in '{ self.master_template_directory }' template directory"
             )
 
         return sorted(templates, key=str.lower)
@@ -394,7 +408,7 @@ class ProjectBuilder:
             FileNotFoundError: if template folder does not exist.
         """
         template_chosen_path: str = (
-            f"{ self.document_templates_directory }{ template_chosen }"
+            f"{ self.master_template_directory }{ template_chosen }"
         )
 
         if not os.path.isdir(template_chosen_path):
