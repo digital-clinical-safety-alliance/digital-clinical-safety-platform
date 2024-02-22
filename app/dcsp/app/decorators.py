@@ -20,7 +20,7 @@ from .models import (
     Project,
 )
 
-from app.functions.projects_builder import ProjectBuilder
+from app.functions.project_builder import ProjectBuilder
 import app.functions.constants as c
 import app.views as views
 
