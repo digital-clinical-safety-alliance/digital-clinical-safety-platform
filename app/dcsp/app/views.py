@@ -56,7 +56,7 @@ from django.contrib.staticfiles.views import serve
 from .models import Project, ProjectGroup, ViewAccess
 
 import app.functions.constants as c
-from app.functions.projects_builder import ProjectBuilder
+from app.functions.project_builder import ProjectBuilder
 
 
 from app.functions.mkdocs_control import MkdocsControl

@@ -38,9 +38,7 @@ import app.functions.constants as c
 from app.functions.env_manipulation import (
     ENVManipulator,
 )
-from app.functions.git_control import (
-    GitHubController,
-)
+from app.functions.git_control import GitHubController, GitController
 from app.functions.text_manipulation import kebab_to_sentense, list_to_string
 
 
@@ -93,12 +91,27 @@ class ProjectBuilder:
         self,
         project_id: int = 0,
     ) -> None:
-        """ """
-        self.project_id: int = 0
-        self.document_templates_dir: str = ""
-        self.safety_dir: str = ""
-        self.placeholders_yaml: str = ""
+        """Initialises the ProjectBuilder class
+
+        Project builder initialiser
+
+        Args:
+            project_id (int): the id of the project to be worked on. A value of
+                              0 means a new project is being created.
+        """
         self.new_build_flag: bool = False
+        self.project_id: int = 0
+        self.document_templates_directory: str = ""
+        self.project_directory: str = ""
+        self.safety_directory: str = ""
+        self.documents_yaml: str = ""
+        self.docs_dir: str = ""
+        self.placeholders_yaml: str = ""
+        self.entries_templates_dir: str = ""
+        git_controller: Optional[GitController] = None
+
+        if not isinstance(project_id, int):
+            raise TypeError(f"'project_id' '{ project_id }' is not an integer")
 
         if project_id == 0:
             self.new_build_flag = True
@@ -108,12 +121,17 @@ class ProjectBuilder:
             )
 
         self.project_id = project_id
-        self.document_templates_dir = c.DOCUMENT_TEMPLATES
-        self.safety_dir = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }"
-        self.documents_yaml = f"{ self.safety_dir }documents.yml"
-        self.docs_dir: str = f"{ self.safety_dir }docs/"
-        self.placeholders_yaml = f"{ self.safety_dir }placeholders.yml"
-        self.entries_templates_dir: str = f"{ self.safety_dir }templates/"
+        self.document_templates_directory = c.DOCUMENT_TEMPLATES
+        self.project_directory = (
+            f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/"
+        )
+        self.safety_directory = (
+            f"{ self.project_directory }{ c.CLINICAL_SAFETY_FOLDER }"
+        )
+        self.documents_yaml = f"{ self.safety_directory }documents.yml"
+        self.docs_dir = f"{ self.safety_directory }docs/"
+        self.placeholders_yaml = f"{ self.safety_directory }placeholders.yml"
+        self.entries_templates_dir = f"{ self.safety_directory }templates/"
 
         return
 
@@ -147,17 +165,54 @@ class ProjectBuilder:
 
         return wrapper
 
+    def test_no_wrapper(self) -> None:
+        """Do not alter this function.
+
+        Used for testing the new_build_prohibit decorator.
+        """
+        return
+
+    @new_build_prohibit
+    def test_with_wrapper(self) -> None:
+        """Do not alter this function (or decorator).
+
+        Used for testing the new_build_prohibit decorator.
+        """
+        return
+
     def new_build(self, request: HttpRequest) -> Tuple[bool, str]:
-        """ """
+        """Creates a new project and associated files
+
+        This function creates a new project and associated files. It also creates a
+        new project in the database.
+
+        Args:
+            request (HttpRequest): the request object
+
+        Returns:
+            Tuple[bool, str]: True when successful build. String is a list of
+                              errors, if present.
+        """
+        user_id: int = 0
         inputs = request.session["inputs"]
         new_project: Project
-        # group_id
-        # project_directory
-        # project_parent_folder
-        # project_CS_documents
-        ghc: GitHubController
+        group_id: int = 0
+        github_controller: GitHubController
         new_user_project_attribute: UserProjectAttribute
-        id_from_request: str | int = ""
+
+        if not isinstance(request.user.id, int):
+            return (
+                False,
+                "User id could not be converted to an integer",
+            )
+
+        user_id = int(request.user.id)
+
+        if not "setup_choice" in inputs:
+            return (
+                False,
+                "'setup_choice' not set",
+            )
 
         if (
             inputs["setup_choice"] != "start_anew"
@@ -168,20 +223,40 @@ class ProjectBuilder:
                 "'setup_choice' is incorrectly set",
             )
 
-        if "repository_type" in inputs:
+        if inputs["setup_choice"] == "import":
+            if not "external_repository_username_import" in inputs:
+                return (
+                    False,
+                    "'external_repository_username_import' not set",
+                )
+            if not "external_repository_password_token_import" in inputs:
+                return (
+                    False,
+                    "'external_repository_password_token_import' not set",
+                )
+            if not "external_repository_url_import" in inputs:
+                return (
+                    False,
+                    "'external_repository_url_import' not set",
+                )
+
+        if inputs["setup_choice"] == "import":
             if inputs["repository_type"] == "github":
-                ghc = GitHubController(
+                github_controller = GitHubController(
                     inputs["external_repository_username_import"],
                     inputs["external_repository_password_token_import"],
                 )
-                if "external_repository_url_import" in inputs:
-                    if not ghc.exists(
-                        inputs["external_repository_url_import"]
-                    ):
-                        return (
-                            False,
-                            f"The external repository '{ inputs['external_repository_url_import'] }' does not exist or is not accessible with your credentials",
-                        )
+                if not github_controller.repository_exists(
+                    inputs["external_repository_url_import"]
+                ):
+                    return (
+                        False,
+                        (
+                            "The external repository "
+                            f"'{ inputs['external_repository_url_import'] }' "
+                            "does not exist or is not accessible with your credentials"
+                        ),
+                    )
             else:
                 # TODO #44
                 return (
@@ -189,35 +264,26 @@ class ProjectBuilder:
                     "Code for other external repositories is not yet written.",
                 )
 
-        # TODO - need to check user has 'admin' (I think) rights for git push later
-
         # Database record creation
         new_project = Project()
         new_project.name = inputs["project_name"]
         new_project.description = inputs["description"]
         new_project.access = inputs["access"]
-
-        id_from_request = str(request.user.id)
-
-        new_project.owner = User.objects.get(id=id_from_request)
+        new_project.owner = User.objects.get(id=user_id)
 
         if inputs["setup_choice"] == "import":
             new_project.external_repository_url = inputs[
                 "external_repository_url_import"
             ]
-        """new_project.external_repository_username = inputs[
-                "external_repository_username_import"
-            ]
-            new_project.external_repository_password_token = inputs[
-                "external_repository_password_token_import"
-            ]"""
 
         new_project.save()
         new_project.member.set(User.objects.filter(id__in=inputs["members"]))
         new_project.save()
 
+        request.session["project_id"] = new_project.id
+
         new_user_project_attribute = UserProjectAttribute()
-        new_user_project_attribute.user = User.objects.get(id=id_from_request)
+        new_user_project_attribute.user = User.objects.get(id=user_id)
         new_user_project_attribute.project = new_project
 
         if inputs["setup_choice"] == "import":
@@ -230,36 +296,28 @@ class ProjectBuilder:
 
         new_user_project_attribute.save()
 
-        for group_id in inputs["groups"]:
-            group = ProjectGroup.objects.get(id=int(group_id))
+        for group_id in map(int, inputs["groups"]):
+            group = ProjectGroup.objects.get(id=group_id)
             group.project_access.add(new_project)
             group.save()
 
-        # Folder creation
-        project_directory = f"{ c.PROJECTS_FOLDER }project_{ new_project.id }/"
-
-        if os.path.isdir(project_directory):
+        if Path(self.project_directory).is_dir():
             return (
                 False,
-                f"'{ project_directory }' already exists",
+                f"'{ self.project_directory }' already exists",
             )
 
-        Path(project_directory).mkdir(parents=True, exist_ok=True)
+        Path(self.project_directory).mkdir(parents=True, exist_ok=True)
 
         if inputs["setup_choice"] == "import":
-            repo = Repo.clone_from(
-                f"{ inputs['external_repository_url_import'] }.git",
-                project_directory,
+            git_controller = GitController()
+            git_controller.clone(
+                inputs["external_repository_url_import"],
+                self.project_directory,
             )
 
-        project_CS_documents = (
-            f"{ project_directory }{ c.CLINICAL_SAFETY_FOLDER }/"
-        )
-
-        if not os.path.isdir(project_CS_documents):
-            Path(project_CS_documents).mkdir(parents=True, exist_ok=True)
-
-        request.session["project_id"] = new_project.id
+        if not Path(self.safety_directory).is_dir():
+            Path(self.safety_directory).mkdir(parents=True, exist_ok=True)
 
         return True, "All passed"
 
@@ -281,13 +339,13 @@ class ProjectBuilder:
         # Example of 'list comprehesion'
         templates = [
             directory
-            for directory in os.listdir(self.document_templates_dir)
-            if os.path.isdir(self.document_templates_dir + directory)
+            for directory in os.listdir(self.document_templates_directory)
+            if os.path.isdir(self.document_templates_directory + directory)
         ]
 
         if not templates:
             raise FileNotFoundError(
-                f"No templates folders found in '{ self.document_templates_dir }' template directory"
+                f"No templates folders found in '{ self.document_templates_directory }' template directory"
             )
 
         return sorted(templates, key=str.lower)
@@ -336,7 +394,7 @@ class ProjectBuilder:
             FileNotFoundError: if template folder does not exist.
         """
         template_chosen_path: str = (
-            f"{ self.document_templates_dir }{ template_chosen }"
+            f"{ self.document_templates_directory }{ template_chosen }"
         )
 
         if not os.path.isdir(template_chosen_path):
@@ -346,7 +404,7 @@ class ProjectBuilder:
 
         shutil.copytree(
             template_chosen_path,
-            self.safety_dir,
+            self.safety_directory,
             dirs_exist_ok=True,
         )
         return
@@ -1011,7 +1069,7 @@ class ProjectBuilder:
         Returns:
             list[str]: A list of all hazards found for a project.
         """
-        entry_dir: str = f"{ self.safety_dir }docs/{ entry_type }s/"
+        entry_dir: str = f"{ self.safety_directory }docs/{ entry_type }s/"
         entry_entry_dir: str = f"{ entry_dir }{ entry_type }s/"
         entry_file_contents: list[str] = []
         entries_list: list[str | list[dict[str, Any]]] = []

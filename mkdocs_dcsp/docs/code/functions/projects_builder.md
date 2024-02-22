@@ -1,3 +1,3 @@
-# Projects builder
+# Project builder
 
-::: functions.projects_builder
+::: functions.project_builder

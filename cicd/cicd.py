@@ -15,7 +15,18 @@ RUN: list = []
 # RUN.append("unit_testing_all_but_git")
 # RUN.append("unit_testing_git_only")
 RUN.append("single")
-single_file = "app.tests.test_models"
+
+single_file = "app.tests.test_project_builder"
+
+single_file_command = [
+    "python3",
+    "manage.py",
+    "test",
+    single_file,
+    "--settings=dcsp.settings_tests",
+]
+
+single_file_command.append("--tag=run")
 
 outcome = {}
 all_pass = True
@@ -114,14 +125,7 @@ if "single" in RUN:
     print("----------------------------------")
 
     process5 = Popen(
-        [
-            "python3",
-            "manage.py",
-            "test",
-            single_file,
-            "--settings=dcsp.settings_tests",
-            # "--tag=run",
-        ],
+        single_file_command,
         cwd="/dcsp/app/dcsp",
     )
     process5.wait()

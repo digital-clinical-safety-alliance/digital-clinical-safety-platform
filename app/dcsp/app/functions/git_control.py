@@ -51,7 +51,7 @@ class GitHubController:
         self.username: str = username
         self.password_token: str = password_token
 
-    def exists(self, repo_url: str) -> bool:
+    def repository_exists(self, repo_url: str) -> bool:
         """ """
         g = Github(self.username, self.password_token)
 
@@ -812,4 +812,13 @@ class GitController:
         else:
             issue = repo.get_issue(number=int(hazard_number))
             issue.create_comment(comment)
+        return
+
+    def clone(self, from_url: str, to_folder: str) -> None:
+        """Clone a repository from GitHub"""
+        repo = Repo.clone_from(
+            f"{ from_url }.git",
+            to_folder,
+        )
+
         return

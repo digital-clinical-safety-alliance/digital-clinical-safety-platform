@@ -25,7 +25,7 @@ from django.utils import timezone
 from app.models import Project
 
 import app.functions.constants as c
-from app.functions.projects_builder import (
+from app.functions.project_builder import (
     ProjectBuilder,
 )
 from app.functions.docstring_manipulation import (

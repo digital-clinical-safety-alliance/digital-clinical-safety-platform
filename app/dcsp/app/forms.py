@@ -30,7 +30,7 @@ from typing import Any, Mapping
 import app.functions.constants as c
 
 sys.path.append(c.FUNCTIONS_APP)
-import app.functions.projects_builder as projects_builder
+import app.functions.project_builder as project_builder
 from app.functions.general_functions import valid_partial_linux_path
 from app.functions.text_manipulation import list_to_string
 
@@ -81,7 +81,7 @@ def md_files(project_id: int) -> list[tuple[Any, Any]]:
     file: Any = ""
     choices_list: list[tuple[Any, Any]] = []
 
-    project: projects_builder.ProjectBuilder = projects_builder.ProjectBuilder(
+    project: project_builder.ProjectBuilder = project_builder.ProjectBuilder(
         project_id
     )
     md_files = project.documents_list()
@@ -508,8 +508,8 @@ class TemplateSelectForm(forms.Form):
         these as options in a selection field for the user.
         """
         super(TemplateSelectForm, self).__init__(*args, **kwargs)
-        project: projects_builder.ProjectBuilder = (
-            projects_builder.ProjectBuilder(project_id)
+        project: project_builder.ProjectBuilder = (
+            project_builder.ProjectBuilder(project_id)
         )
         templates: list[str] = project.document_templates_get()
         template: str = ""
@@ -554,7 +554,7 @@ class PlaceholdersForm(forms.Form):
         placeholder: str = ""
         value: str = ""
 
-        project_build = projects_builder.ProjectBuilder(project_id)
+        project_build = project_builder.ProjectBuilder(project_id)
         placeholders = project_build.get_placeholders()
 
         for (
@@ -628,7 +628,7 @@ class DocumentNewForm(forms.Form):
             error_messages_1,
         ) = valid_partial_linux_path(document_name)
 
-        project = projects_builder.ProjectBuilder(self.project_id)
+        project = project_builder.ProjectBuilder(self.project_id)
         (
             valid_2,
             error_messages_2,
@@ -786,8 +786,8 @@ class EntryUpdateForm(forms.Form):
             TODO:TODO
         """
         super(EntryUpdateForm, self).__init__(*args, **kwargs)
-        project: projects_builder.ProjectBuilder = (
-            projects_builder.ProjectBuilder(project_id)
+        project: project_builder.ProjectBuilder = (
+            project_builder.ProjectBuilder(project_id)
         )
         entry_template: list[dict[str, Any]] = project.entry_file_read(
             entry_type
