@@ -1,33 +1,40 @@
-from django.test import TestCase, tag
-import app.templatetags.custom_filters as custom_filters
 from unittest.mock import Mock, MagicMock
+
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.test import TestCase, tag
+
+import app.templatetags.custom_filters as custom_filters
 
 
 class HasTagTest(TestCase):
     def create_mock(self):
         mock_message = Mock()
         mock_message.tags = "tag1"
-        self.mock_list = [mock_message]
+        self.mock_storage = Mock(spec=FallbackStorage)
+        self.mock_storage._queued_messages = [mock_message]
 
     def test_no_tags(self):
         mock_message = MagicMock(spec=[])
-        mock_list = [mock_message]
-        self.assertFalse(custom_filters.has_tag(mock_list, "tag1"))
+        mock_storage = Mock(spec=FallbackStorage)
+        mock_storage._queued_messages = [mock_message]
+        self.assertFalse(custom_filters.has_tag(mock_storage, "tag1"))
 
     def test_no_tag(self):
         self.create_mock()
-        self.assertFalse(custom_filters.has_tag(self.mock_list, ""))
+        self.assertFalse(custom_filters.has_tag(self.mock_storage, ""))
 
     def test_true(self):
         self.create_mock()
-        self.assertTrue(custom_filters.has_tag(self.mock_list, "tag1"))
+        self.assertTrue(custom_filters.has_tag(self.mock_storage, "tag1"))
 
     def test_false(self):
         self.create_mock()
-        self.assertFalse(custom_filters.has_tag(self.mock_list, "tag4"))
+        self.assertFalse(custom_filters.has_tag(self.mock_storage, "tag4"))
 
     def test_empty(self):
-        self.assertFalse(custom_filters.has_tag([], ""))
+        mock_storage = Mock(spec=FallbackStorage)
+        mock_storage._queued_messages = []
+        self.assertFalse(custom_filters.has_tag(mock_storage, ""))
 
 
 class StartsWithTest(TestCase):
