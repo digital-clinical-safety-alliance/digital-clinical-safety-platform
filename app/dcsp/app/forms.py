@@ -511,7 +511,7 @@ class TemplateSelectForm(forms.Form):
         project: project_builder.ProjectBuilder = (
             project_builder.ProjectBuilder(project_id)
         )
-        templates: list[str] = project.document_templates_get()
+        templates: list[str] = project.master_template_get()
         template: str = ""
         choices_list: list[Any] = []
 

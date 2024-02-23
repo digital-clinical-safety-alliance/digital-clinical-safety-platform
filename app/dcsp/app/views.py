@@ -60,6 +60,7 @@ from app.functions.project_builder import ProjectBuilder
 
 
 from app.functions.mkdocs_control import MkdocsControl
+from app.functions.custom_exceptions import RepositoryAccessException
 from app.functions.text_manipulation import (
     snake_to_sentense,
     kebab_to_sentense,
@@ -161,8 +162,6 @@ def start_new_project(  # type: ignore[return]
     setup_step: int = 0
     inputs: dict[str, str] = {}
     project_builder: ProjectBuilder
-    build_status: bool = False
-    build_errors: str = ""
     project_id: str = ""
 
     if not (request.method == "POST" or request.method == "GET"):
@@ -291,15 +290,18 @@ def start_new_project(  # type: ignore[return]
             request.session["project_setup_step"] = setup_step
 
             project_builder = ProjectBuilder()
-            (
-                build_status,
-                build_errors,
-            ) = project_builder.new_build(request)
-
-            if not build_status:
+            try:
+                project_builder.new_build(request)
+            except (
+                ValueError,
+                KeyError,
+                RepositoryAccessException,
+                NotImplementedError,
+                FileExistsError,
+            ) as e:
                 messages.error(
                     request,
-                    f"There was an error with the data you supplied: '{ build_errors }'. Please correct these errors.",
+                    f"There was an error with the data you supplied: '{ e }'. Please correct these errors.",
                 )
 
                 context = {
@@ -383,7 +385,7 @@ def setup_documents(  # type: ignore[return]
             if form.is_valid():
                 project_builder.configuration_set("setup_step", 2)
                 template_choice = form.cleaned_data["template_choice"]
-                project_builder.copy_templates(template_choice)
+                project_builder.copy_master_template(template_choice)
 
                 messages.success(
                     request,

@@ -78,7 +78,7 @@ if __name__ == "__main__":
     # print(gh.exists(url))
 
 
-class GitController:
+class GitController_on_hold:
     def __init__(
         self,
         github_username: str = "",
@@ -121,7 +121,7 @@ class GitController:
             ValueError: if repo_path_local is set to an empty string.
             FileNotFoundError: if repo_path_local points to a invalid or non-
                                existing directory.
-        """
+        """  # nosec B107
         self.github_username: str = ""
         self.email: str = ""
         self.github_organisation: str = ""
@@ -812,6 +812,11 @@ class GitController:
         else:
             issue = repo.get_issue(number=int(hazard_number))
             issue.create_comment(comment)
+        return
+
+
+class GitController:
+    def __init__(self) -> None:
         return
 
     def clone(self, from_url: str, to_folder: str) -> None:
