@@ -16,7 +16,7 @@ RUN: list = []
 # RUN.append("unit_testing_git_only")
 RUN.append("single")
 
-single_file = "app.tests.test_custom_filters"
+single_file = "app.tests.test_views"
 
 single_file_command = [
     "python3",
@@ -26,7 +26,7 @@ single_file_command = [
     "--settings=dcsp.settings_tests",
 ]
 
-# single_file_command.append("--tag=run")
+single_file_command.append("--tag=run")
 
 outcome = {}
 all_pass = True

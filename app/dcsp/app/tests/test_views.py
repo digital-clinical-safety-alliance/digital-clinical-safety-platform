@@ -430,15 +430,15 @@ class StartNewProjectTest(TestCase):
 
         mock_std_context.assert_called_once_with()
 
+    @tag("run")
     @patch("app.views.ProjectBuilder", return_value=Mock())
     @patch("app.views.std_context")
     def test_post_setup_step_3_build_fail(
         self, mock_std_context, mock_project_builder
     ):
         mock_std_context.return_value = {"test": "test"}
-        mock_project_builder.return_value.new_build.return_value = (
-            False,
-            "Some error",
+        mock_project_builder.return_value.new_build.side_effect = KeyError(
+            "setup_choice not set"
         )
 
         s = self.client.session
@@ -568,7 +568,7 @@ class SetupDocumentsTest(TestCase):
             [
                 call(project_id),
                 call().configuration_set("setup_step", 2),
-                call().copy_templates(test_template),
+                call().copy_master_template(test_template),
             ]
         )
         mock_template_select_form.assert_called_once_with(
@@ -2253,7 +2253,6 @@ class StartNewProjectStep2InputGUITestCase(TestCase):
             id=2, username="user_2", first_name="Jane", last_name="Doe"
         )
 
-    @tag("run")
     def test_import(self):
         inputs = d.START_NEW_PROJECT_STEP_2_IMPORT_INPUTS
 
@@ -2459,7 +2458,6 @@ class ProjectTimestampTest(TestCase):
         self.assertNotEqual(timestamp_before, timestamp_after)
 
 
-@tag("run")
 class Custom400Test(TestCase):
     @patch("app.views.std_context")
     def test_valid(self, mock_std_context):
@@ -2473,7 +2471,6 @@ class Custom400Test(TestCase):
         mock_std_context.assert_called_once_with()
 
 
-@tag("run")
 class Custom403Test(TestCase):
     @patch("app.views.std_context")
     def test_valid(self, mock_std_context):
@@ -2487,7 +2484,6 @@ class Custom403Test(TestCase):
         mock_std_context.assert_called_once_with()
 
 
-@tag("run")
 class Custom403CRSFTest(TestCase):
     @patch("app.views.std_context")
     def test_valid(self, mock_std_context):
@@ -2501,7 +2497,6 @@ class Custom403CRSFTest(TestCase):
         mock_std_context.assert_called_once_with()
 
 
-@tag("run")
 class Custom404Test(TestCase):
     @patch("app.views.std_context")
     def test_valid(self, mock_std_context):
@@ -2515,7 +2510,6 @@ class Custom404Test(TestCase):
         mock_std_context.assert_called_once_with()
 
 
-@tag("run")
 class Custom405Test(TestCase):
     @patch("app.views.std_context")
     def test_valid(self, mock_std_context):
@@ -2529,7 +2523,6 @@ class Custom405Test(TestCase):
         mock_std_context.assert_called_once_with()
 
 
-@tag("run")
 class Custom500Test(TestCase):
     @patch("app.views.std_context")
     def test_valid(self, mock_std_context):

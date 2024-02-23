@@ -66,7 +66,7 @@ class TemplateSelectFormTest(TestCase):
 class PlaceholdersFormTest(TestCase):
     def setUp(self):
         doc_build = Builder(c.TESTING_MKDOCS)
-        doc_build.copy_templates("test_templates")
+        doc_build.copy_master_template("test_templates")
 
     def test_good_placeholder(self):
         form = PlaceholdersForm(data=d.PLACEHOLDERS_FORM_GOOD_DATA)
@@ -84,7 +84,7 @@ class PlaceholdersFormTest(TestCase):
 class MDFileSelectFormTest(TestCase):
     def setUp(self):
         doc_build = Builder(c.TESTING_MKDOCS)
-        doc_build.copy_templates("test_templates")
+        doc_build.copy_master_template("test_templates")
 
     def test_good_data(self):
         form = MDFileSelectForm(data=d.MD_FILE_SELECT_GOOD_DATA)

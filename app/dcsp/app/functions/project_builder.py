@@ -35,12 +35,10 @@ from django.contrib.auth.models import User
 
 import app.functions.constants as c
 
-from app.functions.env_manipulation import (
-    ENVManipulator,
-)
+from app.functions.env_manipulation import ENVManipulator
 from app.functions.git_control import GitHubController, GitController
 from app.functions.text_manipulation import kebab_to_sentense, list_to_string
-
+from app.functions.custom_exceptions import RepositoryAccessException
 
 from ..models import (
     Project,
@@ -61,7 +59,7 @@ class ProjectBuilder:
         new_build_prohibit: a decorator to stop certain methods being used for a new
                             build project.
         new_build: creates a new project and associated files.
-        document_templates_get: gets the different types of document templates available.
+        master_template_get: gets the different types of document templates available.
         configuration_get: gets the configuration settings for the project.
         configuration_set: sets the configuration settings for the project.
         copy_templates: copies a project template to the clinical safety folder.
@@ -98,6 +96,10 @@ class ProjectBuilder:
         Args:
             project_id (int): the id of the project to be worked on. A value of
                               0 means a new project is being created.
+
+        Raises:
+            TypeError: if project_id is not an integer.
+            ValueError: if project_id is not a positive integer
         """
         self.new_build_flag: bool = False
         self.project_id: int = 0
@@ -121,7 +123,7 @@ class ProjectBuilder:
             )
 
         self.project_id = project_id
-        self.master_template_directory = c.DOCUMENT_TEMPLATES
+        self.master_template_directory = c.MASTER_TEMPLATES
         self.project_directory = (
             f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/"
         )
@@ -139,10 +141,11 @@ class ProjectBuilder:
     def new_build_prohibit(func: Callable[..., Any]) -> Callable[..., Any]:
         """A decorator checking if a method can be used
 
-        If used, this decorator only allows a method to be used if a project_id is specified
+        If used, this decorator only allows a method to be used if a project_id
+        is 1 or more.
 
         functions:
-            wrapper: checks if
+            wrapper: to check if a method can be used
         """
 
         @wraps(func)
@@ -155,6 +158,9 @@ class ProjectBuilder:
 
             Returns:
                 HttpResponse | func: error responses or runs func.
+
+            Raises:
+                SyntaxError: if the function is not allowed for a new-build project
             """
             if self.new_build_flag:
                 raise SyntaxError(
@@ -180,7 +186,7 @@ class ProjectBuilder:
         """
         return
 
-    def new_build(self, request: HttpRequest) -> Tuple[bool, str]:
+    def new_build(self, request: HttpRequest) -> None:
         """Creates a new project and associated files
 
         This function creates a new project and associated files. It also creates a
@@ -192,6 +198,19 @@ class ProjectBuilder:
         Returns:
             Tuple[bool, str]: True when successful build. String is a list of
                               errors, if present.
+
+        Raises:
+            ValueError: User id could not be converted to an integer
+            KeyError: 'setup_choice' not set
+            ValueError: 'setup_choice' is incorrectly set
+            KeyError: 'external_repository_username_import' not set
+            KeyError: 'external_repository_password_token_import' not set
+            KeyError: 'external_repository_url_import' not set
+            RepositoryAccessException: if the repository does not exist or is not
+                                       accessible
+            NotImplementedError: Code for other external repositories is not yet
+                                 written.
+            FileExistsError: if the project directory already exists
         """
         user_id: int = 0
         inputs = request.session["inputs"]
@@ -203,44 +222,28 @@ class ProjectBuilder:
         new_safety_directory: str = ""
 
         if not isinstance(request.user.id, int):
-            return (
-                False,
-                "User id could not be converted to an integer",
-            )
+            raise ValueError("User id could not be converted to an integer")
 
         user_id = int(request.user.id)
 
         if not "setup_choice" in inputs:
-            return (
-                False,
-                "'setup_choice' not set",
-            )
+            raise KeyError("'setup_choice' not set")
 
         if (
             inputs["setup_choice"] != "start_anew"
             and inputs["setup_choice"] != "import"
         ):
-            return (
-                False,
-                "'setup_choice' is incorrectly set",
-            )
+            raise ValueError("'setup_choice' is incorrectly set")
 
         if inputs["setup_choice"] == "import":
             if not "external_repository_username_import" in inputs:
-                return (
-                    False,
-                    "'external_repository_username_import' not set",
-                )
+                raise KeyError("'external_repository_username_import' not set")
             if not "external_repository_password_token_import" in inputs:
-                return (
-                    False,
-                    "'external_repository_password_token_import' not set",
+                raise KeyError(
+                    "'external_repository_password_token_import' not set"
                 )
             if not "external_repository_url_import" in inputs:
-                return (
-                    False,
-                    "'external_repository_url_import' not set",
-                )
+                raise KeyError("'external_repository_url_import' not set")
 
         if inputs["setup_choice"] == "import":
             if inputs["repository_type"] == "github":
@@ -251,18 +254,13 @@ class ProjectBuilder:
                 if not github_controller.repository_exists(
                     inputs["external_repository_url_import"]
                 ):
-                    return (
-                        False,
-                        (
-                            "The external repository "
-                            f"'{ inputs['external_repository_url_import'] }' "
-                            "does not exist or is not accessible with your credentials"
-                        ),
+                    raise RepositoryAccessException(
+                        inputs["external_repository_url_import"]
                     )
+
             else:
                 # TODO #44
-                return (
-                    False,
+                raise NotImplementedError(
                     "Code for other external repositories is not yet written.",
                 )
 
@@ -311,8 +309,7 @@ class ProjectBuilder:
         )
 
         if Path(new_project_directory).is_dir():
-            return (
-                False,
+            raise FileExistsError(
                 f"'{ new_project_directory }' already exists",
             )
 
@@ -328,10 +325,10 @@ class ProjectBuilder:
         if not Path(new_safety_directory).is_dir():
             Path(new_safety_directory).mkdir(parents=True, exist_ok=True)
 
-        return True, "All passed"
+        return
 
-    def document_templates_get(self) -> list[str]:
-        """Get the different types of document templates available
+    def master_template_get(self) -> list[str]:
+        """Get the different types of master templates available
 
         Looks in the master template folder for template subfolders. Technically
         a template is a collection of markdown and yaml files.
@@ -346,16 +343,10 @@ class ProjectBuilder:
         templates: list[str] = []
 
         templates = [
-            directory
-            for directory in os.listdir(self.master_template_directory)
-            if os.path.isdir(self.master_template_directory + directory)
-        ]
-        print(templates)
-        """templates = [
             directory.name
             for directory in Path(self.master_template_directory).iterdir()
             if directory.is_dir()
-        ]"""
+        ]
 
         if not templates:
             raise FileNotFoundError(
@@ -366,52 +357,83 @@ class ProjectBuilder:
 
     @new_build_prohibit
     def configuration_get(self) -> dict[str, Any]:
-        """ """
-        configration_file: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }setup.ini"
-        config: ENVManipulator = ENVManipulator(configration_file)
-        setup_step: None | str = None
+        """Returns the configuration settings for the project
+
+        Reads the setup.ini file in the clinical safety folder and returns the
+        settings.
+
+        Returns:
+            dict[str, Any]: a dictionary of the settings.
+
+        Raises:
+            FileNotFoundError: if the clinical safety folder does not exist.
+        """
+        configration_file: str = f"{ self.safety_directory }setup.ini"
+        config: Optional[ENVManipulator] = None
+
+        if not Path(self.safety_directory).is_dir():
+            raise FileNotFoundError(
+                f"'{ self.safety_directory }' does not exist"
+            )
+
+        config = ENVManipulator(configration_file)
+        setup_step: Optional[str] = None
 
         setup_step = config.read("setup_step")
 
+        # catches negative numbers and non-numeric characters
         if not setup_step.isdigit():
-            setup_step = "1"
-            config.add("setup_step", setup_step)
-
-        if int(setup_step) < 1:
             setup_step = "1"
             config.add("setup_step", setup_step)
 
         return {"setup_step": int(setup_step)}
 
     @new_build_prohibit
-    def configuration_set(self, key: str, value: str) -> None:
-        """ """
-        configration_file: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }setup.ini"
-        config: ENVManipulator = ENVManipulator(configration_file)
+    def configuration_set(self, key: str, value: str) -> bool:
+        """Sets the configuration settings for the project
+
+        Writes to the setup.ini file in the clinical safety folder.
+
+        Args:
+            key (str): the key to be set.
+            value (str): the value to be set.
+
+        Returns:
+            bool: True if successful, False if not.
+
+        Raises:
+            FileNotFoundError: if the clinical safety folder does not exist.
+        """
+        configration_file: str = f"{ self.safety_directory }setup.ini"
+        config: Optional[ENVManipulator] = None
+
+        if not Path(self.safety_directory).is_dir():
+            raise FileNotFoundError(
+                f"'{ self.safety_directory }' does not exist"
+            )
+
+        config = ENVManipulator(configration_file)
 
         config.add(key, str(value))
-        return
+        return True
 
     @new_build_prohibit
-    def copy_templates(self, template_chosen: str) -> None:
-        """Copies a template to the clinical safety folder
+    def copy_master_template(self, template_chosen: str) -> None:
+        """Copies a master template to the clinical safety folder
 
-        ---TODO
+        Copies a master template to the clinical safety folder.
 
         Args:
             template_chosen (str): the template to copy across.
 
-        Returns:
-            None
-
         Raises:
-            FileNotFoundError: if template folder does not exist.
+            FileNotFoundError: if the template chosen does not exist.
         """
         template_chosen_path: str = (
             f"{ self.master_template_directory }{ template_chosen }"
         )
 
-        if not os.path.isdir(template_chosen_path):
+        if not Path(template_chosen_path).is_dir():
             raise FileNotFoundError(
                 f"'{ template_chosen_path }' does not exist"
             )
