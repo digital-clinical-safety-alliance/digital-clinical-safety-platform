@@ -14,3 +14,5 @@
 12. Unit test Project_timestamp in models.py
 13. NGINX default Bad gate way etc error page
 14. Remove switch for day and night mode in mkdocs.yml
+15. When creating a new project, if there are no members or groups, show a more Ux friendly response
+16. User / member show if no first and last name

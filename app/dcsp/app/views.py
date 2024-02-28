@@ -191,9 +191,9 @@ def start_new_project(  # type: ignore[return]
             if form.is_valid():
                 setup_step = 2
                 request.session["project_setup_step"] = setup_step
-                request.session[
-                    "project_setup_1_form_data"
-                ] = form.cleaned_data
+                request.session["project_setup_1_form_data"] = (
+                    form.cleaned_data
+                )
                 setup_choice = form.cleaned_data["setup_choice"]
 
                 if setup_choice == "import":
@@ -251,9 +251,9 @@ def start_new_project(  # type: ignore[return]
 
                 setup_step = 3
                 request.session["project_setup_step"] = setup_step
-                request.session[
-                    "project_setup_2_form_data"
-                ] = form.cleaned_data
+                request.session["project_setup_2_form_data"] = (
+                    form.cleaned_data
+                )
 
                 inputs = request.session["project_setup_1_form_data"].copy()
                 inputs.update(request.session["project_setup_2_form_data"])
@@ -778,7 +778,9 @@ def document_update(  # type: ignore[return]
     document_markdown: str = ""
     document_markdown_file_read: str = ""
     form_data: dict[str, str] = {}
-    docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+    docs_dir: str = (
+        f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+    )
     file: TextIO
     context: dict[str, Any] = {}
 
@@ -1296,10 +1298,13 @@ def start_new_project_step_2_input_GUI(
             inputs_GUI[key] = ", ".join(members_list_fullnames)
             if inputs_GUI[key] == "":
                 inputs_GUI[key] = "<i>none selected</i>"
+        elif key == "Access":
+            inputs_GUI[key] = ViewAccess.get_label(value)
 
         elif any(keyword in key for keyword in ["password", "token"]):
             key = key.replace("password token", "password / token")
             inputs_GUI[key] = "***"
+
         else:
             inputs_GUI[key] = value
 
