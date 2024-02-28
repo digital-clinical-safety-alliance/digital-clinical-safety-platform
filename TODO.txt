@@ -13,3 +13,4 @@
         raise ValueError("project_id must be an integer")
 12. Unit test Project_timestamp in models.py
 13. NGINX default Bad gate way etc error page
+14. Remove switch for day and night mode in mkdocs.yml

@@ -2048,7 +2048,6 @@ class UnderConstructionViewTest(TestCase):
         self.assertContains(response, "Under contruction")
 
 
-@tag("run")
 class StdContextTest(TestCase):
     @patch("app.views.ProjectBuilder")
     def test_std_context_with_project_id_non_integer(
