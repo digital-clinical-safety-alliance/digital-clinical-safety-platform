@@ -12,3 +12,4 @@
     if not isinstance(project_id, int):
         raise ValueError("project_id must be an integer")
 12. Unit test Project_timestamp in models.py
+13. NGINX default Bad gate way etc error page
