@@ -1,41 +1,41 @@
 """URL management
+
+Manage the URL patterns for the app.
 """
 
 from django.urls import path, re_path
 from django.views.generic.base import RedirectView
 from app import views
 
-"""URL patterns
-"""
 urlpatterns = [
     path("", views.index, name="index"),
     path(
-        "setup_documents/<project_id>",
+        "setup-documents/<project_id>",
         views.setup_documents,
         name="setup_documents",
     ),
     path(
-        "project_build_asap/<project_id>",
+        "project-build-asap/<project_id>",
         views.project_build_asap,
         name="project_build_asap",
     ),
     path(
-        "document_update/<project_id>",
+        "document-update/<project_id>",
         views.document_update,
         name="document_update",
     ),
     path(
-        "document_new/<project_id>",
+        "document-new/<project_id>",
         views.document_new,
         name="document_new",
     ),
     path(
-        "entry_update/<project_id>/<entry_type>/<id_new>",
+        "entry-update/<project_id>/<entry_type>/<id_new>",
         views.entry_update,
         name="entry_update",
     ),
     path(
-        "entry_select/<project_id>/<entry_type>",
+        "entry-select/<project_id>/<entry_type>",
         views.entry_select,
         name="entry_select",
     ),
@@ -45,22 +45,22 @@ urlpatterns = [
         name="member_landing_page",
     ),
     path(
-        "start_new_project",
+        "start-new-project",
         views.start_new_project,
         name="start_new_project",
     ),
     re_path(
-        r"^view_docs/(?P<project_id>[^/]+)/(?P<doc_path>.*)/?$",
+        r"^view-docs/(?P<project_id>[^/]+)/(?P<doc_path>.*)/?$",
         views.view_docs,
         name="view_docs",
     ),
     path(
-        "project_documents/<project_id>",
+        "project-documents/<project_id>",
         views.project_documents,
         name="project_documents",
     ),
     path(
-        "under_construction/<message>",
+        "under-construction/<message>",
         views.under_construction,
         name="under_construction",
     ),

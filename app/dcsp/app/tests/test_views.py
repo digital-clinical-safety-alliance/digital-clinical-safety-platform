@@ -115,7 +115,7 @@ class StartNewProjectTest(TestCase):
     def test_bad_request(self, mock_std_context):
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.delete("/start_new_project")
+        response = self.client.delete("/start-new-project")
         self.assertEqual(response.status_code, 405)
         self.assertTemplateUsed(response, "error_handler.html")
 
@@ -135,7 +135,7 @@ class StartNewProjectTest(TestCase):
         )
         s.save()
 
-        response = self.client.get("/start_new_project")
+        response = self.client.get("/start-new-project")
 
         self.assertNotIn("repository_type", dir(self.client.session))
         self.assertEqual(self.client.session["project_setup_step"], 1)
@@ -147,7 +147,7 @@ class StartNewProjectTest(TestCase):
         mock_std_context.assert_called_once_with()
 
     def test_post_setup_step_1_None(self):
-        response = self.client.post("/start_new_project")
+        response = self.client.post("/start-new-project")
         self.assertEqual(response.status_code, 302)
 
     @patch("app.views.std_context")
@@ -178,7 +178,7 @@ class StartNewProjectTest(TestCase):
             post_data["external_repository_url_import"] = repo_type
 
             response = self.client.post(
-                "/start_new_project",
+                "/start-new-project",
                 post_data,
             )
 
@@ -205,7 +205,7 @@ class StartNewProjectTest(TestCase):
         s.save()
 
         response = self.client.post(
-            "/start_new_project",
+            "/start-new-project",
             d.START_NEW_PROJECT_STEP_1_START_ANEW,
         )
         self.assertEqual(response.status_code, 200)
@@ -228,7 +228,7 @@ class StartNewProjectTest(TestCase):
             False
         )
         response = self.client.post(
-            "/start_new_project",
+            "/start-new-project",
             {},
         )
 
@@ -260,7 +260,7 @@ class StartNewProjectTest(TestCase):
         s.save()
 
         response = self.client.post(
-            "/start_new_project",
+            "/start-new-project",
             d.START_NEW_PROJECT_STEP_2,
         )
 
@@ -298,7 +298,7 @@ class StartNewProjectTest(TestCase):
         s.save()
 
         response = self.client.post(
-            "/start_new_project",
+            "/start-new-project",
             d.START_NEW_PROJECT_STEP_2,
         )
 
@@ -347,7 +347,7 @@ class StartNewProjectTest(TestCase):
         s.save()
 
         response = self.client.post(
-            "/start_new_project",
+            "/start-new-project",
             d.START_NEW_PROJECT_STEP_2,
         )
 
@@ -378,7 +378,7 @@ class StartNewProjectTest(TestCase):
         s.save()
 
         response = self.client.post(
-            "/start_new_project",
+            "/start-new-project",
             {},
         )
 
@@ -413,7 +413,7 @@ class StartNewProjectTest(TestCase):
         s.save()
 
         response = self.client.post(
-            "/start_new_project",
+            "/start-new-project",
             {},
         )
 
@@ -451,7 +451,7 @@ class StartNewProjectTest(TestCase):
         s.save()
 
         response = self.client.post(
-            "/start_new_project",
+            "/start-new-project",
             {},
         )
 
@@ -479,7 +479,7 @@ class StartNewProjectTest(TestCase):
         s.save()
 
         response = self.client.post(
-            "/start_new_project",
+            "/start-new-project",
             {},
         )
 
@@ -512,7 +512,7 @@ class SetupDocumentsTest(TestCase):
 
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.get(f"/setup_documents/{ project_id }")
+        response = self.client.get(f"/setup-documents/{ project_id }")
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(
@@ -554,7 +554,7 @@ class SetupDocumentsTest(TestCase):
         mock_project_builder.return_value.copy_templates.return_value = None
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.post(f"/setup_documents/{ project_id }")
+        response = self.client.post(f"/setup-documents/{ project_id }")
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(
@@ -600,7 +600,7 @@ class SetupDocumentsTest(TestCase):
         mock_template_select_form.return_value.is_valid.return_value = False
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.post(f"/setup_documents/{ project_id }")
+        response = self.client.post(f"/setup-documents/{ project_id }")
 
         self.assertEqual(response.status_code, 400)
         self.assertTemplateUsed(
@@ -637,7 +637,7 @@ class SetupDocumentsTest(TestCase):
 
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.get(f"/setup_documents/{ project_id }")
+        response = self.client.get(f"/setup-documents/{ project_id }")
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(
@@ -678,7 +678,7 @@ class SetupDocumentsTest(TestCase):
         mock_project_timestamp.return_value = None
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.post(f"/setup_documents/{ project_id }")
+        response = self.client.post(f"/setup-documents/{ project_id }")
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(
@@ -724,7 +724,7 @@ class SetupDocumentsTest(TestCase):
         mock_placeholders_form.return_value.is_valid.return_value = False
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.post("/setup_documents/1")
+        response = self.client.post("/setup-documents/1")
 
         self.assertEqual(response.status_code, 400)
         self.assertTemplateUsed(
@@ -767,7 +767,7 @@ class ProjectBuildASAPTest(TestCase):
         )
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.get(f"/project_build_asap/{ project_id }")
+        response = self.client.get(f"/project-build-asap/{ project_id }")
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "project_build_asap.html")
@@ -798,7 +798,7 @@ class ProjectBuildASAPTest(TestCase):
         )
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.post(f"/project_build_asap/{ project_id }")
+        response = self.client.post(f"/project-build-asap/{ project_id }")
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "project_build_asap.html")
@@ -836,7 +836,7 @@ class ProjectDocumentsTest(TestCase):
         )
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.delete(f"/project_documents/{ project_id}")
+        response = self.client.delete(f"/project-documents/{ project_id}")
 
         self.assertEqual(response.status_code, 405)
         self.assertTemplateUsed(response, "error_handler.html")
@@ -859,7 +859,7 @@ class ProjectDocumentsTest(TestCase):
         )
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.get(f"/project_documents/{ project_id }")
+        response = self.client.get(f"/project-documents/{ project_id }")
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "project_documents.html")
@@ -874,7 +874,7 @@ class ViewDocsTest(TestCase):
     def test_not_digit(self, mock_std_context):
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.get("/view_docs/a/test_page.html")
+        response = self.client.get("/view-docs/a/test-page.html")
 
         self.assertEqual(response.status_code, 404)
         self.assertTemplateUsed(response, "error_handler.html")
@@ -886,7 +886,7 @@ class ViewDocsTest(TestCase):
         project_id = 1
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.get(f"/view_docs/{ project_id }/test_page.html")
+        response = self.client.get(f"/view-docs/{ project_id }/test-page.html")
 
         self.assertEqual(response.status_code, 404)
         self.assertTemplateUsed(response, "error_handler.html")
@@ -914,7 +914,7 @@ class ViewDocsTest(TestCase):
         )
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.get(f"/view_docs/{ project_id }/test_page.html")
+        response = self.client.get(f"/view-docs/{ project_id }/test-page.html")
 
         self.assertEqual(response.status_code, 403)
         self.assertTemplateUsed(response, "error_handler.html")
@@ -950,7 +950,7 @@ class ViewDocsTest(TestCase):
 
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.get(f"/view_docs/{ project_id }/test_page.html")
+        response = self.client.get(f"/view-docs/{ project_id }/test-page.html")
 
         self.assertEqual(response.status_code, 403)
         self.assertTemplateUsed(response, "error_handler.html")
@@ -971,7 +971,7 @@ class ViewDocsTest(TestCase):
         self, mock_std_context, mock_is_file, mock_mkdocs_control
     ):
         project_id = 1
-        test_page = "test_page.html"
+        test_page = "test-page.html"
 
         self.user = User.objects.create_user(
             id=1, username="user", password="password"
@@ -989,7 +989,7 @@ class ViewDocsTest(TestCase):
 
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.get(f"/view_docs/{ project_id }/{ test_page }")
+        response = self.client.get(f"/view-docs/{ project_id }/{ test_page }")
 
         self.assertEqual(response.status_code, 404)
         self.assertTemplateUsed(response, "error_handler.html")
@@ -1033,7 +1033,7 @@ class ViewDocsTest(TestCase):
 
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.get(f"/view_docs/{ project_id }/{ test_page }")
+        response = self.client.get(f"/view-docs/{ project_id }/{ test_page }")
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "document_serve.html")
@@ -1068,7 +1068,7 @@ class ViewDocsTest(TestCase):
 
         mock_is_file.return_value = True
 
-        response = self.client.get(f"/view_docs/{ project_id }/{ test_image }")
+        response = self.client.get(f"/view-docs/{ project_id }/{ test_image }")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "image/jpeg")
@@ -1102,7 +1102,7 @@ class DocumentNewTest(TestCase):
             setup_step,
         )
 
-        response = self.client.get(f"/document_new/{ project_id }")
+        response = self.client.get(f"/document-new/{ project_id }")
 
         self.assertEqual(response.status_code, 302)
 
@@ -1127,7 +1127,7 @@ class DocumentNewTest(TestCase):
         # mock_document_new_form - used here
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.get(f"/document_new/{ project_id }")
+        response = self.client.get(f"/document-new/{ project_id }")
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "document_new.html")
@@ -1164,7 +1164,7 @@ class DocumentNewTest(TestCase):
         }
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.post(f"/document_new/{ project_id }", {})
+        response = self.client.post(f"/document-new/{ project_id }", {})
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "document_new.html")
@@ -1206,7 +1206,7 @@ class DocumentNewTest(TestCase):
 
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.post(f"/document_new/{ project_id }", {})
+        response = self.client.post(f"/document-new/{ project_id }", {})
 
         self.assertEqual(response.status_code, 400)
         self.assertTemplateUsed(response, "document_new.html")
@@ -1238,7 +1238,7 @@ class DocumentUpdateTest(TestCase):
             setup_step,
         )
 
-        response = self.client.get(f"/document_update/{ project_id }")
+        response = self.client.get(f"/document-update/{ project_id }")
 
         self.assertEqual(response.status_code, 302)
 
@@ -1269,7 +1269,7 @@ class DocumentUpdateTest(TestCase):
         # mock_placeholders - used here
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.get(f"/document_update/{ project_id }")
+        response = self.client.get(f"/document-update/{ project_id }")
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "document_update.html")
@@ -1321,7 +1321,7 @@ class DocumentUpdateTest(TestCase):
         )
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.post(f"/document_update/{ project_id }")
+        response = self.client.post(f"/document-update/{ project_id }")
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "document_update.html")
@@ -1382,7 +1382,7 @@ class DocumentUpdateTest(TestCase):
         # mock_project_timestamp - used here
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.post(f"/document_update/{ project_id }")
+        response = self.client.post(f"/document-update/{ project_id }")
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "document_update.html")
@@ -1439,7 +1439,7 @@ class DocumentUpdateTest(TestCase):
 
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.post(f"/document_update/{ project_id }")
+        response = self.client.post(f"/document-update/{ project_id }")
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "document_update.html")
@@ -1482,7 +1482,7 @@ class DocumentUpdateTest(TestCase):
 
         mock_std_context.return_value = {"test": "test"}
 
-        response = self.client.post(f"/document_update/{ project_id }")
+        response = self.client.post(f"/document-update/{ project_id }")
 
         self.assertEqual(response.status_code, 400)
         self.assertTemplateUsed(response, "document_update.html")
@@ -1522,7 +1522,7 @@ class EntryUpdateTest(TestCase):
         # mock_project_builder - used here
 
         response = self.client.get(
-            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}"
+            f"/entry-update/{ project_id }/{ entry_type }/{ entry_number}"
         )
 
         self.assertEqual(response.status_code, 302)
@@ -1553,7 +1553,7 @@ class EntryUpdateTest(TestCase):
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.get(
-            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}"
+            f"/entry-update/{ project_id }/{ entry_type }/{ entry_number}"
         )
 
         self.assertEqual(response.status_code, 404)
@@ -1592,7 +1592,7 @@ class EntryUpdateTest(TestCase):
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.get(
-            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}"
+            f"/entry-update/{ project_id }/{ entry_type }/{ entry_number}"
         )
 
         self.assertEqual(response.status_code, 404)
@@ -1640,7 +1640,7 @@ class EntryUpdateTest(TestCase):
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.get(
-            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}"
+            f"/entry-update/{ project_id }/{ entry_type }/{ entry_number}"
         )
 
         self.assertEqual(response.status_code, 200)
@@ -1692,7 +1692,7 @@ class EntryUpdateTest(TestCase):
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.get(
-            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}"
+            f"/entry-update/{ project_id }/{ entry_type }/{ entry_number}"
         )
 
         self.assertEqual(response.status_code, 200)
@@ -1757,7 +1757,7 @@ class EntryUpdateTest(TestCase):
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.post(
-            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}",
+            f"/entry-update/{ project_id }/{ entry_type }/{ entry_number}",
             form_initial,
         )
 
@@ -1817,7 +1817,7 @@ class EntryUpdateTest(TestCase):
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.post(
-            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}",
+            f"/entry-update/{ project_id }/{ entry_type }/{ entry_number}",
             form_initial,
         )
 
@@ -1872,7 +1872,7 @@ class EntryUpdateTest(TestCase):
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.post(
-            f"/entry_update/{ project_id }/{ entry_type }/{ entry_number}",
+            f"/entry-update/{ project_id }/{ entry_type }/{ entry_number}",
             form_initial,
         )
 
@@ -1919,7 +1919,7 @@ class EntrySelectTest(TestCase):
         # mock_project_builder - used here
 
         response = self.client.get(
-            f"/entry_select/{ project_id }/{ entry_type }"
+            f"/entry-select/{ project_id }/{ entry_type }"
         )
 
         self.assertEqual(response.status_code, 302)
@@ -1944,7 +1944,7 @@ class EntrySelectTest(TestCase):
         # mock_project_builder - used here
 
         response = self.client.post(
-            f"/entry_select/{ project_id }/{ entry_type }", {}
+            f"/entry-select/{ project_id }/{ entry_type }", {}
         )
 
         self.assertEqual(response.status_code, 405)
@@ -1977,7 +1977,7 @@ class EntrySelectTest(TestCase):
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.get(
-            f"/entry_select/{ project_id }/{ entry_type }"
+            f"/entry-select/{ project_id }/{ entry_type }"
         )
 
         self.assertEqual(response.status_code, 404)
@@ -2019,7 +2019,7 @@ class EntrySelectTest(TestCase):
         mock_std_context.return_value = {"test": "test"}
 
         response = self.client.get(
-            f"/entry_select/{ project_id }/{ entry_type }"
+            f"/entry-select/{ project_id }/{ entry_type }"
         )
 
         self.assertEqual(response.status_code, 200)
@@ -2040,10 +2040,11 @@ class EntrySelectTest(TestCase):
 
 class UnderConstructionViewTest(TestCase):
     def test_valid(self):
-        response = self.client.get("/under_construction/test_page")
+        test_page = "test-page"
+        response = self.client.get(f"/under-construction/{ test_page}")
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "test_page")
+        self.assertContains(response, test_page)
         self.assertContains(response, "Under contruction")
 
 
