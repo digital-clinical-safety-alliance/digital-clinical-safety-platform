@@ -1296,10 +1296,13 @@ def start_new_project_step_2_input_GUI(
             inputs_GUI[key] = ", ".join(members_list_fullnames)
             if inputs_GUI[key] == "":
                 inputs_GUI[key] = "<i>none selected</i>"
+        elif key == "Access":
+            inputs_GUI[key] = ViewAccess.get_label(value)
 
         elif any(keyword in key for keyword in ["password", "token"]):
             key = key.replace("password token", "password / token")
             inputs_GUI[key] = "***"
+
         else:
             inputs_GUI[key] = value
 

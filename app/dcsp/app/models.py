@@ -50,7 +50,13 @@ class ViewAccess(TextChoices):
     MEMBERS = "ME", "members"
     PUBLIC = "PU", "public"
 
+    # TODO #61 need to test this
+    @classmethod
+    def get_label(cls, choice: str) -> str:
+        return cls(choice).label
 
+
+# TODO #62 needs to be tested
 def project_timestamp(project_id: int) -> bool:
     """Updates the last_modified timestamp of a project if it exists.
 
