@@ -39,13 +39,12 @@ from app.functions.env_manipulation import ENVManipulator
 from app.functions.git_control import GitHubController, GitController
 from app.functions.text_manipulation import kebab_to_sentense, list_to_string
 from app.functions.custom_exceptions import RepositoryAccessException
-
 from ..models import (
     Project,
     ProjectGroup,
     UserProjectAttribute,
+    project_timestamp,
 )
-
 from ..forms import PlaceholdersForm
 
 
@@ -110,7 +109,6 @@ class ProjectBuilder:
         self.docs_dir: str = ""
         self.placeholders_yaml: str = ""
         self.entries_templates_dir: str = ""
-        git_controller: Optional[GitController] = None
 
         if not isinstance(project_id, int):
             raise TypeError(f"'project_id' '{ project_id }' is not an integer")
@@ -462,66 +460,64 @@ class ProjectBuilder:
         """
 
         files_to_check: list[str] = []
+        file_path: str = ""
+        file: Optional[TextIO] = None
+        doc_Regex: Optional[Pattern[str]] = None
         placeholders_sub: list[str] = []
-        placeholders_raw: list[str] = []
-        placeholders_clean: dict[str, str] = {}
-        stored_placeholders: dict[str, str] = {}
-        path: str = ""
-        files: list[str] = []
-        name: str = ""
-        file: str = ""
-        file_ptr: TextIO
-        doc_Regex: Pattern[str]
         placeholder: str = ""
+        placeholders_raw: list[str] = []
+        stored_placeholders: dict[str, str] = {}
+        placeholders_clean: dict[str, str] = {}
 
-        for path, _, files in os.walk(self.docs_dir):
-            for name in files:
-                if fnmatch(name, "*.md"):
-                    files_to_check.append(os.path.join(path, name))
+        files_to_check = [str(p) for p in Path(self.docs_dir).rglob("*.md")]
 
         if not len(files_to_check):
             raise FileNotFoundError(
                 f"No files found in mkdocs '{ self.docs_dir }' folder"
             )
 
-        for file in files_to_check:
-            file_ptr = open(file, "r")
+        for file_path in files_to_check:
+            file = open(file_path, "r")
             doc_Regex = re.compile(r"\{\{.*?\}\}", flags=re.S)
-
-            placeholders_sub = doc_Regex.findall(file_ptr.read())
-
+            placeholders_sub = doc_Regex.findall(file.read())
             for placeholder in placeholders_sub:
                 if placeholder not in placeholders_raw:
                     placeholders_raw.append(placeholder)
-            file_ptr.close()
+            file.close()
 
-        if os.path.exists(self.placeholders_yaml):
+        if Path(self.placeholders_yaml).exists():
             stored_placeholders = self.read_placeholders()
 
         for placeholder in placeholders_raw:
             placeholder = placeholder.replace("{{", "")
             placeholder = placeholder.replace("}}", "")
             placeholder = placeholder.strip()
-            # print(f"**{ stored_placeholders }**")
             placeholders_clean[placeholder] = stored_placeholders.get(
                 placeholder, ""
             )
-
         return placeholders_clean
 
     @new_build_prohibit
     def save_placeholders(self, placeholders: dict[str, str]) -> None:
-        """Saves placeholders to yaml
+        """Saves placeholders to yaml file
 
-        Saves the placeholders, supplied as a dictionary, into a file in docs
-        call docs/placeholders.yml.
+        Saves the placeholders, supplied as a dictionary, into the
+        placeholders.yml file in the clinical safety folder.
 
         Args:
             placeholders (dict[str,str]): dictionary of placeholders. Key is name
                                           of placeholder and value is the value.
+
+        Raises:
+            FileNotFoundError: if the safety directory does not exist.
         """
         placeholders_extra: dict[str, dict[str, str]] = {"extra": placeholders}
         file: Optional[TextIO] = None
+
+        if not Path(self.safety_directory).is_dir():
+            raise FileNotFoundError(
+                f"'{ self.safety_directory }' does not exist"
+            )
 
         with open(self.placeholders_yaml, "w") as file:
             yaml.dump(placeholders_extra, file)
@@ -530,7 +526,10 @@ class ProjectBuilder:
     def save_placeholders_from_form(self, form: PlaceholdersForm) -> None:
         """Saves placeholders to yaml
 
-        Saves the placeholders, as supplied via a web form.
+        Saves the placeholders, as supplied via a web form. Note that
+        get_placeholders can raise a FileNotFoundError if no files found in the
+        docs folder and save_placeholders can raise a FileNotFoundError if the
+        safety directory does not exist.
 
         Args:
             form (dict[str,str]): dictionary of placeholders.
@@ -538,7 +537,7 @@ class ProjectBuilder:
         placeholders: dict[str, str] = self.get_placeholders()
 
         for placeholder in placeholders:
-            placeholders[placeholder] = form.cleaned_data[placeholder]
+            placeholders[placeholder] = form.cleaned_data.get(placeholder, "")
 
         self.save_placeholders(placeholders)
         return
@@ -554,13 +553,14 @@ class ProjectBuilder:
 
         Raises:
             FileNotFoundError: if placeholder yaml is not a valid file.
-            ValueError: if error reading content of yaml file.
+            ValueError: if error reading content of yaml file (eg no 'extra'
+                        key).
         """
         placeholders_extra: dict[str, dict[str, str]] = {}
+        file: Optional[TextIO] = None
         return_dict: dict[str, str] = {}
-        file: TextIO
 
-        if not os.path.isfile(self.placeholders_yaml):
+        if not Path(self.placeholders_yaml).is_file():
             raise FileNotFoundError(
                 f"'{ self.placeholders_yaml }' is not a valid path"
             )
@@ -577,27 +577,28 @@ class ProjectBuilder:
         return return_dict
 
     @new_build_prohibit
-    def entry_exists(self, entry_type: str, id: str) -> bool:
+    def entry_exists(self, entry_type: str, id: int) -> bool:
         """Checks if an entry of certain type exists
 
         Args:
-            type (str): named type of entry
+            entry_type (str): named type of entry
             id (int): the id to be assessed if an associated entry exists
 
         Returns:
-            bool: true if the entry of certain type exists.
+            bool: true if entry is a positive integer and exists.
         """
         directory_to_check: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/{ entry_type }s/{ entry_type }s/"
         file_to_find: str = f"{ entry_type }-{ id }.md"
 
-        if not id.isdigit():
-            return False
+        if not isinstance(id, int):
+            raise ValueError(f"'id' '{ id }' is not an integer")
 
-        for path, _, files in os.walk(directory_to_check):
-            for name in files:
-                if fnmatch(name, file_to_find):
-                    if file_to_find == name:
-                        return True
+        if id < 1:
+            raise ValueError(f"'id' '{ id }' is not a positive integer")
+
+        if any(Path(directory_to_check).rglob(file_to_find)):
+            return True
+
         return False
 
     @new_build_prohibit
@@ -614,161 +615,98 @@ class ProjectBuilder:
                                      otherwise read contents from file path.
 
         Returns:
-            list[dict[str, Any]]: a list of fields. Fields contents are described
-                                  in dictionary form.
+            list[dict[str, Any]]: a dictionary of fields.
+
+        Raises:
+            FileExistsError: if entry instance or template does not exist.
         """
-        lines: list[str] = []
-        content_list: list[dict[str, Any]] = []
-        heading: str = ""
-        headed: bool = False
-        horizontal_line: str = ""
-        horizontal_line_numbered: str = ""
-        icon_line_numbered: str = ""
-        MAX_LOOP: int = 100
         entry_file_path: str = ""
-        text_list: str = ""
+        lines: list[str] = []
+        line: str = ""
+        headed: bool = False
+        heading: str = ""
+        content_list: list[dict[str, Any]] = []
+        horizontal_line: str = ""
+        matches: list[str] = []
+        argument: str = ""
+        index: int = 0
+        element: dict[str, Any] = {}
+        choice_name: str = ""
         choices_list: list[Any] = []
+        key: str = ""
+        value: str = ""
+        text_list: list[str] = []
+        choice: str = ""
+        choice_split: list[str] = []
         choices_dict_split: dict[str, str] = {}
         potential_number: str = ""
-        heading_numbered: str = ""
 
         if non_template_path == "":
             entry_file_path = f"{ self.entries_templates_dir }{ entry_type }{ c.ENTRY_TEMPLATE_SUFFIX }"
         else:
             entry_file_path = non_template_path
 
-        # print(f"3-{ self.entries_templates_dir }")
-        # print(f"4-{ entry_type }")
-        # print(f"5-{ c.ENTRY_TEMPLATE_SUFFIX }")
-
         if not Path(entry_file_path).is_file():
-            raise FileExistsError(f"'{ entry_file_path }' does not exists")
+            raise FileNotFoundError(f"'{ entry_file_path }' does not exists")
 
-        file_template = open(entry_file_path, "r")
-        contents = file_template.read()
-        lines = contents.split("\n")
+        lines = open(entry_file_path, "r").read().split("\n")
 
         for line in lines:
             line = line.strip()
 
+            # To match the heading line
             if re.match(r"^#", line):
                 headed = True
-
-                """heading = self._heading_numbering(line, content_list)
+                heading = line
 
                 content_list.append(
                     {
                         "field_type": "text_area",  # This is changed later if needed
-                        "heading": heading,
+                        "heading": self._heading_numbering(
+                            heading,
+                            content_list,
+                        ),
                         "gui_label": self._create_gui_label(heading),
                         "text": "",
                     }
-                )"""
+                )
 
-                heading = line
-
-                if not any(d["heading"] == heading for d in content_list):
-                    content_list.append(
-                        {
-                            "field_type": "text_area",  # This is changed later if needed
-                            "heading": heading,
-                            "gui_label": self._create_gui_label(heading),
-                            "text": "",
-                        }
-                    )
-
-                else:
-                    for x in range(2, MAX_LOOP):
-                        heading_numbered = f"{ line } [{ x }]"
-                        if not any(
-                            d["heading"] == heading_numbered
-                            for d in content_list
-                        ):
-                            content_list.append(
-                                {
-                                    "field_type": "text_area",
-                                    "heading": heading_numbered.strip(),
-                                    "gui_label": self._create_gui_label(
-                                        heading
-                                    ),
-                                    "text": "",
-                                }
-                            )
-                            break
-                        if x == MAX_LOOP:
-                            # TODO #46 - need a soft fail state and user update
-                            raise ValueError("For loop over { MAX_LOOP }!")
-
+            # To match the horizontal line
             elif re.match(r"^-", line):
                 horizontal_line = line
                 headed = False
 
-                if not any(
-                    d["heading"] == horizontal_line for d in content_list
-                ):
-                    content_list.append(
-                        {
-                            "field_type": "horizontal_line",
-                            "heading": horizontal_line,
-                        }
-                    )
-                else:
-                    for x in range(2, MAX_LOOP):
-                        horizontal_line_numbered = (
-                            f"{ horizontal_line } [{ x }]"
-                        )
+                content_list.append(
+                    {
+                        "field_type": "horizontal_line",
+                        "heading": self._heading_numbering(
+                            horizontal_line,
+                            content_list,
+                        ),
+                    }
+                )
 
-                        if not any(
-                            d["heading"] == horizontal_line_numbered
-                            for d in content_list
-                        ):
-                            content_list.append(
-                                {
-                                    "field_type": "horizontal_line",
-                                    "heading": horizontal_line_numbered,
-                                }
-                            )
-                            break
-                        if x == MAX_LOOP:
-                            # TODO #46 - need a soft fail state and user update
-                            raise ValueError(f"For loop over { MAX_LOOP }!")
-
+            # To match the icon line
             elif re.match(
                 r"^<!--\s*\[\s*icon\s*\]\s*-->$",
                 line,
             ):
                 headed = False
 
-                if not any(d["heading"] == line for d in content_list):
-                    content_list.append(
-                        {
-                            "field_type": "icon",
-                            "heading": "icon",
-                        }
-                    )
-                else:
-                    for x in range(2, MAX_LOOP):
-                        icon_line_numbered = f"{ horizontal_line } [{ x }]"
-
-                        if not any(
-                            d["heading"] == icon_line_numbered
-                            for d in content_list
-                        ):
-                            content_list.append(
-                                {
-                                    "field_type": "icon",
-                                    "heading": icon_line_numbered,
-                                }
-                            )
-                            break
-                        if x == MAX_LOOP:
-                            # TODO #46 - need a soft fail state and user update
-                            raise ValueError(f"For loop over { MAX_LOOP }!")
+                content_list.append(
+                    {
+                        "field_type": "icon",
+                        "heading": self._heading_numbering(
+                            "icon",
+                            content_list,
+                        ),
+                    }
+                )
 
             elif headed and line:
+                # To match for labels
                 if line[0] == "[":
-                    pattern = r"\[([^\]]+)\]"
-                    matches = re.findall(pattern, line)
+                    matches = re.findall(r"\[([^\]]+)\]", line)
                     content_list[-1]["labels"] = []
                     for argument in matches:
                         argument = argument.strip()
@@ -778,11 +716,17 @@ class ProjectBuilder:
                             content_list[-1]["field_type"] = "multiselect"
                         elif argument == "calculate":
                             content_list[-1]["field_type"] = "calculate"
+                        elif argument == "readonly":
+                            content_list[-1]["field_type"] = "readonly"
+                        elif argument == "date":
+                            content_list[-1]["field_type"] = "date"
                         elif argument == "code":
                             content_list[-1]["field_type"] = "code"
                             # content_list[-1]["text"] = "<!-- [code] -->"
                         else:
                             content_list[-1]["labels"].append(argument)
+
+                # If no labels then use as text
                 else:
                     content_list[-1]["text"] += f"{ line.strip() }\n"
 
@@ -813,6 +757,7 @@ class ProjectBuilder:
             elif element["field_type"] == "calculate":
                 choices_list = element["text"].split("\n")
 
+                # TODO what what I trying to do here?
                 for choice in choices_list:
                     choice_split = choice.split("[")
                     choices_dict_split[
@@ -833,7 +778,6 @@ class ProjectBuilder:
                     if potential_number.isdigit():
                         content_list[index]["number"].append(potential_number)
 
-        # print(content_list)
         return content_list
 
     def entry_read_with_field_types(
@@ -841,49 +785,71 @@ class ProjectBuilder:
         entry_type: str,
         entry_file_path: str,
     ) -> list[dict[str, Any]]:
-        """ """
-        entry: list[dict[str, Any]] = self.entry_file_read(
+        """Returns an entry instance with field typing
+
+        Looks up the entry template and the entry instance and matches the
+        fields.
+
+        Args:
+            entry_type (str): the type of entry (eg hazard or incident)
+            entry_file_path (str): the path to the entry file
+        """
+        entry_instance: list[dict[str, Any]] = self.entry_file_read(
             entry_type, entry_file_path
         )
-        template: list[dict[str, Any]] = self.entry_file_read(entry_type)
+        index_entry: int = 0
+        field_entry: dict[str, Any] = {}
+        entry_template: list[dict[str, Any]] = self.entry_file_read(entry_type)
 
-        # print(template)
-        # print(entry)
-
-        for index_entry, field_entry in enumerate(entry):
-            for field_template in template:
+        for index_entry, field_entry in enumerate(entry_instance):
+            for field_template in entry_template:
                 if field_entry["heading"] == field_template["heading"]:
-                    entry[index_entry]["field_type"] = field_template[
+                    entry_instance[index_entry]["field_type"] = field_template[
                         "field_type"
                     ]
-        # print(entry)
-        return entry
+
+        return entry_instance
 
     def _heading_numbering(
         self,
         heading: str,
         content_list: list[dict[str, str]],
     ) -> str:
-        """ """
+        """Adds a number to the heading if needed
+
+        Returns a numbered heading if the heading does already exists in the
+        content list.
+
+        Args:
+            heading (str): the heading to be numbered
+            content_list (list[dict[str, str]]): a list of headings. A copy of the
+                                                 list is made to avoid changing the
+                                                 original list.
+
+        Returns:
+            str: the heading with a number if needed.
+
+        Raises:
+            ValueError: if loop exceeds HEADING_MAX_LOOP.
+        """
         heading = heading.strip()
         heading_numbered: str = ""
+
+        content_list = content_list.copy()
 
         if not any(d["heading"] == heading for d in content_list):
             return heading
 
-        else:
-            for x in range(2, c.HEADING_MAX_LOOP):
-                heading_numbered = f"{ heading } [{ x }]"
-                if not any(
-                    d["heading"] == heading_numbered for d in content_list
-                ):
-                    return heading_numbered
+        for x in range(2, c.HEADING_MAX_LOOP):
+            heading_numbered = f"{ heading } [{ x }]"
+            if not any(d["heading"] == heading_numbered for d in content_list):
+                return heading_numbered
+            if x == (c.HEADING_MAX_LOOP - 1):
+                # Used break here to get 'raise' outside of for loop and satisfy
+                # mypy
+                break
 
-                if x == (c.HEADING_MAX_LOOP - 1):
-                    # TODO #46 - need a soft fail state and user update
-                    raise ValueError("For loop over { MAX_LOOP }!")
-
-        return heading_numbered
+        raise ValueError(f"For loop over { c.HEADING_MAX_LOOP }!")
 
     def _create_gui_label(self, string: str) -> str:
         """Create user readable label
@@ -894,12 +860,11 @@ class ProjectBuilder:
             string (str): the string to change
 
         Returns:
-            string: the user readable string in Title form
+            string: the user readable string in Sentence case.
         """
 
         string = string.replace("#", "")
         string = string.strip()
-        string = kebab_to_sentense(string)
         return string
 
     @new_build_prohibit
@@ -909,34 +874,36 @@ class ProjectBuilder:
         entry_type: str = "hazard",
         id_new: str = "new",
     ) -> dict[str, Any]:
-        """Create or update entries (eg Hazards and incidents)
+        """Create or update entries (eg hazards and incidents)
 
-        Depending on the value of id_new (a valid int or the str "new")
-        A new entry will be created or a pre-existing one updated.
+        Depending on the value of id_new (a valid int or the str "new"), either
+        a new entry will be created or a pre-existing one updated.
 
         Args:
             form_data (dict[str, str]): key value pairs of data to be written
                                         to file
             entry_type (str): type of entry, eg hazard, incident, officer.
-            id_new (str): a valid digit (1 of more) or the word "new" to either
-                          update an entry or create a new one.
+            id_new (str): a valid digit (1 of more) to update an existing entry
+                          or the word "new" to create a new one.
 
         Returns:
             dict[str, Any]: returns a dictionary of method outcomes.
         """
         entries_directory: str = f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/{ entry_type }s/{ entry_type }s/"
         files_to_check: list[str] = []
+        filename: str = ""
+        match: Optional[re.Match[str]] = None
+        extracted_number: int = 0
+        numbers: list[int] = []
         entry_file: Optional[TextIO] = None
-        pattern: Pattern[str] = re.compile(r"\s*\[\d+\]$")
-        results: dict[str, Any] = {}
         id_int: int = 0
         to_write: str = ""
-        numbers: list[int] = []
         entry_name: str = ""
 
         if not Path(entries_directory).is_dir():
             Path(entries_directory).mkdir(parents=True, exist_ok=True)
 
+        # files_to_check = [f.name for f in Path(entries_directory).rglob('*.md')]
         for path, _, files in os.walk(entries_directory):
             for name in files:
                 if fnmatch(name, "*.md"):
@@ -949,30 +916,17 @@ class ProjectBuilder:
                     if match:
                         extracted_number = int(match.group(1))
                         numbers.append(extracted_number)
-
-                """# TODO may have to change to pattern = r"-([0-9]+)\.md"
-                    numbers = (
-                    [  
-                        int(re.search(r"\d+", file_name).group())
-                        for file_name in files_to_check
-                        if re.search(r"\d+", file_name)
-                    ]
-                )"""
+                # what happens if numbers is an empty list?
                 id_int = max(numbers) + 1
             else:
                 id_int = 1
 
-        elif id_new.isdigit() and self.entry_exists(entry_type, id_new):
+        elif id_new.isdigit() and self.entry_exists(entry_type, int(id_new)):
             id_int = int(id_new)
         else:
-            results = {
+            return {
                 "pass": False,
             }
-
-            return results
-
-        # Used to remove number in square brackets (eg "[2]") at end of keys
-        # pattern = re.compile(r"\s*\[\d+\]$")
 
         entry_file = open(
             f"{ entries_directory }{ entry_type }-{ id_int }.md",
@@ -980,7 +934,7 @@ class ProjectBuilder:
         )
 
         for key, value in form_data.items():
-            to_write = re.sub(pattern, "", key)
+            to_write = re.sub(r"\s*\[\d+\]$", "", key)
             if to_write == "icon":
                 entry_file.write("<!-- [icon] -->\n")
             else:
@@ -994,23 +948,22 @@ class ProjectBuilder:
         entry_file.close()
 
         # TODO #54 need to get ride of the 404 in this none view.py code
-        project = get_object_or_404(Project, id=self.project_id)
+        project_timestamp(self.project_id)
+        """project = get_object_or_404(Project, id=self.project_id)
         project.last_modified = timezone.now()
-        project.save()
+        project.save()"""
 
         for key, value in form_data.items():
-            if "name" in key:
+            if "name" in key.lower():
                 entry_name = value
                 break
 
-        results = {
+        return {
             "pass": True,
             "id": id_int,
             "name": entry_name,
             "entries_url": f"{ entry_type }s/{ entry_type }s/{ entry_type }-{ id_int }.html",
         }
-
-        return results
 
     def entry_file_read_to_form(
         self,

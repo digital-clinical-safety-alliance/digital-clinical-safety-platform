@@ -43,7 +43,6 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.db.models.query import QuerySet
 from django.db.models import F
-from django.utils import timezone
 from django.db.models import QuerySet
 from django.contrib.auth.models import User
 from django.forms.models import model_to_dict
@@ -53,7 +52,7 @@ from app.decorators import project_access
 # TODO - may not work in production
 from django.contrib.staticfiles.views import serve
 
-from .models import Project, ProjectGroup, ViewAccess
+from .models import Project, ProjectGroup, ViewAccess, project_timestamp
 
 import app.functions.constants as c
 from app.functions.project_builder import ProjectBuilder
@@ -704,6 +703,7 @@ def document_new(  # type: ignore[return]
     if request.method == "GET":
         context = {
             "page_title": "Create a new safety document",
+            "project_name": Project.objects.get(id=project_id).name,
             "form": DocumentNewForm(project_id),
             "project_id": project_id,
         }
@@ -729,6 +729,7 @@ def document_new(  # type: ignore[return]
 
             context = {
                 "page_title": "New document created",
+                "project_name": Project.objects.get(id=project_id).name,
                 "form": form,
                 "project_id": project_id,
             }
@@ -740,6 +741,7 @@ def document_new(  # type: ignore[return]
         else:
             context = {
                 "page_title": "Create a new safety document",
+                "project_name": Project.objects.get(id=project_id).name,
                 "form": form,
                 "project_id": project_id,
             }
@@ -939,7 +941,9 @@ def entry_update(  # type: ignore[return]
         return redirect(f"/setup_documents/{ project_id }")
 
     if id_new != "new":
-        if not project.entry_exists(entry_type, id_new):
+        if not id_new.isdigit() or not project.entry_exists(
+            entry_type, int(id_new)
+        ):
             return custom_404(request)
 
     if not project.entry_type_exists(entry_type):
@@ -949,6 +953,7 @@ def entry_update(  # type: ignore[return]
         if id_new == "new":
             context = {
                 "page_title": f"Create new { kebab_to_sentense(entry_type) }",
+                "project_name": Project.objects.get(id=project_id).name,
                 "project_id": project_id,
                 "form": EntryUpdateForm(project_id, entry_type),
                 "entry_type": entry_type,
@@ -965,6 +970,7 @@ def entry_update(  # type: ignore[return]
             form_initial = project.form_initial(entry_type, int(id_new))
             context = {
                 "page_title": f"Update { kebab_to_sentense(entry_type) }",
+                "project_name": Project.objects.get(id=project_id).name,
                 "project_id": project_id,
                 "form": EntryUpdateForm(
                     project_id,
@@ -984,6 +990,7 @@ def entry_update(  # type: ignore[return]
     elif request.method == "POST":
         form = EntryUpdateForm(project_id, entry_type, request.POST)
         if form.is_valid():
+            # print(form.cleaned_data)
             project_timestamp(project_id)
 
             entry_update_outcome = project.entry_update(
@@ -994,6 +1001,7 @@ def entry_update(  # type: ignore[return]
 
             context = {
                 "page_title": f"{ kebab_to_sentense(entry_type) } saved",
+                "project_name": Project.objects.get(id=project_id).name,
                 "project_id": project_id,
                 "entry_update_outcome": entry_update_outcome,
                 "entry_type": entry_type,
@@ -1014,6 +1022,7 @@ def entry_update(  # type: ignore[return]
 
             context = {
                 "page_title": page_title,
+                "project_name": Project.objects.get(id=project_id).name,
                 "form": form,
                 "project_id": project_id,
                 "entry_type": entry_type,
@@ -1064,6 +1073,7 @@ def entry_select(
 
     context = {
         "page_title": f"Select { kebab_to_sentense(entry_type) } to edit",
+        "project_name": Project.objects.get(id=project_id).name,
         "project_id": project_id,
         "entries": entries,
         "entry_type": entry_type,
@@ -1111,16 +1121,22 @@ def std_context(project_id: int = 0) -> dict[str, Any]:
     Returns:
         dict[str,Any]: context that is comment across the different views
     """
-    project: ProjectBuilder
+    project: Optional[ProjectBuilder] = None
     entry_templates: list[str] = []
     std_context_dict: dict[str, Any] = {}
+    project_setup_step: int = 0
+
+    if not isinstance(project_id, int):
+        raise ValueError("project_id must be an integer")
 
     if project_id > 0:
         project = ProjectBuilder(project_id)
         entry_templates = project.entry_template_names()
+        project_setup_step = project.configuration_get()["setup_step"]
 
     std_context_dict = {
         "entry_templates": entry_templates,
+        "project_setup_step": project_setup_step,
     }
 
     return std_context_dict
@@ -1321,26 +1337,6 @@ def placeholders(project_id: int) -> str:
             placeholders[key] = f"[{ key } undefined]"
 
     return json.dumps(placeholders)
-
-
-def project_timestamp(project_id: int) -> bool:
-    """Updates the last_modified timestamp of a project if it exists.
-
-    Args:
-        project_id (int): The id of the project to update.
-
-    Returns:
-        bool: True if the project exists and was updated, False otherwise.
-    """
-    project: Optional[Project] = None
-
-    if not Project.objects.filter(id=project_id).exists():
-        return False
-
-    project = Project.objects.get(id=project_id)
-    project.last_modified = timezone.now()
-    project.save()
-    return True
 
 
 def custom_400(

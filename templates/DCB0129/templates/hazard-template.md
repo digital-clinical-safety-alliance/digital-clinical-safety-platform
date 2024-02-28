@@ -3,7 +3,7 @@
 ### Hazard name
 A short name
 
-### General Utility label
+### General utility label
 [multiselect]
 1 - Hazard: A hazard which is logged
 2 - New hazard for triage: A new hazard which needs to be triaged for severity and likelihood, scored and assigned
@@ -43,10 +43,10 @@ The upstream system Cause (can be multiple - use a numbered list) that results i
 The change in the intended care pathway resulting from the Cause.
 
 ### Hazard
-The *potential* for Harm to occur, even if it does not.
+The potential for Harm to occur, even if it does not.
 
 ### Harm
-An actual occurrence of a Hazard in the patient or clinical context. This is what we are assessing the **Severity** and **Likelihood** of. This is form normal working conditions and fault conditions. Include the ultimate **Risk rating** as well.
+An actual occurrence of a Hazard in the patient or clinical context. This is what we are assessing the Severity and Likelihood of. This is form normal working conditions and fault conditions. Include the ultimate Risk rating as well.
 
 ### Existing controls
 List any pre-existing controls that can mitigate the hazard.
@@ -62,23 +62,22 @@ Add labels according to Severity. Likelihood and Risk Level
 ### Project
 Add to the Project 'Clinical Risk Management'
 
-* Subsequent discussion can be used to mitigate the Hazard, reducing the likelihood (or less commonly reducing the severity) of the Harm.
-* If Harm is reduced then you can change the labels to reflect this and reclassify the Risk Score.
-* Issues can be linked to: Issues describing specific software changes, Pull Requests or Commits fixing Issues, external links, and much more supporting documentation. Aim for a comprehensive, well-evidenced, public and open discussion on risk and safety.
+Subsequent discussion can be used to mitigate the Hazard, reducing the likelihood (or less commonly reducing the severity) of the Harm.
+
+If Harm is reduced then you can change the labels to reflect this and reclassify the Risk Score.
+
+Issues can be linked to: Issues describing specific software changes, Pull Requests or Commits fixing Issues, external links, and much more supporting documentation. Aim for a comprehensive, well-evidenced, public and open discussion on risk and safety.
 
 -----
 
 ### New hazard controls
 List controls that will be put into place to mitigate the hazard. These can include design, (unit/integration) testing, training or business process change.
 
-### Residual Hazard Risk Assessment
-Include a repeat analysis of **Severity** and **Likelihood**. Include the ultimate **Risk rating** as well.
+### Residual hazard risk assessment
+Include a repeat analysis of Severity and Likelihood. Include the ultimate Risk rating as well.
 
-### Hazard Status
+### Hazard status
 Either 'open', 'transferred' or 'closed'.
-
-### Residual Hazard Risk Assessment
-BLAH
 
 ### Code associated with hazard
 [code]

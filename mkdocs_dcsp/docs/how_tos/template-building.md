@@ -3,11 +3,11 @@
 Outlined below are methods for creating the different templates needed for 
 clinical safety documentation.
 ## How to build an entry template
-* Entries are instances of items that you wish to log. For example a hazard or
-incident.
+* Entries are instances of items that you wish to log. For example a hazard or incident.
 * Place in 'CS-documents/templates/[entry name]-template.md'
 * Do not use front matter (material between two treble hashes ('---'))
 * Headings can use any number hashtags (#)
+* The first heading with the word 'name' (case insensitive) in it will be used as the field name
 * Under the heading, the following attributes can be used to change the field 
 type:
     * [select] - simple, single selection field on the building site
@@ -24,6 +24,8 @@ will not want when the markdown files are eventually built.
 * Anything after a semi colon will be removed from the selection field during
 editing, but will be available for the user to see if they click on the 'More
 info' help text.
+* You can put placeholders (eg {{ a_placeholder }}) in both the templates and
+the entry instances.
 
 ## How are calculate fields calculated
 Calculated fields use the values of other 'laballed' fields. These 'labelled'

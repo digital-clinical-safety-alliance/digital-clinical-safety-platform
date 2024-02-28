@@ -19,13 +19,14 @@ from django.conf import settings
 from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
+from django.forms.widgets import TextInput
 
 from .models import ProjectGroup, ViewAccess
 
 import os
 from fnmatch import fnmatch
 import sys
-from typing import Any, Mapping
+from typing import Any, Mapping, Optional
 
 import app.functions.constants as c
 
@@ -33,6 +34,41 @@ sys.path.append(c.FUNCTIONS_APP)
 import app.functions.project_builder as project_builder
 from app.functions.general_functions import valid_partial_linux_path
 from app.functions.text_manipulation import list_to_string
+
+
+class ReadOnlyInput(TextInput):
+    def __init__(self, attrs: Optional[dict[str, str]] = None) -> None:
+        if attrs:
+            attrs_copy = attrs.copy()
+            attrs_copy.update(
+                {
+                    "read_only": "true",
+                    "readonly": "readonly",
+                }
+            )
+            self.custom_attrs = attrs_copy
+        super().__init__(attrs)
+
+
+def heading_level(heading: str) -> str:
+    """Determine the heading level
+
+    Args:
+        heading: heading to check
+
+    Returns:
+        str: the heading css class
+    """
+    if heading.startswith("# "):
+        return "h1-dcsp"
+    elif heading.startswith("## "):
+        return "h2-dcsp"
+    elif heading.startswith("### "):
+        return "h3-dcsp"
+    elif heading.startswith("#### "):
+        return "h4-dcsp"
+    else:
+        return "h5-dcsp"
 
 
 def validated_response(  # type: ignore[no-untyped-def]
@@ -827,6 +863,7 @@ class EntryUpdateForm(forms.Form):
                 help_text = field["text"].replace("\n", "<br>")
                 self.fields[field["heading"]] = forms.ChoiceField(
                     label=field["gui_label"],
+                    required=False,
                     choices=field["choices"],
                     help_text=f"{index}|{help_text}",
                     widget=forms.Select(
@@ -888,6 +925,30 @@ class EntryUpdateForm(forms.Form):
                         "monitor_labels": labels_for_calculations,
                         "choices": field["choices"],
                     },
+                )
+
+            elif field["field_type"] == "readonly":
+                self.fields[field["heading"]] = forms.CharField(
+                    label=field["gui_label"],
+                    required=False,
+                    widget=ReadOnlyInput(
+                        attrs={
+                            "class": "readonly-field-dcsp",
+                            "value": field["text"],
+                            "label_class": heading_level(field["heading"]),
+                        }
+                    ),
+                )
+
+            elif field["field_type"] == "date":
+                self.fields[field["heading"]] = forms.DateField(
+                    required=False,
+                    widget=forms.DateInput(
+                        attrs={
+                            "class": f"date-dcsp { c.SELECT_STYLE }",
+                            "type": "date",
+                        }
+                    ),
                 )
 
             elif field["field_type"] == "text_area":

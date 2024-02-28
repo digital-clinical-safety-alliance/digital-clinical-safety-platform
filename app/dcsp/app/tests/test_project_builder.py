@@ -1,4 +1,5 @@
 from unittest.mock import Mock, patch, call, MagicMock
+from pathlib import Path
 
 from django.test import TestCase, tag, Client
 from django.contrib.auth.models import User
@@ -556,4 +557,493 @@ class CopyTemplatesTest(TestCase):
 
 
 class GetPlaceholdersTest(TestCase):
-    pass
+    @classmethod
+    def setUpTestData(cls):
+        cls.project_id = 1
+        cls.project = ProjectBuilder(cls.project_id)
+        cls.docs_dir = f"{ c.PROJECTS_FOLDER }project_{ cls.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+
+    @patch("app.functions.project_builder.Path")
+    def test_no_files_found(self, mock_path):
+        mock_path.return_value.rglob.return_value = []
+
+        with self.assertRaises(FileNotFoundError) as error:
+            self.project.get_placeholders()
+        self.assertEqual(
+            str(error.exception),
+            f"No files found in mkdocs '{ self.docs_dir }' folder",
+        )
+
+        mock_path.return_value.rglob.assert_called_once_with("*.md")
+
+    @patch("app.functions.project_builder.Path")
+    @patch("app.functions.project_builder.open")
+    @patch("app.functions.project_builder.ProjectBuilder.read_placeholders")
+    def test_no_placeholders_found(
+        self, mock_read_placeholders, mock_open, mock_path
+    ):
+        mock_path.return_value.rglob.return_value = [
+            "file1.md",
+            "file2.md",
+            "file3.md",
+        ]
+
+        # mock_open used here
+
+        mock_open.return_value.read.side_effect = [
+            "no placeholders",
+            "no placeholders",
+            "no placeholders",
+        ]
+
+        mock_path.return_value.exists.return_value = True
+
+        mock_read_placeholders.return_value = d.GET_PLACEHOLDERS_STORED
+
+        returned = self.project.get_placeholders()
+
+        self.assertEqual(returned, {})
+
+        mock_path.return_value.rglob.assert_called_once_with("*.md")
+        self.assertEqual(
+            mock_open.call_args_list,
+            [
+                call("file1.md", "r"),
+                call("file2.md", "r"),
+                call("file3.md", "r"),
+            ],
+        )
+        self.assertEqual(
+            mock_open.return_value.read.call_args_list,
+            [call(), call(), call()],
+        )
+        mock_path.return_value.exists.assert_called_once_with()
+        mock_read_placeholders.assert_called_once_with()
+
+    @patch("app.functions.project_builder.Path")
+    @patch("app.functions.project_builder.open")
+    @patch("app.functions.project_builder.ProjectBuilder.read_placeholders")
+    def test_no_stored_placeholders(
+        self, mock_read_placeholders, mock_open, mock_path
+    ):
+        mock_path.return_value.rglob.return_value = [
+            "file1.md",
+            "file2.md",
+            "file3.md",
+        ]
+
+        # mock_open used here
+
+        mock_open.return_value.read.side_effect = [
+            "{{placeholder1}} {{placeholder2}}",
+            "{{placeholder3}} {{placeholder4}}",
+            "{{placeholder5}} {{placeholder6}}",
+        ]
+
+        mock_path.return_value.exists.return_value = False
+
+        # mock_read_placeholders not read here
+
+        returned = self.project.get_placeholders()
+
+        self.assertEqual(returned, d.PLACEHOLDERS_EMPTY)
+
+        mock_path.return_value.rglob.assert_called_once_with("*.md")
+        self.assertEqual(
+            mock_open.call_args_list,
+            [
+                call("file1.md", "r"),
+                call("file2.md", "r"),
+                call("file3.md", "r"),
+            ],
+        )
+        self.assertEqual(
+            mock_open.return_value.read.call_args_list,
+            [call(), call(), call()],
+        )
+        mock_path.return_value.exists.assert_called_once_with()
+        mock_read_placeholders.assert_not_called()
+
+    @patch("app.functions.project_builder.Path")
+    @patch("app.functions.project_builder.open")
+    @patch("app.functions.project_builder.ProjectBuilder.read_placeholders")
+    def test_valid(self, mock_read_placeholders, mock_open, mock_path):
+        mock_path.return_value.rglob.return_value = [
+            "file1.md",
+            "file2.md",
+            "file3.md",
+        ]
+
+        # mock_open used here
+
+        mock_open.return_value.read.side_effect = [
+            "{{placeholder1}} {{placeholder2}}",
+            "{{placeholder3}} {{placeholder4}}",
+            "{{placeholder5}} {{placeholder6}}",
+        ]
+
+        mock_path.return_value.exists.return_value = True
+
+        mock_read_placeholders.return_value = d.GET_PLACEHOLDERS_STORED
+
+        returned = self.project.get_placeholders()
+
+        self.assertEqual(returned, d.GET_PLACEHOLDERS_STORED)
+
+        mock_path.return_value.rglob.assert_called_once_with("*.md")
+        self.assertEqual(
+            mock_open.call_args_list,
+            [
+                call("file1.md", "r"),
+                call("file2.md", "r"),
+                call("file3.md", "r"),
+            ],
+        )
+        self.assertEqual(
+            mock_open.return_value.read.call_args_list,
+            [call(), call(), call()],
+        )
+        mock_path.return_value.exists.assert_called_once_with()
+        mock_read_placeholders.assert_called_once_with()
+
+
+class SavePlaceholdersTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.project_id = 1
+        cls.safety_directory = f"{ c.PROJECTS_FOLDER }project_{ cls.project_id }/{ c.CLINICAL_SAFETY_FOLDER }"
+        cls.placeholders_yaml = f"{ cls.safety_directory }placeholders.yml"
+
+        cls.project_builder = ProjectBuilder(cls.project_id)
+
+    @patch("app.functions.project_builder.Path")
+    def test_folder_missing(self, mock_path):
+        mock_path.return_value.is_dir.return_value = False
+
+        with self.assertRaises(FileNotFoundError) as error:
+            self.project_builder.save_placeholders({})
+        self.assertEqual(
+            str(error.exception),
+            f"'{ self.safety_directory }' does not exist",
+        )
+
+        mock_path.assert_called_once_with(self.safety_directory)
+        mock_path.return_value.is_dir.assert_called_once_with()
+
+    @patch("app.functions.project_builder.Path")
+    @patch("app.functions.project_builder.open")
+    @patch("app.functions.project_builder.yaml")
+    def test_valid(self, mock_yaml, mock_open, mock_path):
+        mock_path.return_value.is_dir.return_value = True
+
+        mock_instance = Mock()
+
+        mock_open.return_value.__enter__.return_value = mock_instance
+
+        # mock_yaml used here
+
+        self.project_builder.save_placeholders(d.GET_PLACEHOLDERS_STORED)
+
+        mock_path.assert_called_once_with(self.safety_directory)
+        mock_path.return_value.is_dir.assert_called_once_with()
+        mock_open.assert_called_once_with(self.placeholders_yaml, "w")
+        mock_yaml.dump.assert_called_once_with(
+            {"extra": d.GET_PLACEHOLDERS_STORED}, mock_instance
+        )
+
+
+class SavePlaceholdersFromFormTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.project_id = 1
+        cls.safety_directory = f"{ c.PROJECTS_FOLDER }project_{ cls.project_id }/{ c.CLINICAL_SAFETY_FOLDER }"
+        cls.placeholders_yaml = f"{ cls.safety_directory }placeholders.yml"
+
+        cls.project_builder = ProjectBuilder(cls.project_id)
+
+    @patch("app.functions.project_builder.ProjectBuilder.get_placeholders")
+    @patch("app.functions.project_builder.ProjectBuilder.save_placeholders")
+    def test_valid(self, mock_save_placeholders, mock_get_placeholders):
+        mock_get_placeholders.return_value = d.GET_PLACEHOLDERS_STORED
+
+        mock_form = MagicMock()
+        mock_form.cleaned_data = d.GET_PLACEHOLDERS_STORED
+
+        self.project_builder.save_placeholders_from_form(mock_form)
+
+        mock_get_placeholders.assert_called_once_with()
+        mock_save_placeholders.assert_called_once_with(
+            d.GET_PLACEHOLDERS_STORED
+        )
+
+
+class ReadPlaceholdersFromFormTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.project_id = 1
+        cls.safety_directory = f"{ c.PROJECTS_FOLDER }project_{ cls.project_id }/{ c.CLINICAL_SAFETY_FOLDER }"
+        cls.placeholders_yaml = f"{ cls.safety_directory }placeholders.yml"
+
+        cls.project_builder = ProjectBuilder(cls.project_id)
+
+    @patch("app.functions.project_builder.Path")
+    def test_yaml_file_missing(self, mock_path):
+        mock_path.return_value.is_file.return_value = False
+
+        with self.assertRaises(FileNotFoundError) as error:
+            self.project_builder.read_placeholders()
+        self.assertEqual(
+            str(error.exception),
+            f"'{ self.placeholders_yaml }' is not a valid path",
+        )
+
+        mock_path.assert_called_once_with(self.placeholders_yaml)
+        mock_path.return_value.is_file.assert_called_once_with()
+
+    @patch("app.functions.project_builder.Path")
+    @patch("app.functions.project_builder.open")
+    @patch("app.functions.project_builder.yaml")
+    def test_yaml_bad_contents(self, mock_yaml, mock_open, mock_path):
+        mock_path.return_value.is_file.return_value = True
+
+        mock_instance = Mock()
+        mock_open.return_value.__enter__.return_value = mock_instance
+
+        mock_yaml.safe_load.return_value = {}
+
+        with self.assertRaises(ValueError) as error:
+            self.project_builder.read_placeholders()
+        self.assertEqual(
+            str(error.exception),
+            "Error with placeholders yaml file, likely 'extra' missing from file",
+        )
+
+        mock_path.assert_called_once_with(self.placeholders_yaml)
+        mock_path.return_value.is_file.assert_called_once_with()
+        mock_open.assert_called_once_with(self.placeholders_yaml, "r")
+        mock_yaml.safe_load.assert_called_once_with(mock_instance)
+
+    @patch("app.functions.project_builder.Path")
+    @patch("app.functions.project_builder.open")
+    @patch("app.functions.project_builder.yaml")
+    def test_yaml_valid(self, mock_yaml, mock_open, mock_path):
+        mock_path.return_value.is_file.return_value = True
+
+        mock_instance = Mock()
+        mock_open.return_value.__enter__.return_value = mock_instance
+
+        mock_yaml.safe_load.return_value = {"extra": d.GET_PLACEHOLDERS_STORED}
+
+        return_values = self.project_builder.read_placeholders()
+
+        self.assertEqual(return_values, d.GET_PLACEHOLDERS_STORED)
+
+        mock_path.assert_called_once_with(self.placeholders_yaml)
+        mock_path.return_value.is_file.assert_called_once_with()
+        mock_open.assert_called_once_with(self.placeholders_yaml, "r")
+        mock_yaml.safe_load.assert_called_once_with(mock_instance)
+
+
+class EntryExistsTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.project_id = 1
+        cls.safety_directory = f"{ c.PROJECTS_FOLDER }project_{ cls.project_id }/{ c.CLINICAL_SAFETY_FOLDER }"
+        cls.placeholders_yaml = f"{ cls.safety_directory }placeholders.yml"
+
+        cls.entry_type = "hazard"
+
+        cls.project_builder = ProjectBuilder(cls.project_id)
+
+    def test_id_is_string(self):
+        entry_id = "one"
+
+        with self.assertRaises(ValueError) as error:
+            self.project_builder.entry_exists(self.entry_type, entry_id)
+        self.assertEqual(
+            str(error.exception),
+            f"'id' '{ entry_id }' is not an integer",
+        )
+
+    def test_id_is_zero(self):
+        entry_id = 0
+
+        with self.assertRaises(ValueError) as error:
+            self.project_builder.entry_exists(self.entry_type, entry_id)
+        self.assertEqual(
+            str(error.exception),
+            f"'id' '{ entry_id }' is not a positive integer",
+        )
+
+    @patch("app.functions.project_builder.Path")
+    def test_exists(self, mock_path):
+        entry_id = 1
+        file_to_find: str = f"{ self.entry_type }-{ entry_id }.md"
+
+        mock_path.return_value.rglob.return_value = [file_to_find]
+
+        self.assertTrue(
+            self.project_builder.entry_exists(self.entry_type, entry_id)
+        )
+        mock_path.assert_called_once_with(
+            f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/{ self.entry_type }s/{ self.entry_type }s/"
+        )
+        mock_path.return_value.rglob.assert_called_once_with(file_to_find)
+
+    @patch("app.functions.project_builder.Path")
+    def test_does_not_exist(self, mock_path):
+        entry_id = 1
+        file_to_find: str = f"{ self.entry_type }-{ entry_id }.md"
+
+        mock_path.return_value.rglob.return_value = []
+
+        self.assertFalse(
+            self.project_builder.entry_exists(self.entry_type, entry_id)
+        )
+        mock_path.assert_called_once_with(
+            f"{ c.PROJECTS_FOLDER }project_{ self.project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/{ self.entry_type }s/{ self.entry_type }s/"
+        )
+        mock_path.return_value.rglob.assert_called_once_with(file_to_find)
+
+
+class EntryFileReadTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.project_id = 1
+        cls.safety_directory = f"{ c.PROJECTS_FOLDER }project_{ cls.project_id }/{ c.CLINICAL_SAFETY_FOLDER }"
+        cls.placeholders_yaml = f"{ cls.safety_directory }placeholders.yml"
+
+        cls.entry_type = "hazard"
+        cls.template_path = f"{ cls.safety_directory }templates/{ cls.entry_type }{ c.ENTRY_TEMPLATE_SUFFIX }"
+
+        cls.project_builder = ProjectBuilder(cls.project_id)
+
+    @patch("app.functions.project_builder.Path")
+    def test_path_nonexistent_template(self, mock_path):
+        file_path = "nonexistent.md"
+        mock_path.return_value.is_file.return_value = False
+
+        with self.assertRaises(FileNotFoundError) as error:
+            self.project_builder.entry_file_read(self.entry_type, file_path)
+
+        mock_path.assert_called_once_with(file_path)
+        mock_path.return_value.is_file.assert_called_once_with()
+
+    @patch("app.functions.project_builder.Path")
+    def test_path_nonexistent_instance(self, mock_path):
+        mock_path.return_value.is_file.return_value = False
+
+        with self.assertRaises(FileNotFoundError) as error:
+            self.project_builder.entry_file_read(self.entry_type)
+
+        mock_path.assert_called_once_with(self.template_path)
+        mock_path.return_value.is_file.assert_called_once_with()
+
+    @patch("app.functions.project_builder.Path")
+    @patch("app.functions.project_builder.open")
+    def test_path_nonexistent_instance(self, mock_open, mock_path):
+        mock_path.return_value.is_file.return_value = True
+
+        mock_open.return_value.read.return_value = d.TEMPLATE_CONTENTS
+
+        return_values = self.project_builder.entry_file_read(self.entry_type)
+
+        self.assertEqual(return_values, d.TEMPLATE_LIST)
+
+        mock_path.assert_called_once_with(self.template_path)
+        mock_path.return_value.is_file.assert_called_once_with()
+
+
+class EntryReadWithFieldTypesTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.project_id = 1
+        cls.entry_type = "hazard"
+        cls.project_builder = ProjectBuilder(cls.project_id)
+
+    @patch.object(ProjectBuilder, "entry_file_read")
+    def test_valid(self, mock_entry_file_read):
+        entry_file_path = "test_path.md"
+
+        mock_entry_file_read.side_effect = [
+            d.ENTRY_INSRTANCE,
+            d.ENTRY_TEMPLATE,
+        ]
+
+        result = self.project_builder.entry_read_with_field_types(
+            self.entry_type, entry_file_path
+        )
+
+        self.assertEqual(result, d.EXPECTED_FIELD_ADDED_RESULT)
+
+        mock_entry_file_read.assert_any_call(self.entry_type, entry_file_path)
+        mock_entry_file_read.assert_any_call(self.entry_type)
+
+
+class HeadingNumberingTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.project_id = 1
+        cls.entry_type = "hazard"
+        cls.project_builder = ProjectBuilder(cls.project_id)
+
+    def test_heading_numbering_no_duplicate(self):
+        heading = "Test Heading"
+        content_list = [{"heading": "Different Heading"}]
+        expected_result = "Test Heading"
+        result = self.project_builder._heading_numbering(heading, content_list)
+        self.assertEqual(result, expected_result)
+
+    def test_heading_numbering_with_duplicate(self):
+        heading = "Test Heading"
+        content_list = [{"heading": "Test Heading"}]
+        expected_result = "Test Heading [2]"
+        result = self.project_builder._heading_numbering(heading, content_list)
+        self.assertEqual(result, expected_result)
+
+    def test_heading_numbering_with_multiple_duplicates(self):
+        heading = "Test Heading"
+        content_list = [
+            {"heading": "Test Heading"},
+            {"heading": "Test Heading [2]"},
+        ]
+        expected_result = "Test Heading [3]"
+        result = self.project_builder._heading_numbering(heading, content_list)
+        self.assertEqual(result, expected_result)
+
+    def test_heading_numbering_exceeds_max_loop(self):
+        heading = "Test Heading"
+        content_list = [{"heading": "Test Heading"}]
+        content_list_2 = [
+            {"heading": f"Test Heading [{i}]"}
+            for i in range(2, c.HEADING_MAX_LOOP + 1)
+        ]
+
+        content_list.extend(content_list_2)
+
+        with self.assertRaises(ValueError) as error:
+            self.project_builder._heading_numbering(heading, content_list)
+        self.assertEqual(
+            str(error.exception), f"For loop over {c.HEADING_MAX_LOOP}!"
+        )
+
+
+class CreateGuiLabelTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.project_id = 1
+        cls.project_builder = ProjectBuilder(cls.project_id)
+
+    def test_valid(self):
+        initial_label = "## Test label"
+
+        result = self.project_builder._create_gui_label(initial_label)
+
+        self.assertEqual(result, "Test label")
+
+
+class EntryUpdateTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.project_id = 1
+        cls.project_builder = ProjectBuilder(cls.project_id)

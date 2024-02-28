@@ -430,7 +430,6 @@ class StartNewProjectTest(TestCase):
 
         mock_std_context.assert_called_once_with()
 
-    @tag("run")
     @patch("app.views.ProjectBuilder", return_value=Mock())
     @patch("app.views.std_context")
     def test_post_setup_step_3_build_fail(
@@ -1564,7 +1563,7 @@ class EntryUpdateTest(TestCase):
         mock_project_access.assert_called_once_with(request, str(project_id))
         mock_project_builder.assert_called_once_with(project_id)
         mock_project_builder.return_value.entry_exists.assert_called_once_with(
-            entry_type, str(project_id)
+            entry_type, project_id
         )
         mock_std_context.assert_called_once_with()
 
@@ -1603,7 +1602,7 @@ class EntryUpdateTest(TestCase):
         mock_project_access.assert_called_once_with(request, str(project_id))
         mock_project_builder.assert_called_once_with(project_id)
         mock_project_builder.return_value.entry_exists.assert_called_once_with(
-            entry_type, str(project_id)
+            entry_type, project_id
         )
         mock_project_builder.return_value.entry_type_exists.assert_called_once_with(
             entry_type
@@ -1703,7 +1702,7 @@ class EntryUpdateTest(TestCase):
         mock_project_access.assert_called_once_with(request, str(project_id))
         mock_project_builder.assert_called_once_with(project_id)
         mock_project_builder.return_value.entry_exists.assert_called_once_with(
-            entry_type, str(project_id)
+            entry_type, project_id
         )
         mock_project_builder.return_value.entry_type_exists.assert_called_once_with(
             entry_type
@@ -1769,7 +1768,7 @@ class EntryUpdateTest(TestCase):
         mock_project_access.assert_called_once_with(request, str(project_id))
         mock_project_builder.assert_called_once_with(project_id)
         mock_project_builder.return_value.entry_exists.assert_called_once_with(
-            entry_type, str(project_id)
+            entry_type, project_id
         )
         mock_project_builder.return_value.entry_type_exists.assert_called_once_with(
             entry_type
@@ -1829,7 +1828,7 @@ class EntryUpdateTest(TestCase):
         mock_project_access.assert_called_once_with(request, str(project_id))
         mock_project_builder.assert_called_once_with(project_id)
         mock_project_builder.return_value.entry_exists.assert_called_once_with(
-            entry_type, str(project_id)
+            entry_type, project_id
         )
         mock_project_builder.return_value.entry_type_exists.assert_called_once_with(
             entry_type
@@ -2048,7 +2047,21 @@ class UnderConstructionViewTest(TestCase):
         self.assertContains(response, "Under contruction")
 
 
+@tag("run")
 class StdContextTest(TestCase):
+    @patch("app.views.ProjectBuilder")
+    def test_std_context_with_project_id_non_integer(
+        self, mock_project_builder
+    ):
+        mock_project_builder.return_value.entry_template_names.return_value = (
+            []
+        )
+        with self.assertRaises(ValueError) as error:
+            views.std_context("non_integer")
+        self.assertEqual(str(error.exception), "project_id must be an integer")
+
+        mock_project_builder.assert_not_called()
+
     @patch("app.views.ProjectBuilder")
     def test_std_context(self, mock_project_builder):
         project_id = 1
