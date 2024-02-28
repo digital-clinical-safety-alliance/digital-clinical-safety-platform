@@ -1,12 +1,12 @@
 """URL management
+
+Manage the URL patterns for the app.
 """
 
 from django.urls import path, re_path
 from django.views.generic.base import RedirectView
 from app import views
 
-"""URL patterns
-"""
 urlpatterns = [
     path("", views.index, name="index"),
     path(
