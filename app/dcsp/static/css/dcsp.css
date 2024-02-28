@@ -47,6 +47,26 @@
     max-width: 100%;
 }
 
+.h1-dcsp {
+    font-size: 24px;
+}
+
+.h2-dcsp {
+    font-size: 20px;
+}
+
+.h3-dcsp {
+    font-size: 18px;
+}
+
+.h4-dcsp {
+    font-size: 16px;
+}
+
+.h5-dcsp {
+    font-size: 14px;
+}
+
 .bold-dcsp {
     font-weight: bold;
 }
@@ -182,8 +202,17 @@
     background-color: #424a48d1;
 }
 
+.date-dcsp {
+    color: #56d4bdd1;
+    background-color: #424a48d1;
+}
+
 .title-dcsp {
     font-size: 20px;
+}
+
+.readonly-field-dcsp {
+    display: none;
 }
 
 .form-control::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */

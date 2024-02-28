@@ -8,7 +8,7 @@ Classes:
 
 import time as t
 import os
-from typing import Any
+from typing import Any, Optional
 from subprocess import CompletedProcess  # nosec B404
 import subprocess  # nosec B404
 from pathlib import Path
@@ -325,8 +325,8 @@ class MkdocsControl:
         project: Project
         time_now = timezone.now()
         build_output: str = ""
-        last_build: datetime
-        last_modified: datetime
+        last_build: Optional[datetime] = None
+        last_modified: Optional[datetime] = None
         preprocessor_output: str = ""
 
         project = project = Project.objects.get(id=self.project_id)

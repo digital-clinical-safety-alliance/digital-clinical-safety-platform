@@ -7,7 +7,7 @@
 
         {% include "project_side_bar_left.html" %}
  
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-lg-6">
 
             {% include "message_error.html" %}
 
@@ -23,16 +23,31 @@
             <form action="{% url 'entry_update' project_id entry_type id_new %}"
                   method="post">
                 {% csrf_token %}
-
                 {% for field in form %}
- 
+
                     {% if field.name|starts_with:'-' %}
-                        <hr class="border border-primary border-2 opacity-50">
+                        <div class="p-3">
+                            <hr class="border border-primary border-2 opacity-50">
+                        </div>
                         {{ field }}
 
                     {% elif field.is_hidden %}
                         {{ field }}
 
+                    {% elif "read_only" in field.field.widget.custom_attrs %}
+                        <div class="mb-3">
+                            <label class="{{ field.field.widget.custom_attrs.label_class }}"
+                                   for="id_{{ field.name }}">{{ field.label }}</label>
+                            <br>
+                            {{ field.field.widget.custom_attrs.value }}
+                            {{ field }}
+                            {% if field.help_text %}
+
+                                {% include "modal.html" %}
+
+                            {% endif %}
+                        </div>
+ 
                     {% else %}
                         <div class="mb-3">
                             <label for="id_{{ field.name }}">{{ field.label }}</label>

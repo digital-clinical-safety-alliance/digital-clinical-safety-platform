@@ -9,7 +9,6 @@ MAIN_FOLDER: str = "/dcsp/"
 
 TEMPLATES_FOLDER: str = "/dcsp/app/dcsp/app/templates/"
 
-
 TESTS_LOCATION: str = f"{ MAIN_FOLDER }app/dcsp/app/tests/"
 
 ILLEGAL_DIR_CHARS: str = '<>?:"\\|?*,'
