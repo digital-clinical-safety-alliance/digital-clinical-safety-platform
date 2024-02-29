@@ -185,7 +185,7 @@ class MkdocsControl:
                         autoescape=True,
                     )
                     template = env.get_template(f"{ entry_type }-icons.md")
-                    print(contents_list)
+
                     context = {"contents_list": contents_list}
                     icon_html = template.render(context)
                     icon_html = f"{ icon_html }\n<!-- [iconend] -->"
@@ -207,7 +207,6 @@ class MkdocsControl:
                     if not code_html:
                         code_html = "Hazard not mentioned in source code"
 
-            print(icon_html)
             entry_form = project.entry_file_read_to_form(
                 contents_list,
                 icon_html,
