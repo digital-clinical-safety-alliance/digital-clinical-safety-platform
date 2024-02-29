@@ -36,11 +36,8 @@
                 <div class="collapse" id="collapseDocuments">
 	
                     {% for doc in available_projects %}
-                        <a class="link-dcsp" href="{% url 'project_documents' doc.doc_id %}">{{ doc.project_name }}</a>
-	
+                        &nbsp;&nbsp;<a class="link-dcsp" href="{% url 'project_documents' doc.doc_id %}">{{ doc.project_name }}</a>
                         <br>
-	
-	
                     {% endfor %}
                 </div>
 	

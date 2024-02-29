@@ -14,6 +14,12 @@ Functions:
     md_files: placeholder
 """
 
+import os
+from fnmatch import fnmatch
+import sys
+from typing import Any, Mapping, Optional
+from pathlib import Path
+
 from django import forms
 from django.conf import settings
 from django.db.models import QuerySet
@@ -22,11 +28,6 @@ from django.contrib.auth.models import User
 from django.forms.widgets import TextInput
 
 from .models import ProjectGroup, ViewAccess
-
-import os
-from fnmatch import fnmatch
-import sys
-from typing import Any, Mapping, Optional
 
 import app.functions.constants as c
 
@@ -653,11 +654,20 @@ class DocumentNewForm(forms.Form):
     def clean(self) -> dict[str, Any]:
         """Checks if a valid path"""
         cleaned_data: dict[str, Any] = self.cleaned_data
-        document_name: str = cleaned_data["document_name"]
+        document_name: Optional[str] = cleaned_data.get("document_name")
         valid_1: bool = False
         valid_2: bool = False
         error_messages_1: list[str] = []
         error_messages_2: list[str] = []
+
+        if not document_name:
+            validated_response(
+                self,
+                "document_name",
+                False,
+                f"'document_name' is missing",
+            )
+            return cleaned_data
 
         (
             valid_1,
@@ -693,7 +703,13 @@ class DocumentUpdateForm(forms.Form):
                  curley brackets (eg {{ placeholder }})
     """
 
-    def __init__(self, project_id: int, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        project_id: int,
+        document_name: str = "",
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         """Initialisation of the selection field
 
         Searches the docs folder and searches for markdown files, noting the
@@ -701,14 +717,13 @@ class DocumentUpdateForm(forms.Form):
         """
         super(DocumentUpdateForm, self).__init__(*args, **kwargs)
         self.project_id: int = project_id
-        document_name: str = ""
         docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
         initial_data: Mapping[str, str] = self.initial or {}
         document_markdown: str = ""
 
         # TODO - perhaps a message that docs folder is missing should be presented.
-
-        if initial_data == {}:
+        print(document_name)
+        if initial_data == {} and document_name == "":
             for _, __, files in os.walk(docs_dir):
                 for name in files:
                     if fnmatch(name, "*.md"):
@@ -717,6 +732,17 @@ class DocumentUpdateForm(forms.Form):
                         break
                 if loop_exit:
                     break
+
+            with open(
+                f"{ docs_dir }{ document_name }",
+                "r",
+            ) as file:
+                document_markdown = file.read()
+                document_markdown = document_markdown.replace("\n", "\r\n")
+
+        elif document_name != "":
+            if not Path(f"{ docs_dir }{ document_name }").is_file():
+                raise FileNotFoundError(f"File '{ document_name }' not found")
 
             with open(
                 f"{ docs_dir }{ document_name }",
@@ -744,6 +770,7 @@ class DocumentUpdateForm(forms.Form):
 
         self.fields["document_markdown"] = forms.CharField(
             label="Markdown view",
+            required=False,
             initial=document_markdown,
             widget=forms.Textarea(
                 attrs={
@@ -761,6 +788,7 @@ class DocumentUpdateForm(forms.Form):
 
         self.fields["document_markdown_initial"] = forms.CharField(
             initial=document_markdown,
+            required=False,
             widget=forms.HiddenInput(attrs={}),
         )
 

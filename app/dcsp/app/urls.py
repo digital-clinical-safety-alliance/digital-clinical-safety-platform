@@ -20,14 +20,19 @@ urlpatterns = [
         name="project_build_asap",
     ),
     path(
+        "document-new/<project_id>",
+        views.document_new,
+        name="document_new",
+    ),
+    path(
         "document-update/<project_id>",
         views.document_update,
         name="document_update",
     ),
     path(
-        "document-new/<project_id>",
-        views.document_new,
-        name="document_new",
+        "document-update-named/<project_id>/<document_name>",
+        views.document_update_named,
+        name="document_update_named",
     ),
     path(
         "entry-update/<project_id>/<entry_type>/<id_new>",
