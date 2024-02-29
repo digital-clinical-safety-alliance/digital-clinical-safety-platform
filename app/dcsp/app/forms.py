@@ -722,7 +722,6 @@ class DocumentUpdateForm(forms.Form):
         document_markdown: str = ""
 
         # TODO - perhaps a message that docs folder is missing should be presented.
-        print(document_name)
         if initial_data == {} and document_name == "":
             for _, __, files in os.walk(docs_dir):
                 for name in files:
@@ -867,6 +866,13 @@ class EntryUpdateForm(forms.Form):
             help_text = ""
 
             if field["field_type"] == "horizontal_line":
+                self.fields[field["heading"]] = forms.CharField(
+                    label="",
+                    required=False,
+                    widget=forms.HiddenInput(attrs={}),
+                )
+
+            elif field["field_type"] == "new_line":
                 self.fields[field["heading"]] = forms.CharField(
                     label="",
                     required=False,

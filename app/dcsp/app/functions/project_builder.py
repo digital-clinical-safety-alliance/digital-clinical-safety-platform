@@ -627,6 +627,7 @@ class ProjectBuilder:
         heading: str = ""
         content_list: list[dict[str, Any]] = []
         horizontal_line: str = ""
+        br_line: str = ""
         matches: list[str] = []
         argument: str = ""
         index: int = 0
@@ -681,6 +682,21 @@ class ProjectBuilder:
                         "field_type": "horizontal_line",
                         "heading": self._heading_numbering(
                             horizontal_line,
+                            content_list,
+                        ),
+                    }
+                )
+
+            # To match new line tag <br>
+            elif re.match(r"^<br>", line):
+                br_line = line
+                headed = False
+
+                content_list.append(
+                    {
+                        "field_type": "new_line",
+                        "heading": self._heading_numbering(
+                            br_line,
                             content_list,
                         ),
                     }
@@ -1145,6 +1161,7 @@ class ProjectBuilder:
                     elif (
                         field_template["field_type"] != "horizontal_line"
                         and field_template["field_type"] != "icon"
+                        and field_template["field_type"] != "new_line"
                     ):
                         data_initial[field_data["heading"]] = field_data[
                             "text"

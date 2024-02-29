@@ -129,6 +129,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 
+<br>
+
 ## 2.2. Top management responsibilities
 [readonly]
 
@@ -150,6 +152,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 
+<br>
+
 ### 2.2.2. Top Management MUST ensure that appropriate levels of authorisation for the Health IT System and its safety documentation are defined in the Clinical Risk Management Plan
 [readonly]
 
@@ -158,6 +162,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 3 - Awaiting
+
+<br>
 
 ## 2.3. Clinical Safety Officer
 [readonly]
@@ -170,6 +176,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 
+<br>
+
 ### 2.3.2. A Clinical Safety Officer MUST hold a current registration with an appropriate professional body relevant to their training and experience
 [readonly]
 
@@ -178,6 +186,7 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 
+<br>
 
 ### 2.3.3. A Clinical Safety Officer MUST be knowledgeable in risk management and its application to clinical domains
 [readonly]
@@ -186,6 +195,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 [select]
 1 - Yes
 2 - No
+
+<br>
 
 ### 2.3.4. A Clinical Safety Officer MUST make sure that the processes defined by the clinical risk management process are followed
 [readonly]
@@ -196,6 +207,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Partial
 4 - Awaiting
+
+<br>
 
 ## 2.4. Competencies of personnel
 [readonly]
@@ -208,6 +221,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 3 - Awaiting
+
+<br>
 
 ### 2.4.2. Competency and experience records for the personnel involved in performing the clinical risk tasks MUST be maintained
 [readonly]
@@ -222,6 +237,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 3 - Awaiting
+
+<br>
 
 ## 2.5. Third party products
 [readonly]
@@ -242,6 +259,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 3 - Awaiting
 4 - Not applicable
 
+<br>
+
 ### 2.5.2. The nature of this assessment MUST be included in Clinical Safety Case Reports
 [readonly]
 
@@ -252,6 +271,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 3 - Not applicable
 4 - Awaiting
 5 - Partial
+
+<br>
 
 ## 2.6. Regular clinical risk management process review
 [readonly]
@@ -286,6 +307,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 
+<br>
+
 ### 3.1.2. The Clinical Risk Management File MUST be maintained for the life of the Health IT System
 [readonly]
 
@@ -295,6 +318,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Partial
 
+<br>
+
 ### 3.1.3. All formal documents and evidence of compliance with the requirements of this standard MUST be recorded in the Clinical Risk Management File
 [readonly]
 
@@ -302,6 +327,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 [select]
 1 - Yes
 2 - No
+
+<br>
 
 ### 3.1.4. Any decisions made that influence the clinical risk management activities undertaken MUST be recorded in the Clinical Risk Management File
 [readonly]
@@ -311,6 +338,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 3 - Not applicable
+
+<br>
 
 ## 3.3 Hazard log
 [readonly]
@@ -338,6 +367,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 4 - Awaiting
 5 - Partial
 
+<br>
+
 ### 3.3.2. A Clinical Safety Officer MUST approve each version of the Hazard Log
 [readonly]
 
@@ -349,6 +380,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 4 - Awaiting
 5 - Partial
 
+<br>
+
 ### 3.3.3. An issued Hazard Log MUST accompany each Clinical Safety Case Report
 [readonly]
 
@@ -359,6 +392,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 3 - Not applicable
 4 - Awaiting
 5 - Partial
+
+<br>
 
 ## 3.4. Clinical safety case
 [readonly]
@@ -386,6 +421,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 4 - Awaiting
 5 - Partial
 
+<br>
+
 ## 3.5 - Clinical Safety Case Reports
 [readonly]
 
@@ -400,6 +437,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 4 - Awaiting
 5 - Partial
 
+<br>
+
 ### 3.5.2. A Clinical Safety Officer MUST approve each Clinical Safety Case Report
 [readonly]
 
@@ -410,6 +449,7 @@ Where this compliance statement is to be supplied to a Health organisation to su
 3 - Not applicable
 4 - Partial
 
+<br>
 
 ### 3.5.3. The Manufacturer MUST make available each Clinical Safety Case Report to a receiving organisation, which may be a Health Organisation or another Manufacturer
 [readonly]
@@ -420,13 +460,15 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Partial
 
+<br>
+
 ## 3.6. Safety Incident Management Log
 [readonly]
 
 ### 3.6.1. The Manufacturer MUST maintain a Safety Incident Management Log
 [readonly]
 
-#### The Manufacturer has a defined safety incident management process
+#### Management system - The Manufacturer has a defined safety incident management process
 [select]
 1 - Yes
 2 - No
@@ -465,6 +507,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Awaiting
 
+<br>
+
 ### 4.1.2. Clinical risk analysis SHOULD be carried out by a multi-disciplinary group including a Clinical Safety Officer
 [readonly]
 
@@ -474,6 +518,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Awaiting
 
+<br>
+
 ### 4.1.3. The extent of clinical risk analysis MUST be commensurate with the scale, complexity and level of clinical risk associated with the Release
 [readonly]
 
@@ -482,6 +528,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 3 - Awaiting
+
+<br>
 
 ## 4.2. Health IT System scope definition
 [readonly]
@@ -495,6 +543,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Awaiting
 
+<br>
+
 ### 4.2.2. The Manufacturer MUST define the intended use of the Health IT System which is to be delivered
 [readonly]
 
@@ -503,6 +553,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 3 - Awaiting
+
+<br>
 
 ## 4.3. Identification of hazards to patients
 [readonly]
@@ -515,6 +567,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 3 - Awaiting
+
+<br>
 
 ## 4.4. Estimation of the clinical risks
 [readonly]
@@ -558,6 +612,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 3 - Not applicable
 4 - Awaiting
 
+<br>
+
 ### 5.1.2. If the initial clinical risk is acceptable, then the risk control requirements defined in sections 6.1 to 6.3 do not apply to this hazard
 [readonly]
 
@@ -591,6 +647,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 3 - Not applicable
 4 - Awaiting
 
+<br>
+
 ### 6.1.2. Proposed clinical risk control measures MUST be assessed by the Manufacturer to determine whether: a) new hazards will be introduced as a result of the measures, and b) the clinical risks for previously identified hazards will be affected
 [readonly]
 
@@ -600,6 +658,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Not applicable
 4 - Awaiting
+
+<br>
 
 ### 6.1.3. The Manufacturer MUST manage any new hazards or increased clinical risks in accordance with sections 4.4 to 6.4
 [readonly]
@@ -611,6 +671,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 3 - Not applicable
 4 - Awaiting
 
+<br>
+
 ### 6.1.4. The Manufacturer MUST evaluate the residual clinical risk. This evaluation MUST use the risk acceptability criteria defined in the Clinical Risk Management Plan
 [readonly]
 
@@ -620,6 +682,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Not applicable
 4 - Awaiting
+
+<br>
 
 ### 6.1.5. Where a residual clinical risk is judged unacceptable, the Manufacturer MUST identify additional clinical risk control measures in order to reduce the clinical risk
 [readonly]
@@ -631,6 +695,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 3 - Not applicable
 4 - Awaiting
 
+<br>
+
 ### 6.1.6. If the Manufacturer determines that no suitable risk control measures are possible then the Manufacturer MUST conduct a clinical risk benefit analysis of the clinical risk (section 6.2)
 [readonly]
 
@@ -640,6 +706,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Not applicable
 4 - Awaiting
+
+<br>
 
 ## 6.2. Clinical risk benefit analysis
 [readonly]
@@ -654,6 +722,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 3 - Not applicable
 4 - Awaiting
 
+<br>
+
 ### 6.2.2. If the clinical benefits do not outweigh the residual clinical risk, then the clinical risk remains unacceptable and the project SHOULD be re-appraised
 [readonly]
 
@@ -663,6 +733,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Not applicable
 4 - Awaiting
+
+<br>
 
 ## 6.3. Implementation of clinical risk control measures
 [readonly]
@@ -677,6 +749,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 3 - Not applicable
 4 - Awaiting
 
+<br>
+
 ### 6.3.2. The Manufacturer MUST verify each clinical risk control measure implemented under 6.3.1
 [readonly]
 
@@ -687,6 +761,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 3 - Not applicable
 4 - Awaiting
 
+<br>
+
 ### 6.3.3. The Manufacturer MUST verify the effectiveness of each clinical risk control measure implemented under 6.3.1.
 [readonly]
 
@@ -696,6 +772,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Not applicable
 4 - Awaiting
+
+<br>
 
 ## 6.4. Completeness of clinical risk control
 [readonly]
@@ -732,6 +810,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Awaiting
 
+<br>
+
 ### 7.1.2. The results of this review MUST be recorded in the Clinical Safety Case Report
 [readonly]
 
@@ -741,6 +821,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Awaiting
 
+<br>
+
 ### 7.1.3. The Health IT System configuration for the release MUST be recorded in the Clinical Safety Case Report
 [readonly]
 
@@ -749,6 +831,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 3 - Awaiting
+
+<br>
 
 ## 7.2. Post-deployment monitoring
 [readonly]
@@ -767,6 +851,7 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Not applicable
 
+<br>
 
 ### 7.2.2. The Manufacturer MUST assess the impact of any such information on the on-going validity of the Clinical Safety Case
 [readonly]
@@ -777,6 +862,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Not applicable
 
+<br>
+
 ### 7.2.3. Where any such evidence is assessed to undermine the safety case the Manufacturer MUST take appropriate corrective action in accordance with the Clinical Risk Management Plan and document it in the Clinical Safety Case Report
 [readonly]
 
@@ -785,6 +872,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 3 - Not applicable
+
+<br>
 
 ### 7.2.4. The Manufacturer MUST ensure safety related incidents are reported and resolved in a timely manner
 [readonly]
@@ -795,6 +884,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Not applicable
 
+<br>
+
 ### 7.2.5. A record of safety incidents, including their resolution, MUST be maintained by the Manufacturer in a Safety Incident Management Log
 [readonly]
 
@@ -803,6 +894,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 3 - Not applicable
+
+<br>
 
 ## 7.3. Modification
 [readonly]
@@ -821,6 +914,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 2 - No
 3 - Not applicable
 
+<br>
+
 ### 7.3.2. The application of this process MUST be commensurate with the scale and extent of the change and the introduction of any new clinical risks
 [readonly]
 
@@ -829,6 +924,8 @@ Where this compliance statement is to be supplied to a Health organisation to su
 1 - Yes
 2 - No
 3 - Not applicable
+
+<br>
 
 ### 7.3.3. The Manufacturer MUST issue a Clinical Safety Case Report to support any modification to the Health IT System that changes its clinical risk
 [readonly]
