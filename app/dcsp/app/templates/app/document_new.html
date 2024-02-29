@@ -10,33 +10,43 @@
             {% include "message_error.html" %}
 
             {% include "error_summary.html" %}
-
-            <form id="id_form"
-                  action="{% url 'document_new' project_id %}"
-                  method="post">
-                {% csrf_token %}
+            {% if submitted %}
+                <p>
+                    <a class="link-dcsp"
+                       href="{% url 'document_update_named' project_id document_name_new %}">Edit the new document</a>
+                </p>
+                <p>
+                    <a class="link-dcsp" href="{% url 'document_new' project_id %}">Create new document</a>
+                </p>
+ 
+            {% else %}
+                <form id="id_form"
+                      action="{% url 'document_new' project_id %}"
+                      method="post">
+                    {% csrf_token %}
 	
-                {% for field in form %}
-                    <div class="mb-3">
-                        <label class="form-label"
-                               for="id_{{ field.name }}"
-                               id="id_label_{{ field.name }}">{{ field.label | safe }}</label>
-                        {{ field }}
-                        {% if field.help_text %}{{ field.help_text }}{% endif %}
-                        {% if field.errors %}
-                            {% for error in field.errors %}
-                                <div id="id_{{ field.name }}" class="invalid-feedback">{{ error|escape }}</div>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                {% endfor %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label"
+                                   for="id_{{ field.name }}"
+                                   id="id_label_{{ field.name }}">{{ field.label | safe }}</label>
+                            {{ field }}
+                            {% if field.help_text %}{{ field.help_text }}{% endif %}
+                            {% if field.errors %}
+                                {% for error in field.errors %}
+                                    <div id="id_{{ field.name }}" class="invalid-feedback">{{ error|escape }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
 
-                <button id="id_button"
-                        onclick="submitForm()"
-                        class="btn btn-secondary right"
-                        type="submit">Save</button>
+                    <button id="id_button"
+                            onclick="submitForm()"
+                            class="btn btn-secondary right"
+                            type="submit">Save</button>
 
-            </form>
+                </form>
+            {% endif %}
         </div>
 	
 

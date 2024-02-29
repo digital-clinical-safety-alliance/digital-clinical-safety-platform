@@ -1,4 +1,4 @@
-# DCB 0129 compliance assessement
+# DCB 0129 compliance assessment
 [readonly]
 
 ### Sign-off name

@@ -730,8 +730,9 @@ def document_new(  # type: ignore[return]
             context = {
                 "page_title": "New document created",
                 "project_name": Project.objects.get(id=project_id).name,
-                "form": form,
+                "submitted": True,
                 "project_id": project_id,
+                "document_name_new": document_name_new,
             }
 
             return render(
@@ -771,7 +772,7 @@ def document_update(  # type: ignore[return]
     Returns:
         HttpResponse: for loading the correct webpage
     """
-    form: DocumentUpdateForm
+    form: Optional[DocumentUpdateForm] = None
     document_name_initial: str = ""
     document_name: str = ""
     document_markdown_initial: str = ""
@@ -803,7 +804,7 @@ def document_update(  # type: ignore[return]
         )
 
     elif request.method == "POST":
-        form = DocumentUpdateForm(project_id, request.POST)
+        form = DocumentUpdateForm(project_id, data=request.POST)
 
         if form.is_valid():
             document_name_initial = form.cleaned_data["document_name_initial"]
@@ -843,7 +844,7 @@ def document_update(  # type: ignore[return]
                 )
 
             elif document_markdown_initial != document_markdown:
-                with open(Path(docs_dir) / document_name, "r") as file:
+                with open(Path(docs_dir) / document_name, "w") as file:
                     file.write(document_markdown)
 
                 project_timestamp(project_id)
@@ -905,6 +906,53 @@ def document_update(  # type: ignore[return]
                 context | std_context(project_id),
                 status=400,
             )
+
+
+@project_access
+def document_update_named(  # type: ignore[return]
+    request: HttpRequest, project_id: int, setup_step: int, document_name: str
+) -> HttpResponse:
+    """Select a specific document to edit
+
+    If no issues are found after running the markdown file through a linter
+    the file is saved.
+
+    Args:
+        request (HttpRequest): request from user
+        project_id (int): primary key of project
+        setup_step (int): the step in the setup process
+
+    Returns:
+        HttpResponse: for loading the correct webpage
+    """
+    form: Optional[DocumentUpdateForm] = None
+    context: dict[str, Any] = {}
+
+    if not request.method == "GET":
+        return custom_405(request)
+
+    if setup_step < 2:
+        return redirect(f"/setup_documents/{ project_id }")
+
+    if request.method == "GET":
+        try:
+            form = DocumentUpdateForm(project_id, document_name)
+        except FileNotFoundError:
+            return custom_404(request)
+
+        context = {
+            "page_title_left": "Edit safety document",
+            "form": form,
+            "project_id": project_id,
+            "placeholders": placeholders(project_id),
+            "nav_top": "True",
+        }
+
+        return render(
+            request,
+            "document_update.html",
+            context | std_context(project_id),
+        )
 
 
 @project_access
@@ -990,7 +1038,6 @@ def entry_update(  # type: ignore[return]
     elif request.method == "POST":
         form = EntryUpdateForm(project_id, entry_type, request.POST)
         if form.is_valid():
-            # print(form.cleaned_data)
             project_timestamp(project_id)
 
             entry_update_outcome = project.entry_update(

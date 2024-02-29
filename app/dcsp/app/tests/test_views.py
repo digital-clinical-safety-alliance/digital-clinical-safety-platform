@@ -1328,7 +1328,7 @@ class DocumentUpdateTest(TestCase):
 
         request = response.wsgi_request
         mock_project_access.assert_called_once_with(request, str(project_id))
-        mock_form.assert_any_call(project_id, request.POST)
+        mock_form.assert_any_call(project_id, data=request.POST)
         mock_form.return_value.is_valid.assert_called_once()
         mock_open.assert_called_once_with(
             Path(docs_dir) / "another_name.md", "r"
@@ -1389,9 +1389,9 @@ class DocumentUpdateTest(TestCase):
 
         request = response.wsgi_request
         mock_project_access.assert_called_once_with(request, str(project_id))
-        mock_form.assert_any_call(project_id, request.POST)
+        mock_form.assert_any_call(project_id, data=request.POST)
         mock_form.return_value.is_valid.assert_called_once()
-        mock_open.assert_called_once_with(Path(docs_dir) / document_name, "r")
+        mock_open.assert_called_once_with(Path(docs_dir) / document_name, "w")
         mock_open.return_value.__enter__.return_value.write.assert_called_once_with(
             new_text
         )
@@ -1446,7 +1446,7 @@ class DocumentUpdateTest(TestCase):
 
         request = response.wsgi_request
         mock_project_access.assert_called_once_with(request, str(project_id))
-        mock_form.assert_any_call(project_id, request.POST)
+        mock_form.assert_any_call(project_id, data=request.POST)
         mock_form.return_value.is_valid.assert_called_once()
         messages = list(get_messages(request))
         self.assertEqual(len(messages), 1)
@@ -1489,7 +1489,7 @@ class DocumentUpdateTest(TestCase):
 
         request = response.wsgi_request
         mock_project_access.assert_called_once_with(request, str(project_id))
-        mock_form.assert_any_call(project_id, request.POST)
+        mock_form.assert_any_call(project_id, data=request.POST)
         mock_form.return_value.is_valid.assert_called_once()
         mock_placeholders.assert_called_once_with(project_id)
         mock_std_context.assert_called_once_with(project_id)
