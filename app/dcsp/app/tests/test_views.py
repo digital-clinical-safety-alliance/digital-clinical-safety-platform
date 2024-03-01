@@ -1495,6 +1495,139 @@ class DocumentUpdateTest(TestCase):
         mock_std_context.assert_called_once_with(project_id)
 
 
+class DocumentUpdateNamedTest(TestCase):
+    def setUp(self):
+        log_in(self)
+        project = Project.objects.create(
+            id=1, owner=self.user, name="Test Project"
+        )
+        project.member.set([self.user])
+        project_group = ProjectGroup.objects.create(id=1, name="Test Group")
+        project_group.project_access.set([project])
+
+    @patch("app.decorators._project_access")
+    def test_bad_method(self, mock_project_access):
+        project_id = 1
+        setup_step = 1
+        document_name = "test_name.md"
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+
+        response = self.client.post(
+            f"/document-update-named/{ project_id }/{ document_name }", {}
+        )
+
+        self.assertEqual(response.status_code, 405)
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+
+    @patch("app.decorators._project_access")
+    def test_setup_step_1(self, mock_project_access):
+        project_id = 1
+        setup_step = 1
+        document_name = "test_name.md"
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+
+        response = self.client.get(
+            f"/document-update-named/{ project_id }/{ document_name }"
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+
+    @tag("run")
+    @patch("app.decorators._project_access")
+    @patch("app.views.DocumentUpdateForm")
+    @patch("app.views.std_context")
+    def test_document_not_found(
+        self,
+        mock_std_context,
+        mock_form,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+        document_name = "test_name.md"
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+
+        mock_form.side_effect = FileNotFoundError
+
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(
+            f"/document-update-named/{ project_id }/{ document_name }"
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTemplateUsed(response, "error_handler.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_form.assert_called_once_with(project_id, document_name)
+        mock_std_context.assert_called_once_with()
+
+    @patch("app.decorators._project_access")
+    @patch("app.views.DocumentUpdateForm")
+    @patch("app.views.placeholders")
+    @patch("app.views.std_context")
+    def test_get(
+        self,
+        mock_std_context,
+        mock_placeholders,
+        mock_form,
+        mock_project_access,
+    ):
+        project_id = 1
+        setup_step = 2
+        document_name = "test_name.md"
+
+        mock_project_access.return_value = (
+            True,
+            HttpResponse(),
+            project_id,
+            setup_step,
+        )
+
+        # mock_form - used here
+
+        # mock_placeholders - used here
+
+        mock_std_context.return_value = {"test": "test"}
+
+        response = self.client.get(
+            f"/document-update-named/{ project_id }/{ document_name }"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "document_update.html")
+
+        request = response.wsgi_request
+        mock_project_access.assert_called_once_with(request, str(project_id))
+        mock_form.assert_called_once_with(project_id, document_name)
+        mock_placeholders.assert_called_once_with(project_id)
+        mock_std_context.assert_called_once_with(project_id)
+
+
 class EntryUpdateTest(TestCase):
     def setUp(self):
         log_in(self)
@@ -2270,6 +2403,7 @@ class StartNewProjectStep2InputGUITestCase(TestCase):
         inputs = d.START_NEW_PROJECT_STEP_2_IMPORT_INPUTS
 
         expected_output = {
+            "Access": "public",
             "Setup choice": "Import",
             "External repository url": "www.github.com/test",
             "External repository username": "test_username",
@@ -2287,6 +2421,7 @@ class StartNewProjectStep2InputGUITestCase(TestCase):
         inputs = d.START_NEW_PROJECT_STEP_2_START_ANEW_INPUTS
 
         expected_output = {
+            "Access": "public",
             "Setup choice": "Start anew",
             "Project name": "Test project",
             "Description": "A test project",
@@ -2425,50 +2560,6 @@ class PlaceholdersTest(TestCase):
 
         mock_project_builder.assert_called_once_with(project_id_1)
         mock_project_builder.return_value.get_placeholders.assert_called_once_with()
-
-
-class ProjectTimestampTest(TestCase):
-    def test_nonexistent(self):
-        project_id_1 = 1
-        project_id_2 = 2
-        project_name_1 = "Project 1"
-
-        user_1 = User.objects.create_user(
-            id=1, username="user_1", password="password_1"
-        )  # nosec B106
-
-        Project.objects.create(
-            id=project_id_1, owner=user_1, name=project_name_1
-        )
-
-        result = views.project_timestamp(project_id_2)
-        self.assertFalse(result)
-
-    def test_exists(self):
-        project_id_1 = 1
-        project_name_1 = "Project 1"
-
-        user_1 = User.objects.create_user(
-            id=1, username="user_1", password="password_1"
-        )  # nosec B106
-
-        Project.objects.create(
-            id=project_id_1,
-            owner=user_1,
-            name=project_name_1,
-            last_modified=timezone.now() - timedelta(minutes=10),
-        )
-
-        project_before = Project.objects.get(id=project_id_1)
-        timestamp_before = project_before.last_modified
-
-        result = views.project_timestamp(project_id_1)
-        self.assertTrue(result)
-
-        project_after = Project.objects.get(id=project_id_1)
-        timestamp_after = project_after.last_modified
-
-        self.assertNotEqual(timestamp_before, timestamp_after)
 
 
 class Custom400Test(TestCase):
