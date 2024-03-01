@@ -914,13 +914,13 @@ def document_update_named(  # type: ignore[return]
 ) -> HttpResponse:
     """Select a specific document to edit
 
-    If no issues are found after running the markdown file through a linter
-    the file is saved.
+    Uses the url to select a specific document to edit.
 
     Args:
         request (HttpRequest): request from user
         project_id (int): primary key of project
         setup_step (int): the step in the setup process
+        document_name (str): name of the document to edit
 
     Returns:
         HttpResponse: for loading the correct webpage

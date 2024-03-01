@@ -1,10 +1,15 @@
 from datetime import datetime, timedelta
+from unittest.mock import Mock, patch
 
 from django.utils import timezone
 from django.db import IntegrityError
 from django.test import TestCase
 from django.contrib.auth.models import User
+from django.test import tag
+
 from app.models import (
+    ViewAccess,
+    project_timestamp,
     UserProfile,
     Project,
     ProjectGroup,
@@ -15,6 +20,50 @@ from app.models import (
 from app.functions import constants as c
 
 t = timezone.make_aware(datetime(2024, 1, 24))
+
+
+class TestViewAccess(TestCase):
+    def test_get_label(self):
+        self.assertEqual(ViewAccess.get_label("PR"), "private")
+        self.assertEqual(ViewAccess.get_label("ME"), "members")
+        self.assertEqual(ViewAccess.get_label("PU"), "public")
+
+    def test_get_label_invalid_choice(self):
+        with self.assertRaises(ValueError):
+            ViewAccess.get_label("invalid")
+
+
+class TestProjectTimestamp(TestCase):
+    def test_project_id_invalid(self):
+        with self.assertRaises(TypeError) as error:
+            project_timestamp("invalid")
+        self.assertEqual(str(error.exception), "project_id must be an integer")
+
+    @patch("app.models.Project")
+    def test_nonexistent_project(self, mock_project):
+        mock_project.objects.filter.return_value.exists.return_value = False
+
+        result = project_timestamp(1)
+
+        self.assertFalse(result)
+
+        mock_project.objects.filter.assert_called_once_with(id=1)
+        mock_project.objects.get.assert_not_called()
+
+    @patch("app.models.Project")
+    @patch("django.utils.timezone.now")
+    def test_project_timestamp(self, mock_now, mock_project):
+        mock_now.return_value = "2022-01-01T00:00:00Z"
+        mock_project.objects.filter.return_value.exists.return_value = True
+        mock_project.objects.get.return_value = Mock()
+
+        result = project_timestamp(1)
+
+        self.assertTrue(result)
+
+        mock_project.objects.filter.assert_called_once_with(id=1)
+        mock_project.objects.get.assert_called_once_with(id=1)
+        mock_project.objects.get.return_value.save.assert_called_once()
 
 
 class UserProfileTest(TestCase):

@@ -19,11 +19,19 @@ START_NEW_PROJECT_STEP_1_IMPORT_WRONG_CHOICE = {
     "external_repository_password_token_import": "test_token",
 }
 
+START_NEW_PROJECT_STEP_2 = {
+    "project_name": "Test project",
+    "description": "A test project",
+    "access": "PU",
+    "groups": ["1"],
+    "members": ["1"],
+}
 
 START_NEW_PROJECT_STEP_2_START_ANEW_INPUTS = {
     "setup_choice": "start_anew",
     "project_name": "Test project",
     "description": "A test project",
+    "access": "PU",
     "groups": ["1"],
     "members": ["1"],
 }
@@ -35,14 +43,7 @@ START_NEW_PROJECT_STEP_2_IMPORT_INPUTS = {
     "external_repository_password_token_import": "test_token",
     "project_name": "Test project",
     "description": "A test project",
-    "groups": ["1"],
-    "members": ["1"],
-}
-
-
-START_NEW_PROJECT_STEP_2 = {
-    "project_name": "Test project",
-    "description": "A test project",
+    "access": "PU",
     "groups": ["1"],
     "members": ["1"],
 }
