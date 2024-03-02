@@ -9,4 +9,5 @@ technologies
 1. [Source code](code/index.md)
 2. [Acknowledgements](acknowledgements.md)
 3. [Developers](developers.md)
+4. [How to develop projects, templates and the DCSP app itself](how-tos/index.md)
 
