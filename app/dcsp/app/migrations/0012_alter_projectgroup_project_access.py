@@ -5,7 +5,10 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("app", "0011_alter_projectgroup_member_alter_projectgroup_name_and_more"),
+        (
+            "app",
+            "0011_alter_projectgroup_member_alter_projectgroup_name_and_more",
+        ),
     ]
 
     operations = [
@@ -13,7 +16,9 @@ class Migration(migrations.Migration):
             model_name="projectgroup",
             name="project_access",
             field=models.ManyToManyField(
-                blank=True, to="app.project", verbose_name="Project(s) with access to"
+                blank=True,
+                to="app.project",
+                verbose_name="Project(s) with access to",
             ),
         ),
     ]
