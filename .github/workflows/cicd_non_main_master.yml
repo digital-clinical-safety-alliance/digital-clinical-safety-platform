@@ -59,7 +59,7 @@ jobs:
 
       - name: Testing inside Docker container
         run: >
-          docker-compose -f docker-compose-cicd.yml up --exit-code-from dcsp-docs-builder-cicd
+          docker compose -f docker-compose-cicd.yml up --exit-code-from dcsp-docs-builder-cicd
       
       - name: Build and push PRODUCTION image
         uses: docker/build-push-action@v5

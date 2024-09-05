@@ -17,3 +17,4 @@
 15. When creating a new project, if there are no members or groups, show a more Ux friendly response
 16. User / member show if no first and last name
 17. Need "unknown placeholder" in document edit web view
+18. Fix bug that makes you log out when you change from www. non-www in the url
