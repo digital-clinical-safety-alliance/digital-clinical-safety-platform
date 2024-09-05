@@ -1,5 +1,5 @@
 # TODO: need to pin down ubuntu version
-FROM ubuntu:latest as base
+FROM ubuntu:22.04 as base
 WORKDIR /dcsp
 
 # NB: Need to create identical group and user on the production site
@@ -17,7 +17,7 @@ COPY packages.txt /dcsp
 RUN xargs apt-get -y install <packages.txt
 
 COPY requirements-base.txt /dcsp
-RUN pip install -r requirements-base.txt
+RUN pip install -r requirements-base.txt 
 
 # COPY requirements-dev-cicd.txt /dcsp
 
