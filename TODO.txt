@@ -18,3 +18,5 @@
 16. User / member show if no first and last name
 17. Need "unknown placeholder" in document edit web view
 18. Fix bug that makes you log out when you change from www. non-www in the url
+19. Allow to see own project if project is private
+20. Allow a project description to be more than 1000 words.

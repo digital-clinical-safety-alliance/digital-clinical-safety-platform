@@ -178,9 +178,7 @@ def start_new_project(  # type: ignore[return]
             "form": ProjectSetupInitialForm(),
         }
 
-        return render(
-            request, "start_new_project.html", context | std_context()
-        )
+        return render(request, "start_new_project.html", context | std_context())
 
     elif request.method == "POST":
         setup_step = request.session.get("project_setup_step", None)
@@ -191,9 +189,7 @@ def start_new_project(  # type: ignore[return]
             if form.is_valid():
                 setup_step = 2
                 request.session["project_setup_step"] = setup_step
-                request.session[
-                    "project_setup_1_form_data"
-                ] = form.cleaned_data
+                request.session["project_setup_1_form_data"] = form.cleaned_data
                 setup_choice = form.cleaned_data["setup_choice"]
 
                 if setup_choice == "import":
@@ -206,9 +202,7 @@ def start_new_project(  # type: ignore[return]
                     elif "gitlab.com/" in external_repo_url:
                         request.session["inputs"]["repository_type"] = "gitlab"
                     elif "gitbucket" in external_repo_url:
-                        request.session["inputs"][
-                            "repository_type"
-                        ] = "gitbucket"
+                        request.session["inputs"]["repository_type"] = "gitbucket"
                     else:
                         request.session["inputs"]["repository_type"] = "other"
 
@@ -251,9 +245,7 @@ def start_new_project(  # type: ignore[return]
 
                 setup_step = 3
                 request.session["project_setup_step"] = setup_step
-                request.session[
-                    "project_setup_2_form_data"
-                ] = form.cleaned_data
+                request.session["project_setup_2_form_data"] = form.cleaned_data
 
                 inputs = request.session["project_setup_1_form_data"].copy()
                 inputs.update(request.session["project_setup_2_form_data"])
@@ -333,9 +325,7 @@ def start_new_project(  # type: ignore[return]
                 "project_id": project_id,
             }
 
-            return render(
-                request, "start_new_project.html", context | std_context()
-            )
+            return render(request, "start_new_project.html", context | std_context())
 
         elif setup_step == 4:
             return redirect("/start_new_project")
@@ -581,7 +571,7 @@ def view_docs(
 
     Delivers controlled access to static site pages. It uses the NGINX
     X-Accel-Redirect. Depending on if the project's documents have private,
-    membership or public access, the user will be able to view the documents.
+    member or public access, the user will be able to view the documents.
     Hence, access to the static pages are also dependent on if the user is
     authenticated.
 
@@ -628,9 +618,7 @@ def view_docs(
 
     elif project.access == ViewAccess.PRIVATE:
         accessible_projects = user_accessible_projects(request)
-        if not any(
-            doc for doc in accessible_projects if doc["doc_id"] == project_id
-        ):
+        if not any(doc for doc in accessible_projects if doc["doc_id"] == project_id):
             messages.error(
                 request, f"You do not have access to 'project { project_id }'."
             )
@@ -779,7 +767,9 @@ def document_update(  # type: ignore[return]
     document_markdown: str = ""
     document_markdown_file_read: str = ""
     form_data: dict[str, str] = {}
-    docs_dir: str = f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+    docs_dir: str = (
+        f"{ c.PROJECTS_FOLDER }project_{ project_id }/{ c.CLINICAL_SAFETY_FOLDER }docs/"
+    )
     file: TextIO
     context: dict[str, Any] = {}
 
@@ -809,16 +799,14 @@ def document_update(  # type: ignore[return]
         if form.is_valid():
             document_name_initial = form.cleaned_data["document_name_initial"]
             document_name = form.cleaned_data["document_name"]
-            document_markdown_initial = form.cleaned_data[
-                "document_markdown_initial"
-            ]
+            document_markdown_initial = form.cleaned_data["document_markdown_initial"]
             document_markdown = form.cleaned_data["document_markdown"]
 
             if document_name_initial != document_name:
                 with open(Path(docs_dir) / document_name, "r") as file:
                     document_markdown_file_read = file.read()
-                    document_markdown_file_read = (
-                        document_markdown_file_read.replace("\n", "\r\n")
+                    document_markdown_file_read = document_markdown_file_read.replace(
+                        "\n", "\r\n"
                     )
 
                 form_data = {
@@ -989,9 +977,7 @@ def entry_update(  # type: ignore[return]
         return redirect(f"/setup_documents/{ project_id }")
 
     if id_new != "new":
-        if not id_new.isdigit() or not project.entry_exists(
-            entry_type, int(id_new)
-        ):
+        if not id_new.isdigit() or not project.entry_exists(entry_type, int(id_new)):
             return custom_404(request)
 
     if not project.entry_type_exists(entry_type):
@@ -1126,9 +1112,7 @@ def entry_select(
         "entry_type": entry_type,
         "project_side_bars": True,
     }
-    return render(
-        request, "entry_select.html", context | std_context(project_id)
-    )
+    return render(request, "entry_select.html", context | std_context(project_id))
 
 
 def under_construction(
@@ -1204,9 +1188,7 @@ def user_accessible_projects(
     Returns:
         list[None | dict[str, Any]]: a list of documents
     """
-    user_id: int = (
-        int(str(request.user.id)) if request.user.id is not None else 0
-    )
+    user_id: int = int(str(request.user.id)) if request.user.id is not None else 0
     documents_owner: QuerySet[Any] = Project.objects.none()
     documents_member: QuerySet[Any] = Project.objects.none()
     project_group: QuerySet[Any] = ProjectGroup.objects.none()
@@ -1231,9 +1213,7 @@ def user_accessible_projects(
         ProjectGroup.objects.values(
             doc_id=F("project_access__id"),
             project_name=F("project_access__name"),
-            doc_last_accessed=F(
-                "project_access__userprojectattribute__last_accessed"
-            ),
+            doc_last_accessed=F("project_access__userprojectattribute__last_accessed"),
         )
         .filter(member=user_id)
         .order_by(
@@ -1291,9 +1271,7 @@ def user_accessible_projects(
     return documents_sorted
 
 
-def start_new_project_step_2_input_GUI(
-    inputs: dict[str, str]
-) -> dict[str, str]:
+def start_new_project_step_2_input_GUI(inputs: dict[str, str]) -> dict[str, str]:
     """Converts the inputs into a more user friendly format
 
     Takes the user inputs from the previous submissions and prepares them for
@@ -1323,9 +1301,9 @@ def start_new_project_step_2_input_GUI(
         elif key == "Groups":
             groups_list = [
                 name
-                for name in ProjectGroup.objects.filter(
-                    id__in=value
-                ).values_list("name", flat=True)
+                for name in ProjectGroup.objects.filter(id__in=value).values_list(
+                    "name", flat=True
+                )
                 if name is not None
             ]
             inputs_GUI[key] = ", ".join(groups_list)
@@ -1405,9 +1383,7 @@ def custom_400(
 
     context: dict[str, Any] = {"page_title": "400 - Bad request"}
 
-    return render(
-        request, "error_handler.html", context | std_context(), status=400
-    )
+    return render(request, "error_handler.html", context | std_context(), status=400)
 
 
 def custom_403(
@@ -1426,9 +1402,7 @@ def custom_403(
 
     context: dict[str, Any] = {"page_title": "403 - Forbidden access"}
 
-    return render(
-        request, "error_handler.html", context | std_context(), status=403
-    )
+    return render(request, "error_handler.html", context | std_context(), status=403)
 
 
 def custom_403_csrf(request: HttpRequest, reason: Any = None) -> HttpResponse:
@@ -1460,9 +1434,7 @@ def custom_404(
     """
     context: dict[str, Any] = {"page_title": "404 - Page not found"}
 
-    return render(
-        request, "error_handler.html", context | std_context(), status=404
-    )
+    return render(request, "error_handler.html", context | std_context(), status=404)
 
 
 def custom_405(
@@ -1480,9 +1452,7 @@ def custom_405(
     """
     context: dict[str, Any] = {"page_title": "405 - method not allowed"}
 
-    return render(
-        request, "error_handler.html", context | std_context(), status=405
-    )
+    return render(request, "error_handler.html", context | std_context(), status=405)
 
 
 def custom_500(
