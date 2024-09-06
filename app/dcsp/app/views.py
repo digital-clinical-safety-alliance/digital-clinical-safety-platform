@@ -581,7 +581,7 @@ def view_docs(
 
     Delivers controlled access to static site pages. It uses the NGINX
     X-Accel-Redirect. Depending on if the project's documents have private,
-    membership or public access, the user will be able to view the documents.
+    member or public access, the user will be able to view the documents.
     Hence, access to the static pages are also dependent on if the user is
     authenticated.
 

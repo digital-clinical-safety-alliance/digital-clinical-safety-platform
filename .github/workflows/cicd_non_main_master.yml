@@ -89,3 +89,16 @@ jobs:
           -H "Accept: application/vnd.github.everest-preview+json" \
           "https://api.github.com/repos/digital-clinical-safety-alliance/digital-clinical-safety-platform/dispatches" \
           -d '{"event_type": "trigger-main"}'
+
+  #run: |
+  # response=$(curl -s -o response.txt -w "%{http_code}" -XPOST -u "${{ secrets.GH_USERNAME }}:${{ secrets.PAT }}" \
+  #   -H "Accept: application/vnd.github.everest-preview+json" \
+  #   "https://api.github.com/repos/digital-clinical-safety-alliance/digital-clinical-safety-platform/dispatches" \
+  #   -d '{"event_type": "trigger-main"}')
+  # if [ "$response" -ne 204 ]; then
+  #   echo "Failed to trigger main branch workflow. HTTP status code: $response"
+  #   cat response.txt
+  #   exit 1
+  # else
+  #   echo "Successfully triggered main branch workflow."
+  # fi
