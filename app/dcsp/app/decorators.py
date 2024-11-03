@@ -1,5 +1,5 @@
 """
-This module contains the code for performing a specific task.
+Decorators for views.
 """
 
 from fnmatch import fnmatch
@@ -131,7 +131,7 @@ def project_access(
 
         Args:
             request (HttpRequest): the request
-            project_id (str): datanase primary key for project.
+            project_id (str): database primary key for project.
 
         Returns:
             HttpResponse | Callable: error responses or runs function.

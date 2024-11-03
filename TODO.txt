@@ -20,3 +20,4 @@
 18. Fix bug that makes you log out when you change from www. non-www in the url
 19. Allow to see own project if project is private
 20. Allow a project description to be more than 1000 words.
+21. "Template linter check via djLint" CICD should come before Unit and Integration testing (as documentation)
