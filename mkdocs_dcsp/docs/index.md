@@ -42,9 +42,13 @@ As an open-source platform, the DCSP thrives on collaboration and innovation. We
 
 ## Get Started
 
-Ready to transform your clinical safety documentation? Visit our [GitHub repository](https://github.com/digital-clinical-safety-alliance/digital-clinical-safety-platform) to explore the DCSP, download the code, and contribute to the project. Better yet, contact us at [dcsp.information@gmail.com](mailto:dcsp.information@gmail.com) to see how we can provide you the service of the DCSP. 
+Ready to transform your clinical safety documentation? Visit our [GitHub repository](https://github.com/digital-clinical-safety-alliance/digital-clinical-safety-platform) to explore the DCSP, download the code, and contribute to the project. Better yet, contact us at [dcsp.information@gmail.com](mailto:dcsp.information@gmail.com) to see how we can provide you the service of the DCSP.
 
 Together, we can build safer, more efficient digital health systems.
+
+## Paper in submission
+
+The work covering the development and testing of the DCSP is currently being submitted. Here you can download the [DCSP paper](../assets/dcsp-paper.pdf){:download="DCSP paper"}.
 
 ## Table Of Contents
 
