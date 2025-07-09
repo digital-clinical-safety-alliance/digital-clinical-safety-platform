@@ -11,7 +11,7 @@ plugins:
       default_handler: python
       handlers:
         python:
-          rendering:
+          options:
             show_source: true
           paths: [../app/dcsp/app, /dcsp/app/dcsp/app]
 
