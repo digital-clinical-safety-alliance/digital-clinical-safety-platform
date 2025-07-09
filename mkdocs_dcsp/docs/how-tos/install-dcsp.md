@@ -31,8 +31,16 @@ is used only once when initially setting up the production environment on a new 
 
 ```$ docker compose -f docker-compose-dev.yml up```
 
+And then
+
+```docker compose -f docker-compose-dev.yml exec -it dcsp-docs-builder-dev python3 dcsp/manage.py migrate```
+
+And then
+
+```docker compose -f docker-compose-dev.yml exec -it dcsp-docs-builder-dev python3 dcsp/manage.py createsuperuser```
+
 * You should be up and running.
-* Use the below command to open a command line within the main container
+* Use can use the below command to open a command line within the main container
 
 ```$ docker exec -it dcsp-docs-builder-dev bash```
 
