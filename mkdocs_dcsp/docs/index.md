@@ -4,7 +4,7 @@ Streamline and automate clinical safety documentation with our open-source solut
 
 ## About the DCSP
 
-The Digital Clinical Safety Platform (DCSP) is a cutting-edge tool designed to transform the way clinical safety documentation is managed for digital health systems. Built in alignment with standards clinical safety standards, including DCB0129 and DCB0160, the DCSP empowers users with a seamless, user-friendly interface and state-of-the-art methodologies, including:
+The Digital Clinical Safety Platform (DCSP) is a cutting-edge tool designed to transform the way clinical safety documentation is managed for digital health systems. Built in alignment with clinical safety standards, including DCB0129 and DCB0160, the DCSP empowers users with a seamless, user-friendly interface and state-of-the-art methodologies, including:
 
 - Git-based version control for traceability and accountability.
 - Structured hazard typing to streamline risk management.
