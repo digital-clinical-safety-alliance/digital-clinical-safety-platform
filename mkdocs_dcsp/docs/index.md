@@ -46,10 +46,6 @@ Ready to transform your clinical safety documentation? Visit our [GitHub reposit
 
 Together, we can build safer, more efficient digital health systems.
 
-## Paper in submission
-
-The work covering the development and testing of the DCSP is currently being submitted. Here you can download the [DCSP paper](../assets/dcsp-paper.pdf){:download="DCSP paper"}.
-
 ## Table Of Contents
 
 1. [Source code](code/index.md)
