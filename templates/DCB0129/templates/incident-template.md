@@ -6,7 +6,7 @@ A name for an incident
 1 - Near miss
 2 - Patient harm
 
-### Inicident type (digital)
+### Incident type (digital)
 [multiselect]
 1 - Data loss
 2 - Corrupt data
