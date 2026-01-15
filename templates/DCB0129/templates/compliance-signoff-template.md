@@ -493,7 +493,7 @@ Where this compliance statement is to be supplied to a Health organisation to su
 ## 4.1. Clinical risk analysis process
 [readonly]
 
-### 4.1.1. The Manufacturer MUST implement the clinical risk analysis activities defined in the Clinical Risk Management Plan
+### 4.1.1. The Manufacturer MUST implement the clinical risk analysis activities defined in the Clinical Risk Management Plan
 [readonly]
 
 #### Management system - The Manufacturer has a defined process for clinical risk analysis
@@ -781,7 +781,7 @@ Where this compliance statement is to be supplied to a Health organisation to su
 ### 6.4.1. The Manufacturer MUST ensure that the clinical risks from all identified hazards have been considered and accepted
 [readonly]
 
-#### Project - There is evidence to demonstrate that all hazards have been considered and accepted
+#### Project - There is evidence to demonstrate that all hazards have been considered and accepted
 [select]
 1 - Yes
 2 - No
